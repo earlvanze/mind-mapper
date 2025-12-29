@@ -1,5 +1,5 @@
 /* ========================================================
-   mindmap.js – Full version (move & delete nodes)
+   mindmap.js – Fixed version (proper click vs drag handling)
    ======================================================== */
 
 /* ----------------  1️⃣ GLOBALS & CONSTANTS  ---------------- */
@@ -8,17 +8,19 @@ const ctx      = canvas.getContext('2d');
 const status   = document.getElementById('status');
 
 const ICON_SZ  = 20;
-const TITLE_H  = 50;                 // taller title bar
+const TITLE_H  = 50;
 const CONTENT_PAD = 10;
+const DRAG_THRESHOLD = 5;  // pixels to distinguish click from drag
 
-let mode = 'none';                   // 'none','draw','write','drag','connect'
-let currentNode = null;              // node that was clicked (for delete)
-let curStroke = [];                  // for handwriting
-let curTarget = '';                  // 'title' | 'content'
-let offset = {x:0, y:0};             // drag offset
-let lastTap = 0;                     // double‑tap helper
-let startNode = null;                // node from which a drag started
-let dragThreshold = 5;               // pixels to distinguish click‑drag
+let mode = 'none';         // 'none','draw','write','drag','connect'
+let currentNode = null;    // node that was clicked
+let curStroke = [];        // for handwriting
+let curTarget = '';        // 'title' | 'content'
+let offset = {x:0, y:0};   // drag offset
+let lastTap = 0;           // double‑tap helper
+let startNode = null;      // node from which a drag started
+let dragStartPos = null;   // position where drag started
+let isDragging = false;    // track if we're actually dragging
 
 let nodeIdCounter = 0;
 const nodes = [];
@@ -122,13 +124,13 @@ function render() {
   /* 4.3 Temporary connector while dragging */
   if (mode === 'connect' && startNode) {
     const a = startNode;
-    const b = curDragPos || getPos(lastMoveEvent);
-    if (b) {
+    const mousePos = dragStartPos; // Use the last known position
+    if (mousePos) {
       ctx.strokeStyle = '#777';
       ctx.lineWidth = 2;
       ctx.beginPath();
       ctx.moveTo(a.x + a.w/2, a.y + a.h/2);
-      ctx.lineTo(b.x, b.y);
+      ctx.lineTo(mousePos.x, mousePos.y);
       ctx.stroke();
     }
   }
@@ -150,12 +152,13 @@ function renderStrokeArray(arr, ox, oy, area) {
 canvas.addEventListener('pointerdown', e => {
   const p = getPos(e);
   const node = nodeAt(p);
-  const clickPos = {x: p.x, y: p.y};
 
-  /* ---------- DELETE / SELECTION ---------- */
-  if (node) currentNode = node;      // always remember the clicked node
+  // Always remember the clicked node for selection/delete
+  currentNode = node;
+  dragStartPos = p;
+  isDragging = false;
 
-  /* ---------- PENCIL / CLEAR ICON ---------- */
+  /* ---------- HANDLE ICONS FIRST ---------- */
   if (node) {
     const ico = iconAt(node, p);
     if (ico) {
@@ -179,17 +182,17 @@ canvas.addEventListener('pointerdown', e => {
     }
   }
 
-  /* ---------- MOVE / CONNECT ---------- */
-  if (node && !node.writing && !iconAt(node, p)) {
+  /* ---------- HANDLE NODE CLICK/DRAG ---------- */
+  if (node && !node.writing) {
     startNode = node;
     offset = {x: p.x - node.x, y: p.y - node.y};
-    mode = 'maybeDrag';          // will become 'drag' if we move > threshold
+    mode = 'maybeDrag';  // Will become 'drag' or 'connect' based on movement
     canvas.setPointerCapture(e.pointerId);
     e.preventDefault();
     return;
   }
 
-  /* ---------- NEW NODE DRAW ---------- */
+  /* ---------- NEW NODE DRAW (only if clicking on empty space) ---------- */
   if (!node) {
     mode = 'draw';
     curStroke = [p];
@@ -199,25 +202,26 @@ canvas.addEventListener('pointerdown', e => {
     return;
   }
 
-  /* ---------- HANDWRITING ---------- */
-  if (node) {
-    const ico = iconAt(node, p);
-    if (!ico && node.writing) {
-      mode = 'write';
-      const relY = p.y - node.y;
-      curTarget = relY < (TITLE_H + 10) ? 'title' : 'content';
-      curStroke = [];
-      status.textContent = 'Writing ' + (curTarget === 'title' ? 'title' : 'details');
-      canvas.setPointerCapture(e.pointerId);
-      e.preventDefault();
-      return;
-    }
+  /* ---------- HANDWRITING MODE ---------- */
+  if (node && node.writing) {
+    mode = 'write';
+    const relY = p.y - node.y;
+    curTarget = relY < (TITLE_H + 10) ? 'title' : 'content';
+    curStroke = [];
+    status.textContent = 'Writing ' + (curTarget === 'title' ? 'title' : 'details');
+    canvas.setPointerCapture(e.pointerId);
+    e.preventDefault();
+    return;
   }
 });
 
 canvas.addEventListener('pointermove', e => {
   const p = getPos(e);
-  const lastMoveEvent = e;            // keep for connector preview
+  
+  // Update drag position for connector preview
+  if (mode === 'maybeDrag' || mode === 'connect') {
+    dragStartPos = p;
+  }
 
   if (mode === 'draw') {
     curStroke.push(p);
@@ -238,16 +242,20 @@ canvas.addEventListener('pointermove', e => {
     ctx.lineWidth = 2;
     ctx.stroke();
   } else if (mode === 'maybeDrag' && startNode) {
-    const dx = p.x - startNode.x - offset.x;
-    const dy = p.y - startNode.y - offset.y;
-    if (Math.hypot(dx, dy) > dragThreshold) {
-      mode = 'drag';
-      currentNode = startNode;   // keep selection for delete
+    // Check if we've moved enough to start dragging
+    const dx = p.x - dragStartPos.x;
+    const dy = p.y - dragStartPos.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    
+    if (distance > DRAG_THRESHOLD) {
+      mode = 'connect';  // Start connector mode
+      isDragging = true;
+      render(); // Re-render to show connector line
     }
-  } else if (mode === 'drag' && currentNode) {
-    currentNode.x = p.x - offset.x;
-    currentNode.y = p.y - offset.y;
-    render();
+  } else if (mode === 'connect' && startNode) {
+    // Update connector line position
+    dragStartPos = p;
+    render(); // Re-render to update connector line
   }
 });
 
@@ -270,35 +278,33 @@ canvas.addEventListener('pointerup', e => {
     curStroke = [];
     status.textContent = 'Handwriting saved';
   }
-  /* ---------- MOVE OR CONNECT ---------- */
-  else if (mode === 'drag' && startNode) {
-    // If dragged onto a different node → create connector
+  /* ---------- CONNECT OR SELECT NODE ---------- */
+  else if (mode === 'maybeDrag' && startNode) {
+    // This was just a click - select the node
+    currentNode = startNode;
+    status.textContent = 'Node selected';
+  }
+  /* ---------- CREATE CONNECTOR ---------- */
+  else if (mode === 'connect' && startNode) {
+    // If released over a different node, create connector
     if (endNode && endNode !== startNode) {
       edges.push({from: startNode, to: endNode});
       status.textContent = 'Connector added';
-    } else {
-      status.textContent = 'Node moved';
+    } else if (!endNode) {
+      // Released on empty space - create new node and connect
+      const newNode = addNode(p.x, p.y, '');
+      edges.push({from: startNode, to: newNode});
+      status.textContent = 'Node created and connected';
     }
-  }
-  /* ---------- CONNECT (dragged to a node) ---------- */
-  else if (mode === 'maybeDrag' && startNode && endNode && endNode !== startNode) {
-    edges.push({from: startNode, to: endNode});
-    status.textContent = 'Connector added';
-  }
-  /* ---------- DELETE ---------- */
-  else if (mode === 'none' && endNode) {
-    // nothing special – just select the node
+    render();
   }
 
   /* ---------- RESET ---------- */
   mode = 'none';
-  currentNode = null;
-  curStroke = [];
-  curTarget = '';
-  offset = {x:0, y:0};
   startNode = null;
-  lastTap = 0;
-  canvas.releasePointerCapture(e.pointerId);
+  isDragging = false;
+  dragStartPos = null;
+  canvas.releasePointerCapture && canvas.releasePointerCapture(e.pointerId);
   e.preventDefault();
 });
 
@@ -314,13 +320,21 @@ resize();
 window.addEventListener('keydown', e => {
   if (!currentNode) return;
   if (e.key === 'Delete' || e.key === 'Backspace') {
+    const nodeId = currentNode.id;
+    
     // 1️⃣ remove the node
-    nodes.splice(nodes.findIndex(n => n.id === currentNode.id), 1);
+    const nodeIndex = nodes.findIndex(n => n.id === nodeId);
+    if (nodeIndex !== -1) {
+      nodes.splice(nodeIndex, 1);
+    }
+    
     // 2️⃣ remove any edges that involve it
     for (let i = edges.length - 1; i >= 0; i--) {
-      if (edges[i].from.id === currentNode.id || edges[i].to.id === currentNode.id)
+      if (edges[i].from.id === nodeId || edges[i].to.id === nodeId) {
         edges.splice(i, 1);
+      }
     }
+    
     currentNode = null;
     render();
     status.textContent = 'Node deleted';
