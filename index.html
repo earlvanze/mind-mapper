@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mind Map Task Manager</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/handwriting.js@1.0.0/handwriting.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            touch-action: none;
+            user-select: none;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #1a2a6c);
+            color: #fff;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            z-index: 10;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo i {
+            font-size: 28px;
+            color: #4dabf7;
+        }
+
+        .logo h1 {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(to right, #4dabf7, #3bc9db);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+        }
+
+        .btn {
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #4dabf7, #3bc9db);
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(45deg, #339af0, #22b8cf);
+        }
+
+        .container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 280px;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            overflow-y: auto;
+        }
+
+        .panel-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .panel-title i {
+            color: #4dabf7;
+        }
+
+        .projects {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .project {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .project:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateX(5px);
+        }
+
+        .project.active {
+            background: linear-gradient(45deg, rgba(77, 171, 247, 0.3), rgba(59, 201, 219, 0.3));
+            border: 1px solid #4dabf7;
+        }
+
+        .project h3 {
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .project p {
+            font-size: 13px;
+            opacity: 0.8;
+        }
+
+        .canvas-container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        #mindmap-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            cursor: crosshair;
+        }
+
+        .node {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            padding: 15px;
+            min-width: 150px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            cursor: move;
+            border: 2px solid #4dabf7;
+            transition: all 0.3s ease;
+            transform-origin: center;
+        }
+
+        .node:hover {
+            transform: scale(1.03);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .node-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .node-title {
+            font-weight: 700;
+            color: #1a2a6c;
+            font-size: 16px;
+        }
+
+        .node-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .node-action {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .node-action:hover {
+            background: #4dabf7;
+            color: white;
+        }
+
+        .node-content {
+            color: #333;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .node-children {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px dashed rgba(0, 0, 0, 0.1);
+        }
+
+        .connection {
+            position: absolute;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .drawing-tools {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 12px 20px;
+            border-radius: 30px;
+            backdrop-filter: blur(5px);
+        }
+
+        .tool {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .tool.active {
+            background: linear-gradient(45deg, #4dabf7, #3bc9db);
+            transform: scale(1.1);
+        }
+
+        .tool:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .status-bar {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-size: 14px;
+            backdrop-filter: blur(5px);
+        }
+
+        .instructions {
+            position: absolute;
+            bottom: 90px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border-radius: 12px;
+            max-width: 300px;
+            font-size: 14px;
+            backdrop-filter: blur(5px);
+            line-height: 1.6;
+        }
+
+        .instructions h3 {
+            margin-bottom: 10px;
+            color: #4dabf7;
+        }
+
+        .instructions ul {
+            padding-left: 20px;
+        }
+
+        .instructions li {
+            margin-bottom: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 220px;
+            }
+            
+            .logo h1 {
+                font-size: 20px;
+            }
+            
+            .btn {
+                padding: 8px 15px;
+                font-size: 14px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .sidebar {
+                width: 180px;
+            }
+            
+            .logo h1 {
+                font-size: 18px;
+            }
+            
+            .btn span {
+                display: none;
+            }
+            
+            .btn i {
+                margin-right: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">
+            <i class="fas fa-brain"></i>
+            <h1>Mind Map Task Manager</h1>
+        </div>
+        <div class="controls">
+            <button class="btn" id="clear-btn">
+                <i class="fas fa-trash-alt"></i>
+                <span>Clear Canvas</span>
+            </button>
+            <button class="btn btn-primary" id="export-btn">
+                <i class="fas fa-download"></i>
+                <span>Export</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="sidebar">
+            <div>
+                <h2 class="panel-title"><i class="fas fa-folder"></i> Projects</h2>
+                <div class="projects">
+                    <div class="project active">
+                        <h3>Website Redesign</h3>
+                        <p>32 tasks • 5 in progress</p>
+                    </div>
+                    <div class="project">
+                        <h3>Mobile App Launch</h3>
+                        <p>24 tasks • 12 in progress</p>
+                    </div>
+                    <div class="project">
+                        <h3>Marketing Campaign</h3>
+                        <p>18 tasks • 7 in progress</p>
+                    </div>
+                    <div class="project">
+                        <h3>Product Development</h3>
+                        <p>45 tasks • 23 in progress</p>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <h2 class="panel-title"><i class="fas fa-tasks"></i> Recent Tasks</h2>
+                <div class="projects">
+                    <div class="project">
+                        <h3>Design Homepage</h3>
+                        <p>Due: Tomorrow</p>
+                    </div>
+                    <div class="project">
+                        <h3>API Integration</h3>
+                        <p>Due: Next Week</p>
+                    </div>
+                    <div class="project">
+                        <h3>User Testing</h3>
+                        <p>Due: In 3 Days</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="canvas-container">
+            <canvas id="mindmap-canvas"></canvas>
+            
+            <div class="status-bar">
+                <i class="fas fa-pen"></i> Drawing Mode: <span id="mode-status">Create Nodes</span>
+            </div>
+            
+            <div class="instructions">
+                <h3>How to Use:</h3>
+                <ul>
+                    <li><strong>Draw</strong> to create new nodes</li>
+                    <li><strong>Double-tap</strong> a node to show/hide children</li>
+                    <li><strong>Drag nodes</strong> to reorganize</li>
+                    <li><strong>Connect nodes</strong> by dragging from one to another</li>
+                    <li><strong>Switch tools</strong> using the bottom toolbar</li>
+                </ul>
+            </div>
+            
+            <div class="drawing-tools">
+                <div class="tool active" id="create-tool" title="Create Nodes">
+                    <i class="fas fa-plus"></i>
+                </div>
+                <div class="tool" id="connect-tool" title="Connect Nodes">
+                    <i class="fas fa-link"></i>
+                </div>
+                <div class="tool" id="move-tool" title="Move Canvas">
+                    <i class="fas fa-arrows-alt"></i>
+                </div>
+                <div class="tool" id="erase-tool" title="Erase">
+                    <i class="fas fa-eraser"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Canvas setup
+            const canvas = document.getElementById('mindmap-canvas');
+            const ctx = canvas.getContext('2d');
+            const container = document.querySelector('.canvas-container');
+            
+            // Set canvas size to match container
+            function resizeCanvas() {
+                canvas.width = container.clientWidth;
+                canvas.height = container.clientHeight;
+                drawMindMap();
+            }
+            
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+            
+            // Mind map data structure
+            let nodes = [
+                {
+                    id: 1,
+                    x: canvas.width / 2 - 75,
+                    y: 100,
+                    width: 150,
+                    height: 100,
+                    title: "Project Goals",
+                    content: "Define key objectives",
+                    children: [2, 3],
+                    visible: true
+                },
+                {
+                    id: 2,
+                    x: canvas.width / 2 - 200,
+                    y: 250,
+                    width: 150,
+                    height: 100,
+                    title: "Research",
+                    content: "Market analysis",
+                    children: [4],
+                    visible: true
+                },
+                {
+                    id: 3,
+                    x: canvas.width / 2 + 50,
+                    y: 250,
+                    width: 150,
+                    height: 100,
+                    title: "Design",
+                    content: "UI/UX planning",
+                    children: [5],
+                    visible: true
+                },
+                {
+                    id: 4,
+                    x: canvas.width / 2 - 275,
+                    y: 400,
+                    width: 150,
+                    height: 100,
+                    title: "User Surveys",
+                    content: "Collect feedback",
+                    children: [],
+                    visible: true
+                },
+                {
+                    id: 5,
+                    x: canvas.width / 2 + 125,
+                    y: 400,
+                    width: 150,
+                    height: 100,
+                    title: "Prototypes",
+                    content: "Create mockups",
+                    children: [],
+                    visible: true
+                }
+            ];
+            
+            let connections = [
+                { from: 1, to: 2 },
+                { from: 1, to: 3 },
+                { from: 2, to: 4 },
+                { from: 3, to: 5 }
+            ];
+            
+            // Drawing state
+            let currentTool = 'create';
+            let isDrawing = false;
+            let startX, startY;
+            let selectedNode = null;
+            let offsetX, offsetY;
+            let handwritingPoints = [];
+            let currentStroke = [];
+            
+            // Set active tool
+            document.querySelectorAll('.tool').forEach(tool => {
+                tool.addEventListener('click', function() {
+                    document.querySelectorAll('.tool').forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    currentTool = this.id.replace('-tool', '');
+                    document.getElementById('mode-status').textContent = 
+                        currentTool === 'create' ? 'Create Nodes' : 
+                        currentTool === 'connect' ? 'Connect Nodes' : 
+                        currentTool === 'move' ? 'Move Canvas' : 'Erase';
+                });
+            });
+            
+            // Clear canvas button
+            document.getElementById('clear-btn').addEventListener('click', function() {
+                if (confirm('Are you sure you want to clear the canvas?')) {
+                    nodes = [];
+                    connections = [];
+                    drawMindMap();
+                }
+            });
+            
+            // Export button
+            document.getElementById('export-btn').addEventListener('click', function() {
+                alert('Export functionality would save your mind map as an image or PDF');
+            });
+            
+            // Touch event handlers
+            canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+            canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
+            canvas.addEventListener('touchend', handleTouchEnd, { passive: false });
+            
+            // Mouse event handlers for desktop testing
+            canvas.addEventListener('mousedown', handleMouseDown);
+            canvas.addEventListener('mousemove', handleMouseMove);
+            canvas.addEventListener('mouseup', handleMouseUp);
+            canvas.addEventListener('mouseleave', handleMouseUp);
+            
+            // Double-click to toggle children visibility
+            canvas.addEventListener('dblclick', function(e) {
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                for (let i = nodes.length - 1; i >= 0; i--) {
+                    const node = nodes[i];
+                    if (x > node.x && x < node.x + node.width && 
+                        y > node.y && y < node.y + node.height) {
+                        toggleChildren(node.id);
+                        break;
+                    }
+                }
+            });
+            
+            // Handle touch start
+            function handleTouchStart(e) {
+                e.preventDefault();
+                const touch = e.touches[0];
+                const rect = canvas.getBoundingClientRect();
+                const x = touch.clientX - rect.left;
+                const y = touch.clientY - rect.top;
+                
+                startX = x;
+                startY = y;
+                
+                if (currentTool === 'create') {
+                    isDrawing = true;
+                    currentStroke = [{x: x, y: y}];
+                    handwritingPoints = [[x, y]];
+                } else if (currentTool === 'move') {
+                    isDrawing = true;
+                } else if (currentTool === 'connect') {
+                    // Find node at start position
+                    for (let i = nodes.length - 1; i >= 0; i--) {
+                        const node = nodes[i];
+                        if (x > node.x && x < node.x + node.width && 
+                            y > node.y && y < node.y + node.height) {
+                            selectedNode = node;
+                            isDrawing = true;
+                            break;
+                        }
+                    }
+                } else if (currentTool === 'erase') {
+                    // Find node at start position
+                    for (let i = nodes.length - 1; i >= 0; i--) {
+                        const node = nodes[i];
+                        if (x > node.x && x < node.x + node.width && 
+                            y > node.y && y < node.y + node.height) {
+                            nodes.splice(i, 1);
+                            drawMindMap();
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            // Handle touch move
+            function handleTouchMove(e) {
+                e.preventDefault();
+                const touch = e.touches[0];
+                const rect = canvas.getBoundingClientRect();
+                const x = touch.clientX - rect.left;
+                const y = touch.clientY - rect.top;
+                
+                if (currentTool === 'create' && isDrawing) {
+                    currentStroke.push({x: x, y: y});
+                    handwritingPoints.push([x, y]);
+                    
+                    // Draw current stroke
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    drawMindMap();
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(currentStroke[0].x, currentStroke[0].y);
+                    for (let i = 1; i < currentStroke.length; i++) {
+                        ctx.lineTo(currentStroke[i].x, currentStroke[i].y);
+                    }
+                    ctx.strokeStyle = '#4dabf7';
+                    ctx.lineWidth = 3;
+                    ctx.lineCap = 'round';
+                    ctx.lineJoin = 'round';
+                    ctx.stroke();
+                } else if (currentTool === 'move' && isDrawing) {
+                    // Panning functionality would go here
+                } else if (currentTool === 'connect' && selectedNode && isDrawing) {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    drawMindMap();
+                    
+                    // Draw temporary connection line
+                    ctx.beginPath();
+                    ctx.moveTo(selectedNode.x + selectedNode.width/2, selectedNode.y + selectedNode.height/2);
+                    ctx.lineTo(x, y);
+                    ctx.strokeStyle = '#ff6b6b';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                }
+            }
+            
+            // Handle touch end
+            function handleTouchEnd(e) {
+                if (currentTool === 'create' && isDrawing) {
+                    // Convert handwriting to text
+                    const text = convertHandwritingToText(handwritingPoints);
+                    createNode(startX, startY, text);
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    drawMindMap();
+                } else if (currentTool === 'connect' && selectedNode && isDrawing) {
+                    const rect = canvas.getBoundingClientRect();
+                    const touch = e.changedTouches[0];
+                    const endX = touch.clientX - rect.left;
+                    const endY = touch.clientY - rect.top;
+                    
+                    // Find node at end position
+                    for (let i = nodes.length - 1; i >= 0; i--) {
+                        const node = nodes[i];
+                        if (endX > node.x && endX < node.x + node.width && 
+                            endY > node.y && endY < node.y + node.height) {
+                            // Create connection
+                            if (node.id !== selectedNode.id) {
+                                connections.push({
+                                    from: selectedNode.id,
+                                    to: node.id
+                                });
+                                drawMindMap();
+                            }
+                            break;
+                        }
+                    }
+                }
+                
+                isDrawing = false;
+                selectedNode = null;
+                currentStroke = [];
+                handwritingPoints = [];
+            }
+            
+            // Mouse event handlers (for desktop testing)
+            function handleMouseDown(e) {
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                startX = x;
+                startY = y;
+                
+                if (currentTool === 'create') {
+                    isDrawing = true;
+                    currentStroke = [{x: x, y: y}];
+                    handwritingPoints = [[x, y]];
+                } else if (currentTool === 'connect') {
+                    // Find node at start position
+                    for (let i = nodes.length - 1; i >= 0; i--) {
+                        const node = nodes[i];
+                        if (x > node.x && x < node.x + node.width && 
+                            y > node.y && y < node.y + node.height) {
+                            selectedNode = node;
+                            isDrawing = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            function handleMouseMove(e) {
+                if (!isDrawing) return;
+                
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                if (currentTool === 'create') {
+                    currentStroke.push({x: x, y: y});
+                    handwritingPoints.push([x, y]);
+                    
+                    // Draw current stroke
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    drawMindMap();
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(currentStroke[0].x, currentStroke[0].y);
+                    for (let i = 1; i < currentStroke.length; i++) {
+                        ctx.lineTo(currentStroke[i].x, currentStroke[i].y);
+                    }
+                    ctx.strokeStyle = '#4dabf7';
+                    ctx.lineWidth = 3;
+                    ctx.lineCap = 'round';
+                    ctx.lineJoin = 'round';
+                    ctx.stroke();
+                } else if (currentTool === 'connect' && selectedNode) {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    drawMindMap();
+                    
+                    // Draw temporary connection line
+                    ctx.beginPath();
+                    ctx.moveTo(selectedNode.x + selectedNode.width/2, selectedNode.y + selectedNode.height/2);
+                    ctx.lineTo(x, y);
+                    ctx.strokeStyle = '#ff6b6b';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                }
+            }
+            
+            function handleMouseUp(e) {
+                if (currentTool === 'create' && isDrawing) {
+                    // Convert handwriting to text
+                    const text = convertHandwritingToText(handwritingPoints);
+                    createNode(startX, startY, text);
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    drawMindMap();
+                } else if (currentTool === 'connect' && selectedNode && isDrawing) {
+                    const rect = canvas.getBoundingClientRect();
+                    const endX = e.clientX - rect.left;
+                    const endY = e.clientY - rect.top;
+                    
+                    // Find node at end position
+                    for (let i = nodes.length - 1; i >= 0; i--) {
+                        const node = nodes[i];
+                        if (endX > node.x && endX < node.x + node.width && 
+                            endY > node.y && endY < node.y + node.height) {
+                            // Create connection
+                            if (node.id !== selectedNode.id) {
+                                connections.push({
+                                    from: selectedNode.id,
+                                    to: node.id
+                                });
+                                drawMindMap();
+                            }
+                            break;
+                        }
+                    }
+                }
+                
+                isDrawing = false;
+                selectedNode = null;
+                currentStroke = [];
+                handwritingPoints = [];
+            }
+            
+            // Simulate handwriting recognition
+            function convertHandwritingToText(points) {
+                // In a real app, this would use handwriting.js
+                // For demo purposes, we'll use a simple heuristic
+                if (points.length < 5) return "Task";
+                
+                // Calculate bounding box
+                let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+                for (const point of points) {
+                    minX = Math.min(minX, point[0]);
+                    minY = Math.min(minY, point[1]);
+                    maxX = Math.max(maxX, point[0]);
+                    maxY = Math.max(maxY, point[1]);
+                }
+                
+                const width = maxX - minX;
+                const height = maxY - minY;
+                
+                // Simple heuristic to generate text based on drawing characteristics
+                if (width > height * 2) {
+                    return "New Project";
+                } else if (height > width * 2) {
+                    return "Important";
+                } else if (width > 100 && height > 50) {
+                    return "Research Task";
+                } else {
+                    const sampleTexts = [
+                        "Design", "Planning", "Development", "Testing", 
+                        "Review", "Launch", "Marketing", "Feedback"
+                    ];
+                    return sampleTexts[Math.floor(Math.random() * sampleTexts.length)];
+                }
+            }
+            
+            // Create a new node
+            function createNode(x, y, text) {
+                const newNode = {
+                    id: Date.now(),
+                    x: x - 75,
+                    y: y - 50,
+                    width: 150,
+                    height: 100,
+                    title: text,
+                    content: "Add details here",
+                    children: [],
+                    visible: true
+                };
+                
+                nodes.push(newNode);
+            }
+            
+            // Toggle children visibility
+            function toggleChildren(nodeId) {
+                const node = nodes.find(n => n.id === nodeId);
+                if (!node) return;
+                
+                node.visible = !node.visible;
+                
+                // Toggle all descendants
+                function toggleDescendants(id, visible) {
+                    const children = nodes.filter(n => n.children.includes(id));
+                    children.forEach(child => {
+                        child.visible = visible;
+                        toggleDescendants(child.id, visible);
+                    });
+                }
+                
+                toggleDescendants(nodeId, node.visible);
+                drawMindMap();
+            }
+            
+            // Draw the entire mind map
+            function drawMindMap() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                // Draw connections
+                connections.forEach(conn => {
+                    const fromNode = nodes.find(n => n.id === conn.from);
+                    const toNode = nodes.find(n => n.id === conn.to);
+                    
+                    if (fromNode && toNode && fromNode.visible && toNode.visible) {
+                        ctx.beginPath();
+                        ctx.moveTo(fromNode.x + fromNode.width/2, fromNode.y + fromNode.height/2);
+                        ctx.lineTo(toNode.x + toNode.width/2, toNode.y + toNode.height/2);
+                        ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+                        ctx.lineWidth = 2;
+                        ctx.stroke();
+                    }
+                });
+                
+                // Draw nodes
+                nodes.forEach(node => {
+                    if (!node.visible) return;
+                    
+                    // Draw node background
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+                    ctx.fillRect(node.x, node.y, node.width, node.height);
+                    
+                    // Draw node border
+                    ctx.strokeStyle = '#4dabf7';
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(node.x, node.y, node.width, node.height);
+                    
+                    // Draw node header
+                    ctx.fillStyle = '#1a2a6c';
+                    ctx.font = 'bold 16px Arial';
+                    ctx.fillText(node.title, node.x + 10, node.y + 25);
+                    
+                    // Draw node content
+                    ctx.fillStyle = '#333';
+                    ctx.font = '14px Arial';
+                    wrapText(ctx, node.content, node.x + 10, node.y + 50, node.width - 20, 20);
+                });
+            }
+            
+            // Helper function to wrap text
+            function wrapText(context, text, x, y, maxWidth, lineHeight) {
+                const words = text.split(' ');
+                let line = '';
+                let currentY = y;
+                
+                for (let n = 0; n < words.length; n++) {
+                    const testLine = line + words[n] + ' ';
+                    const metrics = context.measureText(testLine);
+                    const testWidth = metrics.width;
+                    
+                    if (testWidth > maxWidth && n > 0) {
+                        context.fillText(line, x, currentY);
+                        line = words[n] + ' ';
+                        currentY += lineHeight;
+                    } else {
+                        line = testLine;
+                    }
+                }
+                context.fillText(line, x, currentY);
+            }
+            
+            // Initialize the mind map
+            drawMindMap();
+        });
+    </script>
+</body>
+</html>
