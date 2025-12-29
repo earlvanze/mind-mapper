@@ -1,12 +1,14 @@
-/* =========================
+/* =========================================================
    1️⃣ GLOBALS & CONSTANTS
-   ========================= */
+   ========================================================= */
 const canvas   = document.getElementById('canvas');
 const ctx      = canvas.getContext('2d');
 const status   = document.getElementById('status');
 
 const ICON_SZ  = 20;
-const TITLE_H  = 30;
+
+// ===> Increased title bar height (was 30)
+const TITLE_H  = 50;          // <-- make the title box taller
 const CONTENT_PAD = 10;
 
 let mode = 'none';
@@ -14,16 +16,16 @@ let currentNode = null;
 let curStroke = [];   // points relative to the node (except when drawing a new node)
 let curTarget = '';   // 'title' | 'content'
 let offset = {x:0, y:0};
-let lastTap = 0;      // <-- NEW: double‑tap helper
+let lastTap = 0;      // double‑tap helper
 
-/* =========================
+/* =========================================================
    2️⃣ DATA MODEL
-   ========================= */
+   ========================================================= */
 const nodes = [];
 
-function addNode(x, y, title = 'Untitled'){
+function addNode(x, y, title = ''){   // <-- default title is empty string
   nodes.push({
-    x, y, w:180, h:120,
+    x, y, w:250, h:200,
     title,
     visible:true,
     writing:false,
@@ -32,9 +34,9 @@ function addNode(x, y, title = 'Untitled'){
   });
 }
 
-/* =========================
+/* =========================================================
    3️⃣ HELPER FUNCTIONS
-   ========================= */
+   ========================================================= */
 function getPos(e){
   const rect = canvas.getBoundingClientRect();
   return {x:e.clientX-rect.left, y:e.clientY-rect.top};
@@ -60,9 +62,9 @@ function iconAt(node,p){
   return null;
 }
 
-/* =========================
+/* =========================================================
    4️⃣ RENDERING
-   ========================= */
+   ========================================================= */
 function render(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
   nodes.forEach(n=>{
@@ -116,9 +118,9 @@ function renderStrokeArray(arr, ox, oy, area){
   });
 }
 
-/* =========================
+/* =========================================================
    5️⃣ POINTER HANDLERS
-   ========================= */
+   ========================================================= */
 canvas.addEventListener('pointerdown', e=>{
   const p = getPos(e);
   const node = nodeAt(p);
@@ -192,7 +194,8 @@ canvas.addEventListener('pointermove', e=>{
 
 canvas.addEventListener('pointerup', e=>{
   if(mode==='draw'){
-    const title = curStroke.map(pt=>pt.x).join('').trim() || 'Untitled';
+    // <=== Use a short default title instead of the X‑coords
+    const title = 'Untitled';     // <-- this is what you’ll see in the title bar
     addNode(e.clientX, e.clientY, title);
     curStroke=[];
     render(); status.textContent='Node created';
@@ -222,9 +225,9 @@ canvas.addEventListener('pointerup', e=>{
   e.preventDefault();
 });
 
-/* =========================
+/* =========================================================
    6️⃣ CANVAS RESIZE
-   ========================= */
+   ========================================================= */
 function resize(){
   canvas.width = canvas.clientWidth;
   canvas.height = canvas.clientHeight;
@@ -232,8 +235,9 @@ function resize(){
 window.addEventListener('resize', resize);
 resize();
 
-/* =========================
+/* =========================================================
    7️⃣ ONE DEMO NODE
-   ========================= */
-addNode(window.innerWidth/2, window.innerHeight/2, 'Brainstorm');
+   ========================================================= */
+// Create a *blank* title node in the centre
+addNode(window.innerWidth/2, window.innerHeight/2, '');
 render();
