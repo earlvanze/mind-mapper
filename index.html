@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Mind Map Task Manager</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/handwriting.js@1.0.0/handwriting.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -535,7 +534,6 @@
             let startX, startY;
             let selectedNode = null;
             let offsetX, offsetY;
-            let handwritingPoints = [];
             let currentStroke = [];
             
             // Set active tool
@@ -606,7 +604,6 @@
                 if (currentTool === 'create') {
                     isDrawing = true;
                     currentStroke = [{x: x, y: y}];
-                    handwritingPoints = [[x, y]];
                 } else if (currentTool === 'move') {
                     isDrawing = true;
                 } else if (currentTool === 'connect') {
@@ -644,7 +641,6 @@
                 
                 if (currentTool === 'create' && isDrawing) {
                     currentStroke.push({x: x, y: y});
-                    handwritingPoints.push([x, y]);
                     
                     // Draw current stroke
                     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -680,7 +676,7 @@
             function handleTouchEnd(e) {
                 if (currentTool === 'create' && isDrawing) {
                     // Convert handwriting to text
-                    const text = convertHandwritingToText(handwritingPoints);
+                    const text = convertHandwritingToText(currentStroke);
                     createNode(startX, startY, text);
                     ctx.clearRect(0, 0, canvas.width, canvas.height);
                     drawMindMap();
@@ -711,7 +707,6 @@
                 isDrawing = false;
                 selectedNode = null;
                 currentStroke = [];
-                handwritingPoints = [];
             }
             
             // Mouse event handlers (for desktop testing)
@@ -726,7 +721,6 @@
                 if (currentTool === 'create') {
                     isDrawing = true;
                     currentStroke = [{x: x, y: y}];
-                    handwritingPoints = [[x, y]];
                 } else if (currentTool === 'connect') {
                     // Find node at start position
                     for (let i = nodes.length - 1; i >= 0; i--) {
@@ -750,7 +744,6 @@
                 
                 if (currentTool === 'create') {
                     currentStroke.push({x: x, y: y});
-                    handwritingPoints.push([x, y]);
                     
                     // Draw current stroke
                     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -783,7 +776,7 @@
             function handleMouseUp(e) {
                 if (currentTool === 'create' && isDrawing) {
                     // Convert handwriting to text
-                    const text = convertHandwritingToText(handwritingPoints);
+                    const text = convertHandwritingToText(currentStroke);
                     createNode(startX, startY, text);
                     ctx.clearRect(0, 0, canvas.width, canvas.height);
                     drawMindMap();
@@ -813,22 +806,19 @@
                 isDrawing = false;
                 selectedNode = null;
                 currentStroke = [];
-                handwritingPoints = [];
             }
             
-            // Simulate handwriting recognition
-            function convertHandwritingToText(points) {
-                // In a real app, this would use handwriting.js
-                // For demo purposes, we'll use a simple heuristic
-                if (points.length < 5) return "Task";
+            // Convert handwriting to text (simplified algorithm)
+            function convertHandwritingToText(stroke) {
+                if (stroke.length < 3) return "Task";
                 
                 // Calculate bounding box
                 let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-                for (const point of points) {
-                    minX = Math.min(minX, point[0]);
-                    minY = Math.min(minY, point[1]);
-                    maxX = Math.max(maxX, point[0]);
-                    maxY = Math.max(maxY, point[1]);
+                for (const point of stroke) {
+                    minX = Math.min(minX, point.x);
+                    minY = Math.min(minY, point.y);
+                    maxX = Math.max(maxX, point.x);
+                    maxY = Math.max(maxY, point.y);
                 }
                 
                 const width = maxX - minX;
