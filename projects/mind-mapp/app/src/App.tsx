@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useMindMapStore } from './store/useMindMapStore';
 import Node from './components/Node';
+import Edges from './components/Edges';
 import { useKeyboard } from './hooks/useKeyboard';
 import { usePanZoom } from './hooks/usePanZoom';
 import { exportPng } from './utils/exportPng';
@@ -58,6 +59,7 @@ export default function App() {
         </div>
       </div>
       <div className="canvas">
+        <Edges nodes={nodes} />
         {Object.values(nodes).map(n => (
           <Node key={n.id} node={n} />
         ))}
