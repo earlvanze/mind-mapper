@@ -1,11 +1,18 @@
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { Node as NodeType, useMindMapStore } from '../store/useMindMapStore';
 
 type Props = { node: NodeType };
 
 export default function Node({ node }: Props) {
-  const { focusId, setFocus, setText, moveNode } = useMindMapStore();
+  const { focusId, editingId, setFocus, startEditing, setText, moveNode } = useMindMapStore();
   const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (editingId === node.id) {
+      ref.current?.focus();
+      document.execCommand('selectAll', false);
+    }
+  }, [editingId, node.id]);
 
   const onDragStart = (e: React.MouseEvent) => {
     const startX = e.clientX;
@@ -34,7 +41,8 @@ export default function Node({ node }: Props) {
         onDragStart(e);
       }}
       onClick={() => setFocus(node.id)}
-      contentEditable
+      onDoubleClick={() => startEditing(node.id)}
+      contentEditable={editingId === node.id}
       suppressContentEditableWarning
       onKeyDown={(e) => {
         if (e.key === 'Enter') {

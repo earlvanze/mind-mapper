@@ -12,9 +12,11 @@ export type Node = {
 type MindMapState = {
   nodes: Record<string, Node>;
   focusId: string;
+  editingId?: string;
   setText: (id: string, text: string) => void;
   setFocus: (id: string) => void;
   moveNode: (id: string, x: number, y: number) => void;
+  startEditing: (id: string) => void;
   addSibling: (id: string) => void;
   addChild: (id: string) => void;
   importState: (nodes: Record<string, Node>) => void;
@@ -30,6 +32,7 @@ const defaultState = {
     [rootId]: { id: rootId, text: 'Root', x: 320, y: 180, parentId: null, children: [] },
   },
   focusId: rootId,
+  editingId: undefined,
 };
 
 const STORAGE_KEY = 'mindmapp.v0.1.map';
@@ -51,7 +54,8 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
   setText: (id, text) => set(state => ({
     nodes: { ...state.nodes, [id]: { ...state.nodes[id], text } }
   })),
-  setFocus: (id) => set({ focusId: id }),
+  setFocus: (id) => set({ focusId: id, editingId: undefined }),
+  startEditing: (id) => set({ editingId: id }),
   moveNode: (id, x, y) => set(state => ({
     nodes: { ...state.nodes, [id]: { ...state.nodes[id], x, y } }
   })),

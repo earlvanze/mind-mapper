@@ -4,10 +4,11 @@ import { useMindMapStore } from '../store/useMindMapStore';
 type Props = { onSearch: () => void; onFit: () => void; onHelp: () => void };
 
 export function useKeyboard({ onSearch, onFit, onHelp }: Props) {
-  const { focusId, addSibling, addChild, deleteNode, moveFocus, setFocus, autoLayoutChildren } = useMindMapStore();
+  const { focusId, addSibling, addChild, deleteNode, moveFocus, setFocus, autoLayoutChildren, editingId, startEditing } = useMindMapStore();
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      if (editingId) return;
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
         onSearch();
@@ -17,6 +18,9 @@ export function useKeyboard({ onSearch, onFit, onHelp }: Props) {
       }
       if (e.key.toLowerCase() === 'l' && !e.metaKey && !e.ctrlKey) {
         autoLayoutChildren(focusId);
+      }
+      if (e.key.toLowerCase() === 'e') {
+        startEditing(focusId);
       }
       if (e.key === '?') {
         onHelp();
