@@ -20,6 +20,7 @@ type MindMapState = {
   importState: (nodes: Record<string, Node>) => void;
   deleteNode: (id: string) => void;
   moveFocus: (direction: 'left' | 'right' | 'up' | 'down') => void;
+  autoLayoutChildren: (parentId: string) => void;
 };
 
 const rootId = 'n_root';
@@ -130,6 +131,22 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
     if (!scored.length) return;
     scored.sort((a, b) => a.score - b.score);
     set({ focusId: scored[0].id });
+  },
+  autoLayoutChildren: (parentId) => {
+    const state = get();
+    const parent = state.nodes[parentId];
+    if (!parent) return;
+    const children = parent.children.map(id => state.nodes[id]).filter(Boolean);
+    if (!children.length) return;
+    const startY = parent.y - (children.length - 1) * 40;
+    children.forEach((child, i) => {
+      set(s => ({
+        nodes: {
+          ...s.nodes,
+          [child.id]: { ...s.nodes[child.id], x: parent.x + 180, y: startY + i * 80 }
+        }
+      }));
+    });
   }
 }));
 
