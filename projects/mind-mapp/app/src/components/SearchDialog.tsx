@@ -15,6 +15,15 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
     return Object.values(nodes).filter(n => n.text.toLowerCase().includes(q));
   }, [nodes, query]);
 
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [open, onClose]);
+
   if (!open) return null;
 
   return (

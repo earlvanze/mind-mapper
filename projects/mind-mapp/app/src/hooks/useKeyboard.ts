@@ -4,7 +4,7 @@ import { useMindMapStore } from '../store/useMindMapStore';
 type Props = { onSearch: () => void; onFit: () => void };
 
 export function useKeyboard({ onSearch, onFit }: Props) {
-  const { focusId, addSibling, addChild, deleteNode, moveFocus } = useMindMapStore();
+  const { focusId, addSibling, addChild, deleteNode, moveFocus, setFocus } = useMindMapStore();
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -42,6 +42,9 @@ export function useKeyboard({ onSearch, onFit }: Props) {
       if (e.key === 'ArrowDown') {
         e.preventDefault();
         moveFocus('down');
+      }
+      if (e.key === 'Escape') {
+        setFocus('n_root');
       }
     };
     window.addEventListener('keydown', onKey);
