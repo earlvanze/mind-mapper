@@ -19,6 +19,7 @@ type MindMapState = {
   addChild: (id: string) => void;
   importState: (nodes: Record<string, Node>) => void;
   deleteNode: (id: string) => void;
+  moveFocus: (direction: 'left' | 'right' | 'up' | 'down') => void;
 };
 
 const rootId = 'n_root';
@@ -105,6 +106,30 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
       }
     }
     set({ nodes: newNodes, focusId: rootId });
+  },
+  moveFocus: (direction) => {
+    const state = get();
+    const current = state.nodes[state.focusId];
+    if (!current) return;
+    const candidates = Object.values(state.nodes).filter(n => n.id !== current.id);
+    const scored = candidates
+      .map(n => {
+        const dx = n.x - current.x;
+        const dy = n.y - current.y;
+        const isValid =
+          (direction === 'left' && dx < 0) ||
+          (direction === 'right' && dx > 0) ||
+          (direction === 'up' && dy < 0) ||
+          (direction === 'down' && dy > 0);
+        if (!isValid) return null;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const angleBias = Math.abs((direction === 'left' || direction === 'right') ? dy : dx);
+        return { id: n.id, score: dist + angleBias * 0.3 };
+      })
+      .filter(Boolean) as { id: string; score: number }[];
+    if (!scored.length) return;
+    scored.sort((a, b) => a.score - b.score);
+    set({ focusId: scored[0].id });
   }
 }));
 
