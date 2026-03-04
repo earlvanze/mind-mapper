@@ -7,11 +7,13 @@ import { usePanZoom } from './hooks/usePanZoom';
 import { exportPng } from './utils/exportPng';
 import { fitToView } from './utils/fitToView';
 import SearchDialog from './components/SearchDialog';
+import HelpDialog from './components/HelpDialog';
 
 export default function App() {
   const { nodes, importState } = useMindMapStore();
   const [searchOpen, setSearchOpen] = useState(false);
-  useKeyboard({ onSearch: () => setSearchOpen(true), onFit: () => fitToView() });
+  const [helpOpen, setHelpOpen] = useState(false);
+  useKeyboard({ onSearch: () => setSearchOpen(true), onFit: () => fitToView(), onHelp: () => setHelpOpen(true) });
   usePanZoom({ selector: '.canvas' });
 
   const exportJson = () => {
@@ -65,6 +67,7 @@ export default function App() {
         ))}
       </div>
       <SearchDialog open={searchOpen} onClose={() => setSearchOpen(false)} />
+      <HelpDialog open={helpOpen} onClose={() => setHelpOpen(false)} />
     </div>
   );
 }

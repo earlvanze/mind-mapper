@@ -1,9 +1,9 @@
 import { useEffect } from 'react';
 import { useMindMapStore } from '../store/useMindMapStore';
 
-type Props = { onSearch: () => void; onFit: () => void };
+type Props = { onSearch: () => void; onFit: () => void; onHelp: () => void };
 
-export function useKeyboard({ onSearch, onFit }: Props) {
+export function useKeyboard({ onSearch, onFit, onHelp }: Props) {
   const { focusId, addSibling, addChild, deleteNode, moveFocus, setFocus, autoLayoutChildren } = useMindMapStore();
 
   useEffect(() => {
@@ -17,6 +17,9 @@ export function useKeyboard({ onSearch, onFit }: Props) {
       }
       if (e.key.toLowerCase() === 'l' && !e.metaKey && !e.ctrlKey) {
         autoLayoutChildren(focusId);
+      }
+      if (e.key === '?') {
+        onHelp();
       }
       if (e.key === 'Enter') {
         e.preventDefault();

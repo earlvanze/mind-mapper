@@ -89,6 +89,19 @@ body, html, #root {
   padding: 12px;
 }
 
+.help-box {
+  width: 420px;
+  background: #fff;
+  border-radius: 10px;
+  border: 1px solid #e2e6ee;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+  padding: 14px;
+}
+
+.help-box ul {
+  padding-left: 18px;
+}
+
 .search-box input {
   width: 100%;
   padding: 8px 10px;
