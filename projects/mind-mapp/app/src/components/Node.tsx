@@ -36,6 +36,12 @@ export default function Node({ node }: Props) {
       onClick={() => setFocus(node.id)}
       contentEditable
       suppressContentEditableWarning
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          (e.currentTarget as HTMLElement).blur();
+        }
+      }}
       onBlur={(e) => setText(node.id, e.currentTarget.textContent || '')}
     >
       {node.text}
