@@ -18,6 +18,7 @@ type MindMapState = {
   addSibling: (id: string) => void;
   addChild: (id: string) => void;
   importState: (nodes: Record<string, Node>) => void;
+  deleteNode: (id: string) => void;
 };
 
 const rootId = 'n_root';
@@ -79,7 +80,32 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
       focusId: newId
     }));
   },
-  importState: (nodes) => set({ nodes, focusId: Object.keys(nodes)[0] || rootId })
+  importState: (nodes) => set({ nodes, focusId: Object.keys(nodes)[0] || rootId }),
+  deleteNode: (id) => {
+    if (id === rootId) return; // don't delete root
+    const state = get();
+    const node = state.nodes[id];
+    if (!node) return;
+    const newNodes = { ...state.nodes };
+    // remove from parent children
+    if (node.parentId && newNodes[node.parentId]) {
+      newNodes[node.parentId] = {
+        ...newNodes[node.parentId],
+        children: newNodes[node.parentId].children.filter(c => c !== id)
+      };
+    }
+    // delete subtree
+    const stack = [id];
+    while (stack.length) {
+      const current = stack.pop()!;
+      const n = newNodes[current];
+      if (n) {
+        stack.push(...n.children);
+        delete newNodes[current];
+      }
+    }
+    set({ nodes: newNodes, focusId: rootId });
+  }
 }));
 
 // autosave
