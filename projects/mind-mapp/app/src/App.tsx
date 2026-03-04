@@ -1,11 +1,14 @@
+import { useState } from 'react';
 import { useMindMapStore } from './store/useMindMapStore';
 import Node from './components/Node';
 import { useKeyboard } from './hooks/useKeyboard';
 import { exportPng } from './utils/exportPng';
+import SearchDialog from './components/SearchDialog';
 
 export default function App() {
   const { nodes } = useMindMapStore();
-  useKeyboard();
+  const [searchOpen, setSearchOpen] = useState(false);
+  useKeyboard({ onSearch: () => setSearchOpen(true) });
 
   const exportJson = () => {
     const data = { nodes };
@@ -39,6 +42,7 @@ export default function App() {
           <Node key={n.id} node={n} />
         ))}
       </div>
+      <SearchDialog open={searchOpen} onClose={() => setSearchOpen(false)} />
     </div>
   );
 }

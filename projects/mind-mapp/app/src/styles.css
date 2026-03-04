@@ -57,3 +57,49 @@ body, html, #root {
 .node.focused {
   outline: 2px solid #4f46e5;
 }
+
+.search-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.search-box {
+  width: 420px;
+  background: #fff;
+  border-radius: 10px;
+  border: 1px solid #e2e6ee;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+  padding: 12px;
+}
+
+.search-box input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #cfd6e4;
+  border-radius: 8px;
+}
+
+.search-results {
+  margin-top: 10px;
+  max-height: 240px;
+  overflow: auto;
+}
+
+.search-item {
+  padding: 6px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.search-item:hover {
+  background: #f1f5ff;
+}
+
+.search-empty {
+  padding: 8px;
+  color: #777;
+}

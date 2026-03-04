@@ -1,11 +1,17 @@
 import { useEffect } from 'react';
 import { useMindMapStore } from '../store/useMindMapStore';
 
-export function useKeyboard() {
+type Props = { onSearch: () => void };
+
+export function useKeyboard({ onSearch }: Props) {
   const { focusId, addSibling, addChild } = useMindMapStore();
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        onSearch();
+      }
       if (e.key === 'Enter') {
         e.preventDefault();
         addSibling(focusId);
@@ -17,5 +23,5 @@ export function useKeyboard() {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [focusId, addSibling, addChild]);
+  }, [focusId, addSibling, addChild, onSearch]);
 }
