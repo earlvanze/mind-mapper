@@ -30,12 +30,18 @@ body, html, #root {
   gap: 8px;
 }
 
-.toolbar button {
+.toolbar button,
+.import-btn {
   padding: 6px 10px;
   border: 1px solid #cfd6e4;
   background: #fff;
   border-radius: 6px;
   cursor: pointer;
+  font-size: 14px;
+}
+
+.import-btn input {
+  display: none;
 }
 
 .canvas {

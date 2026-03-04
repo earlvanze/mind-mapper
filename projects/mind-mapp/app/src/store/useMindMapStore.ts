@@ -17,6 +17,7 @@ type MindMapState = {
   moveNode: (id: string, x: number, y: number) => void;
   addSibling: (id: string) => void;
   addChild: (id: string) => void;
+  importState: (nodes: Record<string, Node>) => void;
 };
 
 const rootId = 'n_root';
@@ -77,7 +78,8 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
       },
       focusId: newId
     }));
-  }
+  },
+  importState: (nodes) => set({ nodes, focusId: Object.keys(nodes)[0] || rootId })
 }));
 
 // autosave

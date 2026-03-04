@@ -6,7 +6,7 @@ import { exportPng } from './utils/exportPng';
 import SearchDialog from './components/SearchDialog';
 
 export default function App() {
-  const { nodes } = useMindMapStore();
+  const { nodes, importState } = useMindMapStore();
   const [searchOpen, setSearchOpen] = useState(false);
   useKeyboard({ onSearch: () => setSearchOpen(true) });
 
@@ -27,12 +27,29 @@ export default function App() {
     await exportPng(el);
   };
 
+  const importJson = async (file: File) => {
+    const text = await file.text();
+    const parsed = JSON.parse(text);
+    if (parsed?.nodes) importState(parsed.nodes);
+  };
+
   return (
     <div className="app">
       <div className="toolbar">
         <strong>Mind Mapp</strong>
         <span style={{ color: '#666' }}>MVP scaffold</span>
         <div className="toolbar-actions">
+          <label className="import-btn">
+            Import JSON
+            <input
+              type="file"
+              accept="application/json"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) importJson(file);
+              }}
+            />
+          </label>
           <button onClick={exportJson}>Export JSON</button>
           <button onClick={exportPngClick}>Export PNG</button>
         </div>
