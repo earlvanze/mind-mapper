@@ -56,7 +56,8 @@ export default function Node({ node }: Props) {
         }
       }}
       onBlur={(e) => {
-        setText(node.id, e.currentTarget.textContent || '');
+        const text = (e.currentTarget.textContent || '').trim();
+        setText(node.id, text || 'New');
         (e.currentTarget as HTMLElement).contentEditable = 'false';
       }}
     >
