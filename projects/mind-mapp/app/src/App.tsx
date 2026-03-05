@@ -54,19 +54,20 @@ export default function App() {
               }}
             />
           </label>
-          <button onClick={() => fitToView()}>Fit</button>
-          <button onClick={() => setHelpOpen(true)}>Help</button>
+          <button title="Fit to view" onClick={() => fitToView()}>Fit</button>
+          <button title="Show shortcuts" onClick={() => setHelpOpen(true)}>Help</button>
           <button
+            title="Clear map"
             onClick={() => {
               if (confirmAction('Clear the entire map?')) resetMap();
             }}
           >
             Clear
           </button>
-          <button onClick={() => importState(sampleMap())}>Sample</button>
-          <button data-export="json" onClick={exportJson}>Export JSON</button>
-          <button onClick={exportPngClick}>Export PNG</button>
-          <button onClick={() => (window as any).__mindmappResetView?.()}>Reset View</button>
+          <button title="Load sample map" onClick={() => importState(sampleMap())}>Sample</button>
+          <button title="Export JSON" data-export="json" onClick={exportJson}>Export JSON</button>
+          <button title="Export PNG" onClick={exportPngClick}>Export PNG</button>
+          <button title="Reset pan/zoom" onClick={() => (window as any).__mindmappResetView?.()}>Reset View</button>
         </div>
       </div>
       <div className="canvas">
