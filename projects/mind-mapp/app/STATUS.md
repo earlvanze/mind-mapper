@@ -23,3 +23,4 @@
 - Curved edges
 - Touch gestures
 - Import validation + schema versioning
+- Markdown export
