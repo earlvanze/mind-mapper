@@ -19,3 +19,5 @@ Then open the URL shown (usually http://localhost:5173).
 - L: auto-layout children
 - Shift+drag: pan
 - Ctrl/Cmd + wheel: zoom
+- Sample: load demo map (button)
+- Reset View: reset pan/zoom (button)
