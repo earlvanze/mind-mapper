@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { loadFromStorage, saveToStorage } from '../utils/storage';
+import { uid } from '../utils/id';
 
 export type Node = {
   id: string;
@@ -38,8 +39,6 @@ const defaultState = {
   editingId: undefined,
 };
 
-import { loadFromStorage, saveToStorage } from '../utils/storage';
-
 function loadState() {
   const parsed = loadFromStorage<{ nodes: Record<string, Node>; focusId: string }>();
   if (!parsed || !parsed.nodes || !parsed.focusId) return defaultState;
@@ -59,7 +58,7 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
   addSibling: (id) => {
     const state = get();
     const parentId = state.nodes[id].parentId;
-    const newId = `n_${Date.now()}`;
+    const newId = uid();
     const base = state.nodes[id];
     set(s => ({
       nodes: {
@@ -72,7 +71,7 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
   },
   addChild: (id) => {
     const state = get();
-    const newId = `n_${Date.now()}`;
+    const newId = uid();
     const base = state.nodes[id];
     set(s => ({
       nodes: {
