@@ -39,3 +39,4 @@ npm run dev
 - `LINKS.md` — doc index
 - `OVERVIEW.md` — quick product summary
 - `FILETREE.md` — document list
+- `SECURITY.md` — security notes
