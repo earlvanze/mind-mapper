@@ -7,6 +7,7 @@ import { usePanZoom } from './hooks/usePanZoom';
 import { useAutosave } from './hooks/useAutosave';
 import { exportPng } from './utils/exportPng';
 import { fitToView } from './utils/fitToView';
+import { confirmAction } from './utils/confirm';
 import SearchDialog from './components/SearchDialog';
 import HelpDialog from './components/HelpDialog';
 
@@ -60,7 +61,13 @@ export default function App() {
           </label>
           <button onClick={() => fitToView()}>Fit</button>
           <button onClick={() => setHelpOpen(true)}>Help</button>
-          <button onClick={() => resetMap()}>Clear</button>
+          <button
+            onClick={() => {
+              if (confirmAction('Clear the entire map?')) resetMap();
+            }}
+          >
+            Clear
+          </button>
           <button onClick={exportJson}>Export JSON</button>
           <button onClick={exportPngClick}>Export PNG</button>
         </div>
