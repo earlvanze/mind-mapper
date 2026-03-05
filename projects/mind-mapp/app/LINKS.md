@@ -9,3 +9,4 @@
 - Contributing: CONTRIBUTING.md
 - Known issues: KNOWN_ISSUES.md
 - Audit: AUDIT.md
+- Docs index: docs.json
