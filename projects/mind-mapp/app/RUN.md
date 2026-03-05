@@ -13,6 +13,8 @@ Then open the URL shown (usually http://localhost:5173).
 - Tab: new child
 - Delete/Backspace: delete node
 - Cmd/Ctrl+K: search
+- Cmd/Ctrl+S: export JSON
+- Cmd/Ctrl+Shift+S: export PNG
 - E / double‑click: edit node
 - Arrow keys: move focus
 - F: fit to view

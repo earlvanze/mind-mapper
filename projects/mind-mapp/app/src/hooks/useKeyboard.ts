@@ -37,9 +37,14 @@ export function useKeyboard({ onSearch, onFit, onHelp }: Props) {
           addChild(focusId);
         }
       }
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's') {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's' && !e.shiftKey) {
         e.preventDefault();
         const btn = document.querySelector('button[data-export="json"]') as HTMLButtonElement | null;
+        btn?.click();
+      }
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 's') {
+        e.preventDefault();
+        const btn = document.querySelector('button[data-export="png"]') as HTMLButtonElement | null;
         btn?.click();
       }
       if (e.key === 'Backspace' || e.key === 'Delete') {
