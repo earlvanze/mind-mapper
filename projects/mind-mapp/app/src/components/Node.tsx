@@ -10,7 +10,12 @@ export default function Node({ node }: Props) {
   useEffect(() => {
     if (editingId === node.id) {
       ref.current?.focus();
-      document.execCommand('selectAll', false);
+      const range = document.createRange();
+      const selection = window.getSelection();
+      range.selectNodeContents(ref.current as Node);
+      range.collapse(false);
+      selection?.removeAllRanges();
+      selection?.addRange(range);
     }
   }, [editingId, node.id]);
 
