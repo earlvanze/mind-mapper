@@ -40,3 +40,4 @@ npm run dev
 - `OVERVIEW.md` — quick product summary
 - `FILETREE.md` — document list
 - `SECURITY.md` — security notes
+- `SESSION_NOTES.md` — session summary
