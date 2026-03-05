@@ -37,6 +37,10 @@ export function useKeyboard({ onSearch, onFit, onHelp }: Props) {
           addChild(focusId);
         }
       }
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's') {
+        // allow default browser save for now (no-op)
+        e.preventDefault();
+      }
       if (e.key === 'Backspace' || e.key === 'Delete') {
         e.preventDefault();
         deleteNode(focusId);
