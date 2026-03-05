@@ -38,3 +38,4 @@ npm run dev
 - `ROADMAP.md` — upcoming milestones
 - `LINKS.md` — doc index
 - `OVERVIEW.md` — quick product summary
+- `FILETREE.md` — document list
