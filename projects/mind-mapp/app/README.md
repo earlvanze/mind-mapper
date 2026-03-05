@@ -35,3 +35,4 @@ npm run dev
 - `KEYS.md` — full shortcut reference
 - `CONTRIBUTING.md` — dev setup & conventions
 - `KNOWN_ISSUES.md` — known gaps/advisories
+- `ROADMAP.md` — upcoming milestones
