@@ -41,3 +41,4 @@ npm run dev
 - `FILETREE.md` — document list
 - `SECURITY.md` — security notes
 - `SESSION_NOTES.md` — session summary
+- `RELEASE.md` — release checklist
