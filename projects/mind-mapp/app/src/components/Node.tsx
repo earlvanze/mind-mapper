@@ -40,7 +40,7 @@ export default function Node({ node }: Props) {
     <div
       ref={ref}
       className={`node ${focusId === node.id ? 'focused' : ''}`}
-      style={{ left: node.x, top: node.y }}
+      style={{ left: node.x, top: node.y, minWidth: 60 }}
       onMouseDown={(e) => {
         if (e.shiftKey) return;
         onDragStart(e);
