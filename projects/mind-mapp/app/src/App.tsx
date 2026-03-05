@@ -8,6 +8,7 @@ import { useAutosave } from './hooks/useAutosave';
 import { exportPng } from './utils/exportPng';
 import { fitToView } from './utils/fitToView';
 import { confirmAction } from './utils/confirm';
+import { sampleMap } from './utils/sampleMap';
 import { APP_VERSION } from './utils/version';
 import SearchDialog from './components/SearchDialog';
 import HelpDialog from './components/HelpDialog';
@@ -70,6 +71,7 @@ export default function App() {
           >
             Clear
           </button>
+          <button onClick={() => importState(sampleMap())}>Sample</button>
           <button data-export="json" onClick={exportJson}>Export JSON</button>
           <button onClick={exportPngClick}>Export PNG</button>
         </div>
