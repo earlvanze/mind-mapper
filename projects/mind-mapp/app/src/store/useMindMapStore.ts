@@ -51,7 +51,7 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
     nodes: { ...state.nodes, [id]: { ...state.nodes[id], text } }
   })),
   setFocus: (id) => set({ focusId: id, editingId: undefined }),
-  startEditing: (id) => set({ editingId: id }),
+  startEditing: (id) => set({ editingId: id, focusId: id }),
   moveNode: (id, x, y) => set(state => ({
     nodes: { ...state.nodes, [id]: { ...state.nodes[id], x, y } }
   })),
