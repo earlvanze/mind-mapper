@@ -1,5 +1,15 @@
 # Mind Mapp — Changelog
 
+## 0.1.2
+- Sample map loader
+- Reset view (no reload)
+- Shortcuts centralized + expanded (PNG export)
+- Toolbar tooltips + wrap
+- Node editing polish (no drag while editing, default label)
+- Higher-res PNG export
+- UI hints (node count + shortcut hint)
+- Deploy notes + status summary
+
 ## 0.1.1
 - Added toolbar actions (Fit/Help/Clear)
 - Added help dialog and shortcut updates
