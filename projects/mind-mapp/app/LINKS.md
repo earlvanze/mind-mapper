@@ -3,6 +3,7 @@
 - Docs: README.md
 - Run: RUN.md
 - Changelog: CHANGELOG.md
+- FAQ: FAQ.md
 - Status: STATUS.md
 - Roadmap: ROADMAP.md
 - Deploy: DEPLOY.md

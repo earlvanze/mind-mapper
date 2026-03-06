@@ -44,4 +44,5 @@ npm run dev
 - `RELEASE.md` — release checklist
 - `DOCS_CHECKLIST.md` — doc inventory
 - `MIGRATIONS.md` — schema migration notes
+- `FAQ.md` — product FAQ
 - `.editorconfig` — formatting defaults
