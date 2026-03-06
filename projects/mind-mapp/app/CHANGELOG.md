@@ -15,6 +15,7 @@
 - Added FAQ + glossary docs
 - Added exports doc
 - Added imports doc
+- Linked imports/exports in overview
 
 ## 0.1.1
 - Added toolbar actions (Fit/Help/Clear)
