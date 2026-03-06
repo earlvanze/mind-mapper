@@ -4,6 +4,7 @@
 - RUN.md
 - CHANGELOG.md
 - FAQ.md
+- GLOSSARY.md
 - OVERVIEW.md
 - STATUS.md
 - ROADMAP.md

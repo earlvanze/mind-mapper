@@ -4,6 +4,7 @@
 - Run: RUN.md
 - Changelog: CHANGELOG.md
 - FAQ: FAQ.md
+- Glossary: GLOSSARY.md
 - Status: STATUS.md
 - Roadmap: ROADMAP.md
 - Deploy: DEPLOY.md
