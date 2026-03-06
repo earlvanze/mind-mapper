@@ -21,5 +21,8 @@ A: Shift+drag pans; Ctrl/Cmd+wheel zooms; double-click background resets view.
 Q: Is autosave enabled?
 A: Yes — changes autosave to localStorage with a 600ms debounce.
 
+Q: Where is my data stored?
+A: In browser localStorage under the key `mindmapp.v0.1.map`.
+
 Q: How do I reset view?
 A: Double-click the background or use the Reset View toolbar button.
