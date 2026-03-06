@@ -19,6 +19,7 @@
 - Added app architecture doc
 - Added gestures doc
 - Added style guide
+- Added accessibility doc
 - Updated docs status summary
 - Added style guide status note
 
