@@ -5,7 +5,7 @@
 - Current version: 0.1.2
 - Last build output in `dist/`
 - Docs inventory + migration notes maintained
-- FAQ + glossary + exports docs available
+- FAQ + glossary + exports/imports docs available
 
 ## Core Features
 - Node creation (Enter/Tab) + promote (Shift+Tab)
