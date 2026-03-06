@@ -1,6 +1,8 @@
 # Docs Checklist
 
 - README.md
+- RUN.md
+- CHANGELOG.md
 - OVERVIEW.md
 - STATUS.md
 - ROADMAP.md
