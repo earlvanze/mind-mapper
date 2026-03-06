@@ -5,6 +5,7 @@
 - Changelog: CHANGELOG.md
 - FAQ: FAQ.md
 - Glossary: GLOSSARY.md
+- Exports: EXPORTS.md
 - Status: STATUS.md
 - Roadmap: ROADMAP.md
 - Deploy: DEPLOY.md

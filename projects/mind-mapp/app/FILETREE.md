@@ -16,6 +16,7 @@
 - RELEASE.md
 - FAQ.md
 - GLOSSARY.md
+- EXPORTS.md
 - FILETREE.md
 - SECURITY.md
 - SESSION_NOTES.md

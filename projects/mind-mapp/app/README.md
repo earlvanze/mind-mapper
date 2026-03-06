@@ -46,4 +46,5 @@ npm run dev
 - `MIGRATIONS.md` — schema migration notes
 - `FAQ.md` — product FAQ
 - `GLOSSARY.md` — key terms
+- `EXPORTS.md` — export formats
 - `.editorconfig` — formatting defaults

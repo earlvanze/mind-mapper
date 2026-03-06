@@ -5,6 +5,7 @@
 - CHANGELOG.md
 - FAQ.md
 - GLOSSARY.md
+- EXPORTS.md
 - OVERVIEW.md
 - STATUS.md
 - ROADMAP.md
