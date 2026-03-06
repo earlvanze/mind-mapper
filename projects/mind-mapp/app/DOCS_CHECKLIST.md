@@ -8,6 +8,7 @@
 - EXPORTS.md
 - IMPORTS.md
 - ARCHITECTURE.md
+- GESTURES.md
 - OVERVIEW.md
 - STATUS.md
 - ROADMAP.md

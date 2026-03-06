@@ -49,4 +49,5 @@ npm run dev
 - `EXPORTS.md` — export formats
 - `IMPORTS.md` — import flows
 - `ARCHITECTURE.md` — app architecture
+- `GESTURES.md` — mouse/trackpad gestures
 - `.editorconfig` — formatting defaults
