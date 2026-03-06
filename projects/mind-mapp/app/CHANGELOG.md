@@ -20,6 +20,7 @@
 - Added gestures doc
 - Added style guide
 - Updated docs status summary
+- Added style guide status note
 
 ## 0.1.1
 - Added toolbar actions (Fit/Help/Clear)
