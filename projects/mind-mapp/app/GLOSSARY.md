@@ -9,4 +9,4 @@
 - **Edit mode**: When node text is editable (E or double‑click).
 - **Autosave**: Debounced localStorage save after edits.
 - **Fit to view**: Zoom/pan to show all nodes (F or toolbar).
-- **Reset view**: Reset pan/zoom to default (double‑click background).
+- **Reset view**: Reset pan/zoom to default (double‑click background or toolbar button).
