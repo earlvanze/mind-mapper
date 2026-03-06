@@ -8,4 +8,4 @@ Mind Mapp is a lightweight, keyboard‑first mind map app focused on speed and c
 - Autosave, JSON/PNG export
 - Offline‑friendly (no backend)
 
-See README.md for setup, RUN.md for shortcuts, FAQ.md for quick answers, and EXPORTS.md for formats.
+See README.md for setup, RUN.md for shortcuts, FAQ.md for quick answers, and EXPORTS.md/IMPORTS.md for formats.
