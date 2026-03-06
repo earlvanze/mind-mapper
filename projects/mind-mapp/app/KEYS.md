@@ -13,5 +13,5 @@
 - L: auto‑layout children
 - Shift+drag: pan
 - Ctrl/Cmd+wheel: zoom
-- Double‑click background: reset view
+- Double‑click background: reset view (also toolbar button)
 - ?: help
