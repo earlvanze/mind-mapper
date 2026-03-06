@@ -16,6 +16,7 @@
 - Added exports doc
 - Added imports doc
 - Linked imports/exports in overview
+- Added app architecture doc
 
 ## 0.1.1
 - Added toolbar actions (Fit/Help/Clear)
