@@ -9,6 +9,7 @@
 - Imports: IMPORTS.md
 - Architecture: ARCHITECTURE.md
 - Gestures: GESTURES.md
+- Style guide: STYLE.md
 - Status: STATUS.md
 - Roadmap: ROADMAP.md
 - Deploy: DEPLOY.md

@@ -9,6 +9,7 @@
 - IMPORTS.md
 - ARCHITECTURE.md
 - GESTURES.md
+- STYLE.md
 - OVERVIEW.md
 - STATUS.md
 - ROADMAP.md
