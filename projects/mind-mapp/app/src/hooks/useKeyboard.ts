@@ -73,5 +73,19 @@ export function useKeyboard({ onSearch, onFit, onHelp }: Props) {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [focusId, addSibling, addChild, onSearch]);
+  }, [
+    focusId,
+    addSibling,
+    addChild,
+    promoteNode,
+    deleteNode,
+    moveFocus,
+    setFocus,
+    autoLayoutChildren,
+    editingId,
+    startEditing,
+    onSearch,
+    onFit,
+    onHelp,
+  ]);
 }
