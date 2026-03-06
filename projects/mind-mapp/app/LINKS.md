@@ -1,6 +1,8 @@
 # Mind Mapp — Links
 
 - Docs: README.md
+- Run: RUN.md
+- Changelog: CHANGELOG.md
 - Status: STATUS.md
 - Roadmap: ROADMAP.md
 - Deploy: DEPLOY.md
