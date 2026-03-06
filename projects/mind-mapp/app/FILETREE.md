@@ -15,6 +15,7 @@
 - MIGRATIONS.md
 - RELEASE.md
 - FAQ.md
+- GLOSSARY.md
 - FILETREE.md
 - SECURITY.md
 - SESSION_NOTES.md
