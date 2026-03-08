@@ -5,7 +5,7 @@ import Edges from './components/Edges';
 import { useKeyboard } from './hooks/useKeyboard';
 import { usePanZoom } from './hooks/usePanZoom';
 import { useAutosave } from './hooks/useAutosave';
-import { exportPng, exportJsonData, fitToView, confirmAction, sampleMap, APP_VERSION } from './utils';
+import { exportPng, exportJsonData, fitToView, confirmAction, parseImportPayload, sampleMap, APP_VERSION } from './utils';
 import SearchDialog from './components/SearchDialog';
 import HelpDialog from './components/HelpDialog';
 
@@ -13,6 +13,7 @@ export default function App() {
   const { nodes, importState, resetMap } = useMindMapStore();
   const [searchOpen, setSearchOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
+  const [importNotice, setImportNotice] = useState<{ text: string; kind: 'success' | 'error' } | null>(null);
   useKeyboard({ onSearch: () => setSearchOpen(true), onFit: () => fitToView(), onHelp: () => setHelpOpen(true) });
   usePanZoom({ selector: '.canvas' });
   useAutosave(() => saveState(), 600);
@@ -26,9 +27,16 @@ export default function App() {
   };
 
   const importJson = async (file: File) => {
-    const text = await file.text();
-    const parsed = JSON.parse(text);
-    if (parsed?.nodes) importState(parsed.nodes);
+    try {
+      const text = await file.text();
+      const parsed = JSON.parse(text);
+      const nodes = parseImportPayload(parsed);
+      importState(nodes);
+      setImportNotice({ text: `Imported ${Object.keys(nodes).length} nodes.`, kind: 'success' });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Invalid JSON file.';
+      setImportNotice({ text: message, kind: 'error' });
+    }
   };
 
   return (
@@ -38,6 +46,11 @@ export default function App() {
         <span style={{ color: '#666' }}>v{APP_VERSION}</span>
         <span style={{ color: '#666' }}>{Object.keys(nodes).length} nodes</span>
         <span style={{ color: '#666' }}>Press ? for shortcuts</span>
+        {importNotice ? (
+          <span style={{ color: importNotice.kind === 'error' ? '#ff7b7b' : '#9ad67a' }}>
+            {importNotice.text}
+          </span>
+        ) : null}
         <div className="toolbar-actions">
           <label className="import-btn">
             Import JSON

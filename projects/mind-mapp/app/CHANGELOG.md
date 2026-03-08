@@ -22,6 +22,7 @@
 - Added accessibility doc
 - Updated docs status summary
 - Added style guide status note
+- Added import validation with clear success/error notices
 
 ## 0.1.1
 - Added toolbar actions (Fit/Help/Clear)
