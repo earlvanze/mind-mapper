@@ -4,6 +4,8 @@
 - Tab: new child
 - Shift+Tab: promote node
 - Delete/Backspace: delete node
+- Cmd/Ctrl+Z: undo
+- Cmd/Ctrl+Shift+Z or Cmd/Ctrl+Y: redo
 - E / double‑click: edit node
 - Cmd/Ctrl+K: search
 - Cmd/Ctrl+S: export JSON

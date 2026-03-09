@@ -3,6 +3,8 @@ export const SHORTCUTS = [
   { key: 'Tab', desc: 'new child' },
   { key: 'Shift+Tab', desc: 'promote node' },
   { key: 'Delete', desc: 'delete node' },
+  { key: 'Cmd/Ctrl+Z', desc: 'undo' },
+  { key: 'Cmd/Ctrl+Shift+Z / Cmd/Ctrl+Y', desc: 'redo' },
   { key: 'Cmd/Ctrl+K', desc: 'search' },
   { key: 'Cmd/Ctrl+S', desc: 'export JSON' },
   { key: 'Cmd/Ctrl+Shift+S', desc: 'export PNG' },

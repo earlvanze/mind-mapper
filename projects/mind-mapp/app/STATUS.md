@@ -13,16 +13,15 @@
 - Delete node
 - Arrow key navigation
 - Search + keyboard navigation (Cmd/Ctrl+K)
-- Autosave + JSON import/export
+- Undo/redo (Cmd/Ctrl+Z, Cmd/Ctrl+Shift+Z/Cmd/Ctrl+Y)
+- Autosave + JSON import/export (validated)
 - PNG export (Cmd/Ctrl+Shift+S)
 - Pan/zoom + fit-to-view + reset view
 - Help dialog + shortcuts
 - Sample map loader
 
 ## Next Priorities
-- Undo/redo
 - Multi-select + group move
 - Curved edges
 - Touch gestures
-- Import validation + schema versioning
 - Markdown export

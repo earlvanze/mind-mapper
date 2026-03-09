@@ -1,14 +1,31 @@
 import { useEffect } from 'react';
 import { useMindMapStore } from '../store/useMindMapStore';
 
-type Props = { onSearch: () => void; onFit: () => void; onHelp: () => void };
+type Props = {
+  onSearch: () => void;
+  onFit: () => void;
+  onHelp: () => void;
+  onUndo: () => void;
+  onRedo: () => void;
+};
 
-export function useKeyboard({ onSearch, onFit, onHelp }: Props) {
+export function useKeyboard({ onSearch, onFit, onHelp, onUndo, onRedo }: Props) {
   const { focusId, addSibling, addChild, promoteNode, deleteNode, moveFocus, setFocus, autoLayoutChildren, editingId, startEditing } = useMindMapStore();
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (editingId) return;
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        onUndo();
+      }
+      if (
+        ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'z') ||
+        ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'y')
+      ) {
+        e.preventDefault();
+        onRedo();
+      }
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
         onSearch();
@@ -87,5 +104,7 @@ export function useKeyboard({ onSearch, onFit, onHelp }: Props) {
     onSearch,
     onFit,
     onHelp,
+    onUndo,
+    onRedo,
   ]);
 }

@@ -12,6 +12,8 @@ Then open the URL shown (usually http://localhost:5173).
 - Enter: new sibling
 - Tab: new child
 - Delete/Backspace: delete node
+- Cmd/Ctrl+Z: undo
+- Cmd/Ctrl+Shift+Z or Cmd/Ctrl+Y: redo
 - Cmd/Ctrl+K: search
 - Cmd/Ctrl+S: export JSON
 - Cmd/Ctrl+Shift+S: export PNG

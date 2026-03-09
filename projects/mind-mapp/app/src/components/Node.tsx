@@ -24,10 +24,16 @@ export default function Node({ node }: Props) {
     const startY = e.clientY;
     const { x, y } = node;
 
+    let lastX = x;
+    let lastY = y;
+
     const onMove = (ev: MouseEvent) => {
-      moveNode(node.id, x + (ev.clientX - startX), y + (ev.clientY - startY));
+      lastX = x + (ev.clientX - startX);
+      lastY = y + (ev.clientY - startY);
+      moveNode(node.id, lastX, lastY);
     };
     const onUp = () => {
+      moveNode(node.id, lastX, lastY, true);
       window.removeEventListener('mousemove', onMove);
       window.removeEventListener('mouseup', onUp);
     };

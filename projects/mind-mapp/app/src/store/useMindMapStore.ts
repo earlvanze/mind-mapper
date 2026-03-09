@@ -10,13 +10,22 @@ export type Node = {
   children: string[];
 };
 
+type Snapshot = {
+  nodes: Record<string, Node>;
+  focusId: string;
+};
+
 type MindMapState = {
   nodes: Record<string, Node>;
   focusId: string;
   editingId?: string;
+  past: Snapshot[];
+  future: Snapshot[];
+  canUndo: boolean;
+  canRedo: boolean;
   setText: (id: string, text: string) => void;
   setFocus: (id: string) => void;
-  moveNode: (id: string, x: number, y: number) => void;
+  moveNode: (id: string, x: number, y: number, commitHistory?: boolean) => void;
   startEditing: (id: string) => void;
   addSibling: (id: string) => void;
   addChild: (id: string) => void;
@@ -26,9 +35,35 @@ type MindMapState = {
   deleteNode: (id: string) => void;
   moveFocus: (direction: 'left' | 'right' | 'up' | 'down') => void;
   autoLayoutChildren: (parentId: string) => void;
+  undo: () => void;
+  redo: () => void;
 };
 
 const rootId = 'n_root';
+const MAX_HISTORY = 100;
+
+function cloneNodes(nodes: Record<string, Node>) {
+  return Object.fromEntries(
+    Object.entries(nodes).map(([id, node]) => [id, { ...node, children: [...node.children] }])
+  ) as Record<string, Node>;
+}
+
+function makeSnapshot(state: Pick<MindMapState, 'nodes' | 'focusId'>): Snapshot {
+  return {
+    nodes: cloneNodes(state.nodes),
+    focusId: state.focusId,
+  };
+}
+
+function withHistory(state: MindMapState) {
+  const past = [...state.past, makeSnapshot(state)].slice(-MAX_HISTORY);
+  return {
+    past,
+    future: [],
+    canUndo: past.length > 0,
+    canRedo: false,
+  };
+}
 
 const defaultState = {
   nodes: {
@@ -36,52 +71,74 @@ const defaultState = {
   },
   focusId: rootId,
   editingId: undefined,
+  past: [] as Snapshot[],
+  future: [] as Snapshot[],
+  canUndo: false,
+  canRedo: false,
 };
 
 function loadState() {
   const parsed = loadFromStorage<{ nodes: Record<string, Node>; focusId: string }>();
   if (!parsed || !parsed.nodes || !parsed.focusId) return defaultState;
-  return parsed;
+  return { ...defaultState, nodes: parsed.nodes, focusId: parsed.focusId };
 }
 
 export const useMindMapStore = create<MindMapState>((set, get) => ({
   ...(typeof window !== 'undefined' ? loadState() : defaultState),
-  setText: (id, text) => set(state => ({
-    nodes: { ...state.nodes, [id]: { ...state.nodes[id], text } }
-  })),
-  setFocus: (id) => set({ focusId: id, editingId: undefined }),
-  startEditing: (id) => set({ editingId: id, focusId: id }),
-  moveNode: (id, x, y) => set(state => ({
-    nodes: { ...state.nodes, [id]: { ...state.nodes[id], x, y } }
-  })),
-  addSibling: (id) => {
+  setText: (id, text) =>
+    set(state => ({
+      ...withHistory(state),
+      nodes: { ...state.nodes, [id]: { ...state.nodes[id], text } },
+    })),
+  setFocus: id => set({ focusId: id, editingId: undefined }),
+  startEditing: id => set({ editingId: id, focusId: id }),
+  moveNode: (id, x, y, commitHistory = false) =>
+    set(state => {
+      const node = state.nodes[id];
+      if (!node) return {};
+      if (node.x === x && node.y === y) return {};
+      if (!commitHistory) {
+        return {
+          nodes: { ...state.nodes, [id]: { ...state.nodes[id], x, y } },
+        };
+      }
+      return {
+        ...withHistory(state),
+        nodes: { ...state.nodes, [id]: { ...state.nodes[id], x, y } },
+      };
+    }),
+  addSibling: id => {
     const state = get();
     const parentId = state.nodes[id].parentId;
     const newId = uid();
     const base = state.nodes[id];
     set(s => ({
+      ...withHistory(s),
       nodes: {
         ...s.nodes,
         [newId]: { id: newId, text: 'New', x: base.x + 140, y: base.y, parentId, children: [] },
-        ...(parentId ? { [parentId]: { ...s.nodes[parentId], children: [...s.nodes[parentId].children, newId] } } : {})
+        ...(parentId
+          ? { [parentId]: { ...s.nodes[parentId], children: [...s.nodes[parentId].children, newId] } }
+          : {}),
       },
-      focusId: newId
+      focusId: newId,
     }));
   },
-  addChild: (id) => {
+  addChild: id => {
     const state = get();
     const newId = uid();
     const base = state.nodes[id];
     set(s => ({
+      ...withHistory(s),
       nodes: {
         ...s.nodes,
         [newId]: { id: newId, text: 'New', x: base.x + 140, y: base.y + 80, parentId: id, children: [] },
-        [id]: { ...s.nodes[id], children: [...s.nodes[id].children, newId] }
+        [id]: { ...s.nodes[id], children: [...s.nodes[id].children, newId] },
       },
-      focusId: newId
+      focusId: newId,
     }));
   },
-  promoteNode: (id) => {
+  promoteNode: id => {
     const state = get();
     const node = state.nodes[id];
     if (!node || !node.parentId) return;
@@ -92,7 +149,7 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
     // remove from current parent
     updated[parent.id] = {
       ...parent,
-      children: parent.children.filter(c => c !== id)
+      children: parent.children.filter(c => c !== id),
     };
     // attach to new parent (or root if null)
     if (newParentId) {
@@ -100,11 +157,11 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
       updated[newParentId] = { ...grand, children: [...grand.children, id] };
     }
     updated[id] = { ...node, parentId: newParentId, x: node.x + 120 };
-    set({ nodes: updated });
+    set(s => ({ ...withHistory(s), nodes: updated }));
   },
-  importState: (nodes) => set({ nodes, focusId: Object.keys(nodes)[0] || rootId }),
-  resetMap: () => set(defaultState),
-  deleteNode: (id) => {
+  importState: nodes => set(state => ({ ...withHistory(state), nodes, focusId: Object.keys(nodes)[0] || rootId })),
+  resetMap: () => set(state => ({ ...withHistory(state), ...defaultState })),
+  deleteNode: id => {
     if (id === rootId) return; // don't delete root
     const state = get();
     const node = state.nodes[id];
@@ -114,7 +171,7 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
     if (node.parentId && newNodes[node.parentId]) {
       newNodes[node.parentId] = {
         ...newNodes[node.parentId],
-        children: newNodes[node.parentId].children.filter(c => c !== id)
+        children: newNodes[node.parentId].children.filter(c => c !== id),
       };
     }
     // delete subtree
@@ -127,9 +184,9 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
         delete newNodes[current];
       }
     }
-    set({ nodes: newNodes, focusId: rootId });
+    set(s => ({ ...withHistory(s), nodes: newNodes, focusId: rootId }));
   },
-  moveFocus: (direction) => {
+  moveFocus: direction => {
     const state = get();
     const current = state.nodes[state.focusId];
     if (!current) return;
@@ -145,7 +202,7 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
           (direction === 'down' && dy > 0);
         if (!isValid) return null;
         const dist = Math.sqrt(dx * dx + dy * dy);
-        const angleBias = Math.abs((direction === 'left' || direction === 'right') ? dy : dx);
+        const angleBias = Math.abs(direction === 'left' || direction === 'right' ? dy : dx);
         return { id: n.id, score: dist + angleBias * 0.3 };
       })
       .filter(Boolean) as { id: string; score: number }[];
@@ -153,22 +210,51 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
     scored.sort((a, b) => a.score - b.score);
     set({ focusId: scored[0].id });
   },
-  autoLayoutChildren: (parentId) => {
+  autoLayoutChildren: parentId => {
     const state = get();
     const parent = state.nodes[parentId];
     if (!parent) return;
     const children = parent.children.map(id => state.nodes[id]).filter(Boolean);
     if (!children.length) return;
     const startY = parent.y - (children.length - 1) * 40;
+    const updatedNodes = { ...state.nodes };
     children.forEach((child, i) => {
-      set(s => ({
-        nodes: {
-          ...s.nodes,
-          [child.id]: { ...s.nodes[child.id], x: parent.x + 180, y: startY + i * 80 }
-        }
-      }));
+      updatedNodes[child.id] = { ...updatedNodes[child.id], x: parent.x + 180, y: startY + i * 80 };
     });
-  }
+    set(s => ({ ...withHistory(s), nodes: updatedNodes }));
+  },
+  undo: () =>
+    set(state => {
+      if (!state.past.length) return {};
+      const previous = state.past[state.past.length - 1];
+      const past = state.past.slice(0, -1);
+      const future = [makeSnapshot(state), ...state.future].slice(0, MAX_HISTORY);
+      return {
+        nodes: previous.nodes,
+        focusId: previous.focusId,
+        editingId: undefined,
+        past,
+        future,
+        canUndo: past.length > 0,
+        canRedo: future.length > 0,
+      };
+    }),
+  redo: () =>
+    set(state => {
+      if (!state.future.length) return {};
+      const next = state.future[0];
+      const future = state.future.slice(1);
+      const past = [...state.past, makeSnapshot(state)].slice(-MAX_HISTORY);
+      return {
+        nodes: next.nodes,
+        focusId: next.focusId,
+        editingId: undefined,
+        past,
+        future,
+        canUndo: past.length > 0,
+        canRedo: future.length > 0,
+      };
+    }),
 }));
 
 // autosave is triggered from hook to debounce localStorage writes

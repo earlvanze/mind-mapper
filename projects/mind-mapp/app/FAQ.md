@@ -12,6 +12,9 @@ A: Double-click a node or press E to enter edit mode.
 Q: How do I search?
 A: Cmd/Ctrl+K opens search.
 
+Q: Can I undo changes?
+A: Yes — use Cmd/Ctrl+Z for undo and Cmd/Ctrl+Shift+Z (or Cmd/Ctrl+Y) for redo.
+
 Q: How do I export?
 A: Cmd/Ctrl+S exports JSON; Cmd/Ctrl+Shift+S exports PNG.
 

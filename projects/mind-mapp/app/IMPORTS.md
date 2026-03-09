@@ -3,7 +3,8 @@
 ## JSON
 - Button: Import JSON
 - Accepts: JSON export from Mind Mapp (versioned)
-- Validates: structure + version (future)
+- Validates: JSON root, node shape, non-empty payload, and supported version (`1`)
+- Shows import result notice in toolbar (success/error)
 
 ## Sample
 - Button: Sample

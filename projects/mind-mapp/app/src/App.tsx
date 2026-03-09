@@ -10,11 +10,17 @@ import SearchDialog from './components/SearchDialog';
 import HelpDialog from './components/HelpDialog';
 
 export default function App() {
-  const { nodes, importState, resetMap } = useMindMapStore();
+  const { nodes, importState, resetMap, undo, redo, canUndo, canRedo } = useMindMapStore();
   const [searchOpen, setSearchOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [importNotice, setImportNotice] = useState<{ text: string; kind: 'success' | 'error' } | null>(null);
-  useKeyboard({ onSearch: () => setSearchOpen(true), onFit: () => fitToView(), onHelp: () => setHelpOpen(true) });
+  useKeyboard({
+    onSearch: () => setSearchOpen(true),
+    onFit: () => fitToView(),
+    onHelp: () => setHelpOpen(true),
+    onUndo: () => undo(),
+    onRedo: () => redo(),
+  });
   usePanZoom({ selector: '.canvas' });
   useAutosave(() => saveState(), 600);
 
@@ -52,6 +58,8 @@ export default function App() {
           </span>
         ) : null}
         <div className="toolbar-actions">
+          <button title="Undo (Cmd/Ctrl+Z)" onClick={undo} disabled={!canUndo}>Undo</button>
+          <button title="Redo (Cmd/Ctrl+Shift+Z)" onClick={redo} disabled={!canRedo}>Redo</button>
           <label className="import-btn">
             Import JSON
             <input
