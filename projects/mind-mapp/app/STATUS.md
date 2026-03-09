@@ -4,6 +4,7 @@
 - Framework: Vite + React + TypeScript
 - Current version: 0.1.2
 - Last build output in `dist/`
+- Test runner: Vitest (`npm test`)
 - Docs inventory + migration notes maintained
 - FAQ + glossary + exports/imports + architecture + gestures + style docs available
 

@@ -86,10 +86,14 @@ function loadState() {
 export const useMindMapStore = create<MindMapState>((set, get) => ({
   ...(typeof window !== 'undefined' ? loadState() : defaultState),
   setText: (id, text) =>
-    set(state => ({
-      ...withHistory(state),
-      nodes: { ...state.nodes, [id]: { ...state.nodes[id], text } },
-    })),
+    set(state => {
+      const current = state.nodes[id];
+      if (!current || current.text === text) return {};
+      return {
+        ...withHistory(state),
+        nodes: { ...state.nodes, [id]: { ...current, text } },
+      };
+    }),
   setFocus: id => set({ focusId: id, editingId: undefined }),
   startEditing: id => set({ editingId: id, focusId: id }),
   moveNode: (id, x, y, commitHistory = false) =>

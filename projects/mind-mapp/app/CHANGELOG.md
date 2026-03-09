@@ -24,7 +24,9 @@
 - Added style guide status note
 - Added import validation with clear success/error notices
 - Added undo/redo history (toolbar + shortcuts)
-- Added import graph integrity checks (root/links/cycles/orphans)
+- Added import graph integrity checks (root/links/self-parent/unreachable)
+- Avoided no-op text edits in undo history
+- Added Vitest setup + import validation unit tests
 
 ## 0.1.1
 - Added toolbar actions (Fit/Help/Clear)

@@ -7,19 +7,21 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "echo \"No tests yet\""
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
+    "html-to-image": "^1.11.11",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "zustand": "^4.5.2",
-    "html-to-image": "^1.11.11"
+    "zustand": "^4.5.2"
   },
   "devDependencies": {
     "@types/react": "^18.2.66",
     "@types/react-dom": "^18.2.22",
     "@vitejs/plugin-react": "^4.2.1",
     "typescript": "^5.4.2",
-    "vite": "^5.1.4"
+    "vite": "^5.1.4",
+    "vitest": "^4.0.18"
   }
 }

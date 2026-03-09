@@ -8,6 +8,11 @@ npm run dev
 
 Then open the URL shown (usually http://localhost:5173).
 
+## Tests
+```bash
+npm test
+```
+
 ## Shortcuts
 - Enter: new sibling
 - Tab: new child
