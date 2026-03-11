@@ -140,6 +140,21 @@ describe('useMindMapStore history', () => {
     expect(selected.sort()).toEqual([...siblingIds].sort());
   });
 
+  it('invertSelection toggles selected vs unselected nodes', () => {
+    const store = useMindMapStore.getState();
+    store.addChild(ROOT_ID);
+    store.addChild(ROOT_ID);
+
+    const children = useMindMapStore.getState().nodes[ROOT_ID].children;
+    useMindMapStore.getState().setFocus(children[0]);
+
+    useMindMapStore.getState().invertSelection();
+    const inverted = useMindMapStore.getState();
+
+    expect(inverted.selectedIds).not.toContain(children[0]);
+    expect(inverted.selectedIds.length).toBe(Object.keys(inverted.nodes).length - 1);
+  });
+
   it('selectSubtree selects focused node and descendants', () => {
     const store = useMindMapStore.getState();
     store.addChild(ROOT_ID);

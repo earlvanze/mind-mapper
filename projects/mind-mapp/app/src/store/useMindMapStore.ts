@@ -30,6 +30,7 @@ type MindMapState = {
   toggleSelection: (id: string) => void;
   clearSelection: () => void;
   selectAll: () => void;
+  invertSelection: () => void;
   selectSiblings: () => void;
   selectChildren: () => void;
   selectSubtree: () => void;
@@ -131,6 +132,29 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
       return {
         selectedIds: allIds,
         focusId: state.focusId || allIds[0],
+        editingId: undefined,
+      };
+    }),
+  invertSelection: () =>
+    set(state => {
+      const allIds = Object.keys(state.nodes);
+      if (!allIds.length) return {};
+
+      const current = new Set(state.selectedIds.filter(id => !!state.nodes[id]));
+      const inverted = allIds.filter(id => !current.has(id));
+
+      if (!inverted.length) {
+        const keep = state.nodes[state.focusId] ? state.focusId : allIds[0];
+        return {
+          selectedIds: keep ? [keep] : [],
+          focusId: keep,
+          editingId: undefined,
+        };
+      }
+
+      return {
+        selectedIds: inverted,
+        focusId: inverted.includes(state.focusId) ? state.focusId : inverted[0],
         editingId: undefined,
       };
     }),

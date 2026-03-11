@@ -11,6 +11,7 @@ export const SHORTCUTS = [
   { key: 'Cmd/Ctrl+Shift+M', desc: 'export Markdown' },
   { key: 'Cmd/Ctrl+click', desc: 'multi-select nodes' },
   { key: 'Cmd/Ctrl+A', desc: 'select all nodes' },
+  { key: 'Alt+I', desc: 'invert selection' },
   { key: 'Cmd/Ctrl+D', desc: 'duplicate selected node(s)' },
   { key: 'Alt+S', desc: 'select siblings of focused node' },
   { key: 'Alt+C', desc: 'select children of focused node' },

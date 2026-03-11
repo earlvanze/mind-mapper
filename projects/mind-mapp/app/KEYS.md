@@ -6,6 +6,7 @@
 - Delete/Backspace: delete selected node(s)
 - Cmd/Ctrl+click: multi-select nodes
 - Cmd/Ctrl+A: select all nodes
+- Alt+I: invert selection
 - Cmd/Ctrl+D: duplicate selected node(s)
 - Alt+S: select siblings of focused node
 - Alt+C: select children of focused node

@@ -5,6 +5,7 @@
 - Ctrl/Cmd + wheel: zoom
 - Cmd/Ctrl + click: add/remove node in multi-selection
 - Cmd/Ctrl + A: select all nodes
+- Alt + I: invert selection
 - Cmd/Ctrl + D: duplicate selected node(s)
 - Alt + S: select siblings of focused node
 - Alt + C: select children of focused node

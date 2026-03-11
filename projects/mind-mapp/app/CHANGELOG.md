@@ -46,6 +46,7 @@
 - Added focused-subtree selection command (Alt+B + toolbar)
 - Added parent-selection command (Alt+P + toolbar)
 - Added children-selection command (Alt+C + toolbar)
+- Added invert-selection command (Alt+I + toolbar)
 - Search selection now centers viewport on the chosen node
 
 ## 0.1.1
