@@ -24,7 +24,8 @@
 - Help dialog + shortcuts
 - Sample map loader
 - Curved edge rendering with arrowheads
+- Mini-map navigator
 
 ## Next Priorities
-- Mini-map
 - Canvas renderer for larger maps
+- Virtualization for very large maps

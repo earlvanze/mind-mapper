@@ -8,9 +8,10 @@ import { useAutosave } from './hooks/useAutosave';
 import { exportPng, exportJsonData, exportMarkdownData, fitToView, confirmAction, parseImportPayload, sampleMap, APP_VERSION } from './utils';
 import SearchDialog from './components/SearchDialog';
 import HelpDialog from './components/HelpDialog';
+import MiniMap from './components/MiniMap';
 
 export default function App() {
-  const { nodes, selectedIds, importState, resetMap, undo, redo, canUndo, canRedo } = useMindMapStore();
+  const { nodes, focusId, selectedIds, setFocus, importState, resetMap, undo, redo, canUndo, canRedo } = useMindMapStore();
   const [searchOpen, setSearchOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [importNotice, setImportNotice] = useState<{ text: string; kind: 'success' | 'error' } | null>(null);
@@ -95,6 +96,7 @@ export default function App() {
         {Object.values(nodes).map(n => (
           <Node key={n.id} node={n} />
         ))}
+        <MiniMap nodes={nodes} focusId={focusId} selectedIds={selectedIds} onFocus={setFocus} />
       </div>
       <SearchDialog open={searchOpen} onClose={() => setSearchOpen(false)} />
       <HelpDialog open={helpOpen} onClose={() => setHelpOpen(false)} />

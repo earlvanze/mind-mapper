@@ -6,10 +6,10 @@
 - Curved edges
 - Touch gestures
 
-## v0.3 (in progress)
+## v0.3 (done)
 - ✅ Import validation + schema versioning
 - ✅ Markdown export
-- Mini‑map
+- ✅ Mini‑map
 
 ## v0.4
 - Canvas renderer for large maps
