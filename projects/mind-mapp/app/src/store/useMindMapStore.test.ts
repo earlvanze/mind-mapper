@@ -173,6 +173,23 @@ describe('useMindMapStore history', () => {
     expect(next.selectedIds).toEqual([parentId]);
   });
 
+  it('selectChildren selects focused node children', () => {
+    const store = useMindMapStore.getState();
+    store.addChild(ROOT_ID);
+
+    const parentId = useMindMapStore.getState().nodes[ROOT_ID].children[0];
+    store.addChild(parentId);
+    store.addChild(parentId);
+
+    useMindMapStore.getState().setFocus(parentId);
+    useMindMapStore.getState().selectChildren();
+
+    const next = useMindMapStore.getState();
+    const expected = next.nodes[parentId].children;
+    expect(next.selectedIds.sort()).toEqual([...expected].sort());
+    expect(next.focusId).toBe(expected[0]);
+  });
+
   it('nudges selected nodes and supports undo', () => {
     const store = useMindMapStore.getState();
     store.addChild(ROOT_ID);
