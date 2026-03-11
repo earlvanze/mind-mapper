@@ -241,6 +241,23 @@ describe('useMindMapStore history', () => {
     expect(next.focusId).toBe(childId);
   });
 
+  it('selectTopLevel removes descendants when ancestor is selected', () => {
+    const store = useMindMapStore.getState();
+    store.addChild(ROOT_ID);
+
+    const parentId = useMindMapStore.getState().nodes[ROOT_ID].children[0];
+    store.addChild(parentId);
+    const childId = useMindMapStore.getState().nodes[parentId].children[0];
+
+    useMindMapStore.getState().setFocus(parentId);
+    useMindMapStore.getState().toggleSelection(childId);
+    useMindMapStore.getState().selectTopLevel();
+
+    const next = useMindMapStore.getState();
+    expect(next.selectedIds).toEqual([parentId]);
+    expect(next.focusId).toBe(parentId);
+  });
+
   it('nudges selected nodes and supports undo', () => {
     const store = useMindMapStore.getState();
     store.addChild(ROOT_ID);

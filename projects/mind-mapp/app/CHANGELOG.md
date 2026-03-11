@@ -49,6 +49,7 @@
 - Added invert-selection command (Alt+I + toolbar)
 - Added leaf-selection command (Alt+L + toolbar)
 - Added ancestor-selection command (Alt+U + toolbar)
+- Added top-level-selection command (Alt+T + toolbar)
 - Search selection now centers viewport on the chosen node
 
 ## 0.1.1

@@ -35,6 +35,7 @@ type MindMapState = {
   selectChildren: () => void;
   selectLeaves: () => void;
   selectAncestors: () => void;
+  selectTopLevel: () => void;
   selectSubtree: () => void;
   moveNode: (id: string, x: number, y: number, commitHistory?: boolean) => void;
   moveNodes: (updates: Record<string, { x: number; y: number }>, commitHistory?: boolean) => void;
@@ -251,6 +252,31 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
       return {
         selectedIds: chain,
         focusId: focused.id,
+        editingId: undefined,
+      };
+    }),
+  selectTopLevel: () =>
+    set(state => {
+      const selected = state.selectedIds.filter(id => !!state.nodes[id]);
+      if (!selected.length) return {};
+
+      const selectedSet = new Set(selected);
+      const hasSelectedAncestor = (id: string) => {
+        let parentId = state.nodes[id]?.parentId;
+        while (parentId) {
+          if (selectedSet.has(parentId)) return true;
+          parentId = state.nodes[parentId]?.parentId ?? null;
+        }
+        return false;
+      };
+
+      const topLevel = selected.filter(id => !hasSelectedAncestor(id));
+      if (!topLevel.length) return {};
+
+      const focusId = topLevel.includes(state.focusId) ? state.focusId : topLevel[0];
+      return {
+        selectedIds: topLevel,
+        focusId,
         editingId: undefined,
       };
     }),
