@@ -11,7 +11,7 @@ import HelpDialog from './components/HelpDialog';
 import MiniMap from './components/MiniMap';
 
 export default function App() {
-  const { nodes, focusId, selectedIds, setFocus, selectAll, invertSelection, selectSiblings, selectChildren, selectLeaves, selectAncestors, selectTopLevel, selectGeneration, clearSelectionSet, expandSelectionToNeighbors, selectSubtree, selectParent, alignSelection, duplicateSelected, importState, resetMap, undo, redo, canUndo, canRedo } = useMindMapStore();
+  const { nodes, focusId, selectedIds, setFocus, selectAll, invertSelection, selectSiblings, selectChildren, selectLeaves, selectAncestors, selectTopLevel, selectGeneration, clearSelectionSet, expandSelectionToNeighbors, selectSubtree, selectParent, alignSelection, distributeSelection, duplicateSelected, importState, resetMap, undo, redo, canUndo, canRedo } = useMindMapStore();
   const [searchOpen, setSearchOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [importNotice, setImportNotice] = useState<{ text: string; kind: 'success' | 'error' } | null>(null);
@@ -101,6 +101,8 @@ export default function App() {
           <button title="Expand selection to neighbors (Alt+N)" onClick={expandSelectionToNeighbors}>Neighbors</button>
           <button title="Align selected X to focus (Alt+Shift+X)" onClick={() => alignSelection('x')}>Align X</button>
           <button title="Align selected Y to focus (Alt+Shift+Y)" onClick={() => alignSelection('y')}>Align Y</button>
+          <button title="Distribute selected horizontally (Alt+Shift+H)" onClick={() => distributeSelection('x')}>Dist X</button>
+          <button title="Distribute selected vertically (Alt+Shift+V)" onClick={() => distributeSelection('y')}>Dist Y</button>
           <button title="Select focused subtree (Alt+B)" onClick={selectSubtree}>Subtree</button>
           <button title="Select parent of focused node (Alt+P)" onClick={selectParent}>Parent</button>
           <button title="Duplicate selected nodes (Cmd/Ctrl+D)" onClick={duplicateSelected}>Duplicate</button>

@@ -11,7 +11,7 @@
 
 ## Core Features
 - Node creation (Enter/Tab) + promote (Shift+Tab)
-- Multi-select + group drag move (+ Cmd/Ctrl+A select all + Alt+I invert + Alt+S siblings + Alt+C children + Alt+L leaves + Alt+U ancestors + Alt+T top-level + Alt+G generation + Alt+X clear extras + Alt+N neighbors + Alt+Shift+X/Y align + Alt+B subtree + Alt+P parent + Cmd/Ctrl+D duplicate + Alt+Arrow nudge)
+- Multi-select + group drag move (+ Cmd/Ctrl+A select all + Alt+I invert + Alt+S siblings + Alt+C children + Alt+L leaves + Alt+U ancestors + Alt+T top-level + Alt+G generation + Alt+X clear extras + Alt+N neighbors + Alt+Shift+X/Y align + Alt+Shift+H/V distribute + Alt+B subtree + Alt+P parent + Cmd/Ctrl+D duplicate + Alt+Arrow nudge)
 - Explicit edit mode (E/double‑click)
 - Delete selected node(s)
 - Arrow key navigation

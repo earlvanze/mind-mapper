@@ -42,6 +42,7 @@ type MindMapState = {
   selectSubtree: () => void;
   moveNode: (id: string, x: number, y: number, commitHistory?: boolean) => void;
   alignSelection: (axis: 'x' | 'y') => void;
+  distributeSelection: (axis: 'x' | 'y') => void;
   moveNodes: (updates: Record<string, { x: number; y: number }>, commitHistory?: boolean) => void;
   nudgeSelected: (dx: number, dy: number) => void;
   startEditing: (id: string) => void;
@@ -419,6 +420,51 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
           changed = true;
         }
       }
+
+      if (!changed) return {};
+      return {
+        ...withHistory(state),
+        nodes: nextNodes,
+      };
+    }),
+  distributeSelection: axis =>
+    set(state => {
+      const selected = state.selectedIds.filter(id => !!state.nodes[id]);
+      if (selected.length < 3) return {};
+
+      const sorted = [...selected].sort((a, b) => {
+        const na = state.nodes[a];
+        const nb = state.nodes[b];
+        return axis === 'x' ? na.x - nb.x : na.y - nb.y;
+      });
+
+      const first = state.nodes[sorted[0]];
+      const last = state.nodes[sorted[sorted.length - 1]];
+      if (!first || !last) return {};
+
+      const start = axis === 'x' ? first.x : first.y;
+      const end = axis === 'x' ? last.x : last.y;
+      if (start === end) return {};
+
+      const gap = (end - start) / (sorted.length - 1);
+      const nextNodes = { ...state.nodes };
+      let changed = false;
+
+      sorted.forEach((id, idx) => {
+        if (idx === 0 || idx === sorted.length - 1) return;
+        const node = nextNodes[id];
+        if (!node) return;
+
+        const target = start + gap * idx;
+        if (axis === 'x' && node.x !== target) {
+          nextNodes[id] = { ...node, x: target };
+          changed = true;
+        }
+        if (axis === 'y' && node.y !== target) {
+          nextNodes[id] = { ...node, y: target };
+          changed = true;
+        }
+      });
 
       if (!changed) return {};
       return {

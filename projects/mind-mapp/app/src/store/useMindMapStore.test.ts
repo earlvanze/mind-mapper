@@ -317,6 +317,35 @@ describe('useMindMapStore history', () => {
     expect(next.nodes[b].y).toBe(ay);
   });
 
+  it('distributeSelection spaces selected nodes between first and last', () => {
+    const store = useMindMapStore.getState();
+    store.addChild(ROOT_ID);
+    store.addChild(ROOT_ID);
+    store.addChild(ROOT_ID);
+
+    const [a, b, c] = useMindMapStore.getState().nodes[ROOT_ID].children;
+
+    useMindMapStore.getState().moveNode(a, 100, 100);
+    useMindMapStore.getState().moveNode(b, 220, 160);
+    useMindMapStore.getState().moveNode(c, 500, 300);
+
+    useMindMapStore.getState().setFocus(a);
+    useMindMapStore.getState().toggleSelection(b);
+    useMindMapStore.getState().toggleSelection(c);
+
+    useMindMapStore.getState().distributeSelection('x');
+    let next = useMindMapStore.getState();
+    expect(next.nodes[a].x).toBe(100);
+    expect(next.nodes[c].x).toBe(500);
+    expect(next.nodes[b].x).toBeCloseTo(300, 5);
+
+    useMindMapStore.getState().distributeSelection('y');
+    next = useMindMapStore.getState();
+    expect(next.nodes[a].y).toBe(100);
+    expect(next.nodes[c].y).toBe(300);
+    expect(next.nodes[b].y).toBeCloseTo(200, 5);
+  });
+
   it('expandSelectionToNeighbors adds parent and children of selected nodes', () => {
     const store = useMindMapStore.getState();
     store.addChild(ROOT_ID);

@@ -18,6 +18,8 @@
 - Alt+N: expand selection to parents + children
 - Alt+Shift+X: align selected nodes to focused X
 - Alt+Shift+Y: align selected nodes to focused Y
+- Alt+Shift+H: distribute selected nodes horizontally
+- Alt+Shift+V: distribute selected nodes vertically
 - Alt+B: select focused subtree
 - Alt+P: select parent of focused node
 - Cmd/Ctrl+Z: undo

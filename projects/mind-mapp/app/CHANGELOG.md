@@ -54,6 +54,7 @@
 - Added neighbor-expansion command (Alt+N + toolbar)
 - Added generation-selection command (Alt+G + toolbar)
 - Added selection alignment commands (Alt+Shift+X / Alt+Shift+Y + toolbar)
+- Added selection distribution commands (Alt+Shift+H / Alt+Shift+V + toolbar)
 - Search selection now centers viewport on the chosen node
 
 ## 0.1.1
