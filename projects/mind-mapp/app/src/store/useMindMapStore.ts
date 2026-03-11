@@ -31,6 +31,7 @@ type MindMapState = {
   clearSelection: () => void;
   selectAll: () => void;
   selectSiblings: () => void;
+  selectSubtree: () => void;
   moveNode: (id: string, x: number, y: number, commitHistory?: boolean) => void;
   moveNodes: (updates: Record<string, { x: number; y: number }>, commitHistory?: boolean) => void;
   nudgeSelected: (dx: number, dy: number) => void;
@@ -152,6 +153,31 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
 
       return {
         selectedIds: siblingIds,
+        focusId: focused.id,
+        editingId: undefined,
+      };
+    }),
+  selectSubtree: () =>
+    set(state => {
+      const focused = state.nodes[state.focusId];
+      if (!focused) return {};
+
+      const selected = new Set<string>();
+      const stack = [focused.id];
+
+      while (stack.length) {
+        const id = stack.pop()!;
+        const node = state.nodes[id];
+        if (!node || selected.has(id)) continue;
+        selected.add(id);
+        stack.push(...node.children);
+      }
+
+      const selectedIds = [...selected];
+      if (!selectedIds.length) return {};
+
+      return {
+        selectedIds,
         focusId: focused.id,
         editingId: undefined,
       };

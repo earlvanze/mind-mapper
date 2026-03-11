@@ -140,6 +140,23 @@ describe('useMindMapStore history', () => {
     expect(selected.sort()).toEqual([...siblingIds].sort());
   });
 
+  it('selectSubtree selects focused node and descendants', () => {
+    const store = useMindMapStore.getState();
+    store.addChild(ROOT_ID);
+
+    const parentId = useMindMapStore.getState().nodes[ROOT_ID].children[0];
+    store.addChild(parentId);
+    const childId = useMindMapStore.getState().nodes[parentId].children[0];
+    store.addChild(childId);
+    const grandChildId = useMindMapStore.getState().nodes[childId].children[0];
+
+    useMindMapStore.getState().setFocus(parentId);
+    useMindMapStore.getState().selectSubtree();
+
+    const selected = useMindMapStore.getState().selectedIds.sort();
+    expect(selected).toEqual([parentId, childId, grandChildId].sort());
+  });
+
   it('nudges selected nodes and supports undo', () => {
     const store = useMindMapStore.getState();
     store.addChild(ROOT_ID);

@@ -7,6 +7,7 @@
 - Cmd/Ctrl + A: select all nodes
 - Cmd/Ctrl + D: duplicate selected node(s)
 - Alt + S: select siblings of focused node
+- Alt + B: select focused subtree
 - Drag selected node(s): group move
 - Click mini-map node: focus + center that node
 - Click mini-map background: recenter viewport to that location

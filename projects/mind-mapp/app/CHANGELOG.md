@@ -43,6 +43,7 @@
 - Switched mini-map viewport sync from polling to pan/zoom view-change events
 - Added focused-node sibling selection command (Alt+S + toolbar)
 - Added mini-map background click-to-recenter navigation
+- Added focused-subtree selection command (Alt+B + toolbar)
 - Search selection now centers viewport on the chosen node
 
 ## 0.1.1

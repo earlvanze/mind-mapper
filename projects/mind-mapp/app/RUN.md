@@ -21,6 +21,7 @@ npm test
 - Cmd/Ctrl+A: select all nodes
 - Cmd/Ctrl+D: duplicate selected node(s)
 - Alt+S: select siblings of focused node
+- Alt+B: select focused subtree
 - Cmd/Ctrl+Z: undo
 - Cmd/Ctrl+Shift+Z or Cmd/Ctrl+Y: redo
 - Cmd/Ctrl+K: search

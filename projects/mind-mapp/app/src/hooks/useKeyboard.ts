@@ -12,7 +12,7 @@ type Props = {
 };
 
 export function useKeyboard({ onSearch, onFit, onCenterFocus, onHelp, onUndo, onRedo, onExportMarkdown }: Props) {
-  const { focusId, addSibling, addChild, promoteNode, deleteSelected, duplicateSelected, moveFocus, setFocus, selectAll, selectSiblings, autoLayoutChildren, nudgeSelected, editingId, startEditing } = useMindMapStore();
+  const { focusId, addSibling, addChild, promoteNode, deleteSelected, duplicateSelected, moveFocus, setFocus, selectAll, selectSiblings, selectSubtree, autoLayoutChildren, nudgeSelected, editingId, startEditing } = useMindMapStore();
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -43,6 +43,10 @@ export function useKeyboard({ onSearch, onFit, onCenterFocus, onHelp, onUndo, on
       if (e.altKey && e.key.toLowerCase() === 's' && !e.metaKey && !e.ctrlKey) {
         e.preventDefault();
         selectSiblings();
+      }
+      if (e.altKey && e.key.toLowerCase() === 'b' && !e.metaKey && !e.ctrlKey) {
+        e.preventDefault();
+        selectSubtree();
       }
       if (e.key.toLowerCase() === 'f' && !e.metaKey && !e.ctrlKey) {
         onFit();
@@ -131,6 +135,7 @@ export function useKeyboard({ onSearch, onFit, onCenterFocus, onHelp, onUndo, on
     setFocus,
     selectAll,
     selectSiblings,
+    selectSubtree,
     autoLayoutChildren,
     nudgeSelected,
     editingId,
