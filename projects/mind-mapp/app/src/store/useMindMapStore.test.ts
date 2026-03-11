@@ -258,6 +258,26 @@ describe('useMindMapStore history', () => {
     expect(next.focusId).toBe(parentId);
   });
 
+  it('selectGeneration selects nodes at same hierarchy depth', () => {
+    const store = useMindMapStore.getState();
+    store.addChild(ROOT_ID);
+    store.addChild(ROOT_ID);
+
+    const [a, b] = useMindMapStore.getState().nodes[ROOT_ID].children;
+    store.addChild(a);
+    store.addChild(b);
+
+    const a1 = useMindMapStore.getState().nodes[a].children[0];
+    const b1 = useMindMapStore.getState().nodes[b].children[0];
+
+    useMindMapStore.getState().setFocus(a1);
+    useMindMapStore.getState().selectGeneration();
+
+    const next = useMindMapStore.getState();
+    expect(next.selectedIds.sort()).toEqual([a1, b1].sort());
+    expect(next.focusId).toBe(a1);
+  });
+
   it('clearSelectionSet keeps focused node only', () => {
     const store = useMindMapStore.getState();
     store.addChild(ROOT_ID);

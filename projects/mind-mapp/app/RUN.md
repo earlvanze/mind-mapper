@@ -26,6 +26,7 @@ npm test
 - Alt+L: select leaves under focused subtree
 - Alt+U: select ancestors of focused node
 - Alt+T: reduce selection to top-level nodes
+- Alt+G: select nodes at focused depth level
 - Alt+X: clear selection extras (keep focus)
 - Alt+N: expand selection to parents + children
 - Alt+B: select focused subtree

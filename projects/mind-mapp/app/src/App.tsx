@@ -11,7 +11,7 @@ import HelpDialog from './components/HelpDialog';
 import MiniMap from './components/MiniMap';
 
 export default function App() {
-  const { nodes, focusId, selectedIds, setFocus, selectAll, invertSelection, selectSiblings, selectChildren, selectLeaves, selectAncestors, selectTopLevel, clearSelectionSet, expandSelectionToNeighbors, selectSubtree, selectParent, duplicateSelected, importState, resetMap, undo, redo, canUndo, canRedo } = useMindMapStore();
+  const { nodes, focusId, selectedIds, setFocus, selectAll, invertSelection, selectSiblings, selectChildren, selectLeaves, selectAncestors, selectTopLevel, selectGeneration, clearSelectionSet, expandSelectionToNeighbors, selectSubtree, selectParent, duplicateSelected, importState, resetMap, undo, redo, canUndo, canRedo } = useMindMapStore();
   const [searchOpen, setSearchOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [importNotice, setImportNotice] = useState<{ text: string; kind: 'success' | 'error' } | null>(null);
@@ -96,6 +96,7 @@ export default function App() {
           <button title="Select leaves under focused subtree (Alt+L)" onClick={selectLeaves}>Leaves</button>
           <button title="Select focused node ancestors (Alt+U)" onClick={selectAncestors}>Ancestors</button>
           <button title="Keep top-level nodes from selection (Alt+T)" onClick={selectTopLevel}>Top-level</button>
+          <button title="Select nodes at same depth (Alt+G)" onClick={selectGeneration}>Generation</button>
           <button title="Clear selection extras (Alt+X)" onClick={clearSelectionSet}>Clear Sel</button>
           <button title="Expand selection to neighbors (Alt+N)" onClick={expandSelectionToNeighbors}>Neighbors</button>
           <button title="Select focused subtree (Alt+B)" onClick={selectSubtree}>Subtree</button>

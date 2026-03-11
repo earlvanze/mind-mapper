@@ -36,6 +36,7 @@ type MindMapState = {
   selectLeaves: () => void;
   selectAncestors: () => void;
   selectTopLevel: () => void;
+  selectGeneration: () => void;
   clearSelectionSet: () => void;
   expandSelectionToNeighbors: () => void;
   selectSubtree: () => void;
@@ -279,6 +280,38 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
       return {
         selectedIds: topLevel,
         focusId,
+        editingId: undefined,
+      };
+    }),
+  selectGeneration: () =>
+    set(state => {
+      const focused = state.nodes[state.focusId];
+      if (!focused) return {};
+
+      const depthOf = (id: string) => {
+        let depth = 0;
+        let current = state.nodes[id];
+        const seen = new Set<string>([id]);
+
+        while (current?.parentId) {
+          if (seen.has(current.parentId)) break;
+          seen.add(current.parentId);
+          const parent = state.nodes[current.parentId];
+          if (!parent) break;
+          depth += 1;
+          current = parent;
+        }
+
+        return depth;
+      };
+
+      const targetDepth = depthOf(focused.id);
+      const selectedIds = Object.keys(state.nodes).filter(id => depthOf(id) === targetDepth);
+      if (!selectedIds.length) return {};
+
+      return {
+        selectedIds,
+        focusId: selectedIds.includes(state.focusId) ? state.focusId : selectedIds[0],
         editingId: undefined,
       };
     }),
