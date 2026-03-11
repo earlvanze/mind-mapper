@@ -16,6 +16,7 @@ export default function App() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [showGrid, setShowGrid] = useState(false);
+  const [showAdvancedActions, setShowAdvancedActions] = useState(false);
   const [importNotice, setImportNotice] = useState<{ text: string; kind: 'success' | 'error' } | null>(null);
 
   const centerOnWorld = (x: number, y: number) => {
@@ -114,31 +115,23 @@ export default function App() {
         <div className="toolbar-actions">
           <button title="Undo (Cmd/Ctrl+Z)" onClick={undo} disabled={!canUndo}>Undo</button>
           <button title="Redo (Cmd/Ctrl+Shift+Z)" onClick={redo} disabled={!canRedo}>Redo</button>
-          <button title="Select all nodes (Cmd/Ctrl+A)" onClick={selectAll}>Select All</button>
-          <button title="Invert selection (Alt+I)" onClick={invertSelection}>Invert</button>
-          <button title="Select siblings of focused node (Alt+S)" onClick={selectSiblings}>Siblings</button>
-          <button title="Select children of focused node (Alt+C)" onClick={selectChildren}>Children</button>
-          <button title="Select leaves under focused subtree (Alt+L)" onClick={selectLeaves}>Leaves</button>
-          <button title="Select focused node ancestors (Alt+U)" onClick={selectAncestors}>Ancestors</button>
-          <button title="Keep top-level nodes from selection (Alt+T)" onClick={selectTopLevel}>Top-level</button>
-          <button title="Select nodes at same depth (Alt+G)" onClick={selectGeneration}>Generation</button>
-          <button title="Clear selection extras (Alt+X)" onClick={clearSelectionSet}>Clear Sel</button>
-          <button title="Expand selection to neighbors (Alt+N)" onClick={expandSelectionToNeighbors}>Neighbors</button>
-          <button title="Align selected X to focus (Alt+Shift+X)" onClick={() => alignSelection('x')}>Align X</button>
-          <button title="Align selected Y to focus (Alt+Shift+Y)" onClick={() => alignSelection('y')}>Align Y</button>
-          <button title="Distribute selected horizontally (Alt+Shift+H)" onClick={() => distributeSelection('x')}>Dist X</button>
-          <button title="Distribute selected vertically (Alt+Shift+V)" onClick={() => distributeSelection('y')}>Dist Y</button>
-          <button title="Layout selected as row from focus (Alt+Shift+R)" onClick={() => layoutSelection('row')}>Layout Row</button>
-          <button title="Layout selected as column from focus (Alt+Shift+D)" onClick={() => layoutSelection('column')}>Layout Col</button>
-          <button title="Snap selected to 20px grid (Alt+Shift+G)" onClick={() => snapSelectionToGrid(20)}>Snap 20</button>
+          <button title="Fit to view" onClick={() => fitToView()}>Fit</button>
+          <button title="Fit selected nodes (Alt+F)" onClick={fitSelection}>Fit Sel</button>
+          <button title="Center focused node (C)" onClick={() => centerOnNode(focusId)}>Center</button>
           <button title="Toggle grid overlay (Shift+G)" onClick={() => setShowGrid(v => !v)}>{showGrid ? 'Grid On' : 'Grid Off'}</button>
-          <button title="Mirror selected across focused X axis (Alt+Shift+M)" onClick={() => mirrorSelection('x')}>Mirror X</button>
-          <button title="Mirror selected across focused Y axis (Alt+Shift+W)" onClick={() => mirrorSelection('y')}>Mirror Y</button>
-          <button title="Stack selected on X from focus (Alt+[)" onClick={() => stackSelection('x')}>Stack X</button>
-          <button title="Stack selected on Y from focus (Alt+])" onClick={() => stackSelection('y')}>Stack Y</button>
-          <button title="Select focused subtree (Alt+B)" onClick={selectSubtree}>Subtree</button>
-          <button title="Select parent of focused node (Alt+P)" onClick={selectParent}>Parent</button>
-          <button title="Duplicate selected nodes (Cmd/Ctrl+D)" onClick={duplicateSelected}>Duplicate</button>
+          <button title="Show/Hide advanced actions" onClick={() => setShowAdvancedActions(v => !v)}>
+            {showAdvancedActions ? 'Advanced ▴' : 'Advanced ▾'}
+          </button>
+          <button title="Show shortcuts" onClick={() => setHelpOpen(true)}>Help</button>
+          <button
+            title="Clear map"
+            onClick={() => {
+              if (confirmAction('Clear the entire map?')) resetMap();
+            }}
+          >
+            Clear
+          </button>
+          <button title="Load sample map" onClick={() => importState(sampleMap())}>Sample</button>
           <label className="import-btn">
             Import JSON
             <input
@@ -150,23 +143,39 @@ export default function App() {
               }}
             />
           </label>
-          <button title="Fit to view" onClick={() => fitToView()}>Fit</button>
-          <button title="Fit selected nodes (Alt+F)" onClick={fitSelection}>Fit Sel</button>
-          <button title="Center focused node (C)" onClick={() => centerOnNode(focusId)}>Center</button>
-          <button title="Show shortcuts" onClick={() => setHelpOpen(true)}>Help</button>
-          <button
-            title="Clear map"
-            onClick={() => {
-              if (confirmAction('Clear the entire map?')) resetMap();
-            }}
-          >
-            Clear
-          </button>
-          <button title="Load sample map" onClick={() => importState(sampleMap())}>Sample</button>
           <button title="Export JSON" data-export="json" onClick={exportJson}>Export JSON</button>
           <button title="Export Markdown" data-export="markdown" onClick={() => exportMarkdownData(nodes)}>Export MD</button>
           <button title="Export PNG" data-export="png" onClick={exportPngClick}>Export PNG</button>
           <button title="Reset pan/zoom" onClick={() => (window as any).__mindmappResetView?.()}>Reset View</button>
+
+          {showAdvancedActions ? (
+            <>
+              <button title="Select all nodes (Cmd/Ctrl+A)" onClick={selectAll}>Select All</button>
+              <button title="Invert selection (Alt+I)" onClick={invertSelection}>Invert</button>
+              <button title="Select siblings of focused node (Alt+S)" onClick={selectSiblings}>Siblings</button>
+              <button title="Select children of focused node (Alt+C)" onClick={selectChildren}>Children</button>
+              <button title="Select leaves under focused subtree (Alt+L)" onClick={selectLeaves}>Leaves</button>
+              <button title="Select focused node ancestors (Alt+U)" onClick={selectAncestors}>Ancestors</button>
+              <button title="Keep top-level nodes from selection (Alt+T)" onClick={selectTopLevel}>Top-level</button>
+              <button title="Select nodes at same depth (Alt+G)" onClick={selectGeneration}>Generation</button>
+              <button title="Clear selection extras (Alt+X)" onClick={clearSelectionSet}>Clear Sel</button>
+              <button title="Expand selection to neighbors (Alt+N)" onClick={expandSelectionToNeighbors}>Neighbors</button>
+              <button title="Align selected X to focus (Alt+Shift+X)" onClick={() => alignSelection('x')}>Align X</button>
+              <button title="Align selected Y to focus (Alt+Shift+Y)" onClick={() => alignSelection('y')}>Align Y</button>
+              <button title="Distribute selected horizontally (Alt+Shift+H)" onClick={() => distributeSelection('x')}>Dist X</button>
+              <button title="Distribute selected vertically (Alt+Shift+V)" onClick={() => distributeSelection('y')}>Dist Y</button>
+              <button title="Layout selected as row from focus (Alt+Shift+R)" onClick={() => layoutSelection('row')}>Layout Row</button>
+              <button title="Layout selected as column from focus (Alt+Shift+D)" onClick={() => layoutSelection('column')}>Layout Col</button>
+              <button title="Snap selected to 20px grid (Alt+Shift+G)" onClick={() => snapSelectionToGrid(20)}>Snap 20</button>
+              <button title="Mirror selected across focused X axis (Alt+Shift+M)" onClick={() => mirrorSelection('x')}>Mirror X</button>
+              <button title="Mirror selected across focused Y axis (Alt+Shift+W)" onClick={() => mirrorSelection('y')}>Mirror Y</button>
+              <button title="Stack selected on X from focus (Alt+[)" onClick={() => stackSelection('x')}>Stack X</button>
+              <button title="Stack selected on Y from focus (Alt+])" onClick={() => stackSelection('y')}>Stack Y</button>
+              <button title="Select focused subtree (Alt+B)" onClick={selectSubtree}>Subtree</button>
+              <button title="Select parent of focused node (Alt+P)" onClick={selectParent}>Parent</button>
+              <button title="Duplicate selected nodes (Cmd/Ctrl+D)" onClick={duplicateSelected}>Duplicate</button>
+            </>
+          ) : null}
         </div>
       </div>
       <div className={`canvas ${showGrid ? 'grid-on' : ''}`}>

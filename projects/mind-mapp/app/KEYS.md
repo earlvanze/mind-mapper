@@ -1,5 +1,7 @@
 # Mind Mapp — Keyboard Shortcuts
 
+Most selection/layout commands are also available in toolbar `Advanced ▾`.
+
 - Enter: new sibling
 - Tab: new child
 - Shift+Tab: promote node

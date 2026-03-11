@@ -8,6 +8,8 @@ npm run dev
 
 Then open the URL shown (usually http://localhost:5173).
 
+Tip: click `Advanced ▾` in the toolbar to reveal selection/layout actions.
+
 ## Tests
 ```bash
 npm test

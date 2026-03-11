@@ -62,6 +62,7 @@
 - Added grid overlay toggle (Shift+G + toolbar)
 - Added row/column layout commands (Alt+Shift+R / Alt+Shift+D + toolbar)
 - Lazy-loaded Search/Help dialogs to reduce initial JS payload
+- Added collapsible Advanced actions toolbar section to reduce top-bar clutter
 - Search selection now centers viewport on the chosen node
 
 ## 0.1.1
