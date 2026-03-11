@@ -36,8 +36,17 @@ export function usePanZoom({ selector }: Options) {
     let originY = 0;
     let scale = 1;
 
+    const emitViewChange = () => {
+      window.dispatchEvent(
+        new CustomEvent('mindmapp:viewchange', {
+          detail: { originX, originY, scale },
+        }),
+      );
+    };
+
     const applyTransform = () => {
       el.style.transform = `translate(${originX}px, ${originY}px) scale(${scale})`;
+      emitViewChange();
     };
 
     const setView = (view: Partial<ViewState>) => {

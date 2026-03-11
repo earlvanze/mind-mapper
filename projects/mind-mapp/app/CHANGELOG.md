@@ -40,6 +40,7 @@
 - Added center-focused-node control (C shortcut + mini-map click center)
 - Added duplicate-selected control (Cmd/Ctrl+D + toolbar, including subtree duplication)
 - Added mini-map viewport indicator synced with pan/zoom state
+- Switched mini-map viewport sync from polling to pan/zoom view-change events
 
 ## 0.1.1
 - Added toolbar actions (Fit/Help/Clear)

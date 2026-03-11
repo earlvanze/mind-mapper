@@ -43,11 +43,11 @@ export default function MiniMap({ nodes, focusId, selectedIds, onFocus }: Props)
     };
 
     sync();
-    const id = window.setInterval(sync, 120);
+    window.addEventListener('mindmapp:viewchange', sync as EventListener);
     window.addEventListener('resize', sync);
 
     return () => {
-      window.clearInterval(id);
+      window.removeEventListener('mindmapp:viewchange', sync as EventListener);
       window.removeEventListener('resize', sync);
     };
   }, [bounds]);
