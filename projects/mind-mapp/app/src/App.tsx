@@ -14,6 +14,7 @@ export default function App() {
   const { nodes, focusId, selectedIds, setFocus, selectAll, invertSelection, selectSiblings, selectChildren, selectLeaves, selectAncestors, selectTopLevel, selectGeneration, clearSelectionSet, expandSelectionToNeighbors, selectSubtree, selectParent, alignSelection, distributeSelection, stackSelection, snapSelectionToGrid, mirrorSelection, duplicateSelected, importState, resetMap, undo, redo, canUndo, canRedo } = useMindMapStore();
   const [searchOpen, setSearchOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
+  const [showGrid, setShowGrid] = useState(false);
   const [importNotice, setImportNotice] = useState<{ text: string; kind: 'success' | 'error' } | null>(null);
 
   const centerOnWorld = (x: number, y: number) => {
@@ -66,6 +67,7 @@ export default function App() {
     onFit: () => fitToView(),
     onFitSelection: () => fitSelection(),
     onCenterFocus: () => centerOnNode(focusId),
+    onToggleGrid: () => setShowGrid(v => !v),
     onHelp: () => setHelpOpen(true),
     onUndo: () => undo(),
     onRedo: () => redo(),
@@ -126,6 +128,7 @@ export default function App() {
           <button title="Distribute selected horizontally (Alt+Shift+H)" onClick={() => distributeSelection('x')}>Dist X</button>
           <button title="Distribute selected vertically (Alt+Shift+V)" onClick={() => distributeSelection('y')}>Dist Y</button>
           <button title="Snap selected to 20px grid (Alt+Shift+G)" onClick={() => snapSelectionToGrid(20)}>Snap 20</button>
+          <button title="Toggle grid overlay (Shift+G)" onClick={() => setShowGrid(v => !v)}>{showGrid ? 'Grid On' : 'Grid Off'}</button>
           <button title="Mirror selected across focused X axis (Alt+Shift+M)" onClick={() => mirrorSelection('x')}>Mirror X</button>
           <button title="Mirror selected across focused Y axis (Alt+Shift+W)" onClick={() => mirrorSelection('y')}>Mirror Y</button>
           <button title="Stack selected on X from focus (Alt+[)" onClick={() => stackSelection('x')}>Stack X</button>
@@ -163,7 +166,7 @@ export default function App() {
           <button title="Reset pan/zoom" onClick={() => (window as any).__mindmappResetView?.()}>Reset View</button>
         </div>
       </div>
-      <div className="canvas">
+      <div className={`canvas ${showGrid ? 'grid-on' : ''}`}>
         <Edges nodes={nodes} />
         {Object.values(nodes).map(n => (
           <Node key={n.id} node={n} />

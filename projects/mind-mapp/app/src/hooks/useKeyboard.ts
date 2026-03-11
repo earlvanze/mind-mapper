@@ -6,13 +6,14 @@ type Props = {
   onFit: () => void;
   onFitSelection: () => void;
   onCenterFocus: () => void;
+  onToggleGrid: () => void;
   onHelp: () => void;
   onUndo: () => void;
   onRedo: () => void;
   onExportMarkdown: () => void;
 };
 
-export function useKeyboard({ onSearch, onFit, onFitSelection, onCenterFocus, onHelp, onUndo, onRedo, onExportMarkdown }: Props) {
+export function useKeyboard({ onSearch, onFit, onFitSelection, onCenterFocus, onToggleGrid, onHelp, onUndo, onRedo, onExportMarkdown }: Props) {
   const { focusId, addSibling, addChild, promoteNode, deleteSelected, duplicateSelected, moveFocus, selectParent, setFocus, selectAll, invertSelection, selectSiblings, selectChildren, selectLeaves, selectAncestors, selectTopLevel, selectGeneration, clearSelectionSet, expandSelectionToNeighbors, selectSubtree, alignSelection, distributeSelection, stackSelection, snapSelectionToGrid, mirrorSelection, autoLayoutChildren, nudgeSelected, editingId, startEditing } = useMindMapStore();
 
   useEffect(() => {
@@ -125,6 +126,10 @@ export function useKeyboard({ onSearch, onFit, onFitSelection, onCenterFocus, on
         e.preventDefault();
         onFitSelection();
       }
+      if (e.shiftKey && e.key.toLowerCase() === 'g' && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        e.preventDefault();
+        onToggleGrid();
+      }
       if (e.key.toLowerCase() === 'f' && !e.metaKey && !e.ctrlKey) {
         onFit();
       }
@@ -235,6 +240,7 @@ export function useKeyboard({ onSearch, onFit, onFitSelection, onCenterFocus, on
     onFit,
     onFitSelection,
     onCenterFocus,
+    onToggleGrid,
     onHelp,
     onUndo,
     onRedo,

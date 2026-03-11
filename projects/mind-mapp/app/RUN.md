@@ -52,6 +52,7 @@ npm test
 - Shift+Alt+Arrow: nudge selected node(s) by 40px
 - F: fit to view
 - Alt+F: fit selected nodes
+- Shift+G: toggle grid overlay
 - C: center focused node
 - L: auto-layout children
 - Shift+drag: pan

@@ -2,6 +2,7 @@
 
 ## Mouse + Trackpad
 - Shift + drag: pan
+- Shift + G: toggle grid overlay
 - Ctrl/Cmd + wheel: zoom
 - Cmd/Ctrl + click: add/remove node in multi-selection
 - Cmd/Ctrl + A: select all nodes

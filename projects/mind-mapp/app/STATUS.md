@@ -20,7 +20,7 @@
 - Autosave + JSON import/export (validated)
 - Markdown export (Cmd/Ctrl+Shift+M)
 - PNG export (Cmd/Ctrl+Shift+S)
-- Pan/zoom + fit-to-view + fit-selection + reset view (mouse + touch, state-synced)
+- Pan/zoom + fit-to-view + fit-selection + grid overlay toggle + reset view (mouse + touch, state-synced)
 - Help dialog + shortcuts
 - Sample map loader
 - Curved edge rendering with arrowheads
