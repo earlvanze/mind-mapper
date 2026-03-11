@@ -1,11 +1,11 @@
-import { lazy, Suspense, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { useMindMapStore, saveState } from './store/useMindMapStore';
 import Node from './components/Node';
 import Edges from './components/Edges';
 import { useKeyboard } from './hooks/useKeyboard';
 import { usePanZoom } from './hooks/usePanZoom';
 import { useAutosave } from './hooks/useAutosave';
-import { exportPng, exportJsonData, exportMarkdownData, fitToView, computeFitView, centerPointInView, confirmAction, parseImportPayload, sampleMap, APP_VERSION } from './utils';
+import { exportPng, exportJsonData, exportMarkdownData, fitToView, computeFitView, centerPointInView, confirmAction, parseImportPayload, sampleMap, loadUiPrefs, saveUiPrefs, APP_VERSION } from './utils';
 import MiniMap from './components/MiniMap';
 
 const SearchDialog = lazy(() => import('./components/SearchDialog'));
@@ -18,6 +18,17 @@ export default function App() {
   const [showGrid, setShowGrid] = useState(false);
   const [showAdvancedActions, setShowAdvancedActions] = useState(false);
   const [importNotice, setImportNotice] = useState<{ text: string; kind: 'success' | 'error' } | null>(null);
+
+  useEffect(() => {
+    const prefs = loadUiPrefs();
+    if (!prefs) return;
+    if (typeof prefs.showGrid === 'boolean') setShowGrid(prefs.showGrid);
+    if (typeof prefs.showAdvancedActions === 'boolean') setShowAdvancedActions(prefs.showAdvancedActions);
+  }, []);
+
+  useEffect(() => {
+    saveUiPrefs({ showGrid, showAdvancedActions });
+  }, [showGrid, showAdvancedActions]);
 
   const centerOnWorld = (x: number, y: number) => {
     const el = document.querySelector('.canvas') as HTMLElement | null;

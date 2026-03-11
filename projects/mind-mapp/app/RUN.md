@@ -8,7 +8,7 @@ npm run dev
 
 Then open the URL shown (usually http://localhost:5173).
 
-Tip: click `Advanced ▾` in the toolbar to reveal selection/layout actions.
+Tip: click `Advanced ▾` in the toolbar to reveal selection/layout actions (your grid/advanced visibility preferences persist between reloads).
 
 ## Tests
 ```bash

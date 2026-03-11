@@ -9,5 +9,6 @@ export * from './importValidation';
 export * from './sampleMap';
 export * from './shortcuts';
 export * from './storage';
+export * from './uiPrefs';
 export * from './version';
 export * from './viewMath';

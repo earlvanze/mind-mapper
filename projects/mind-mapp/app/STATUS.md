@@ -7,7 +7,7 @@
 - Test runner: Vitest (`npm test`) — import, store history, minimap, fit math, edge/path, and pan/zoom math covered
 - CI: GitHub Actions workflow runs `npm test` + `npm run build` on app changes
 - Search/Help dialogs are lazy-loaded for faster initial paint
-- Advanced toolbar actions are collapsible to reduce UI clutter
+- Advanced toolbar actions are collapsible to reduce UI clutter (visibility persisted)
 - Docs inventory + migration notes maintained
 - FAQ + glossary + exports/imports + architecture + gestures + style docs available
 
