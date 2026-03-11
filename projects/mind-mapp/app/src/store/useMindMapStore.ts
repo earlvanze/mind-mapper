@@ -43,6 +43,7 @@ type MindMapState = {
   moveNode: (id: string, x: number, y: number, commitHistory?: boolean) => void;
   alignSelection: (axis: 'x' | 'y') => void;
   distributeSelection: (axis: 'x' | 'y') => void;
+  stackSelection: (axis: 'x' | 'y', gap?: number) => void;
   moveNodes: (updates: Record<string, { x: number; y: number }>, commitHistory?: boolean) => void;
   nudgeSelected: (dx: number, dy: number) => void;
   startEditing: (id: string) => void;
@@ -456,6 +457,47 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
         if (!node) return;
 
         const target = start + gap * idx;
+        if (axis === 'x' && node.x !== target) {
+          nextNodes[id] = { ...node, x: target };
+          changed = true;
+        }
+        if (axis === 'y' && node.y !== target) {
+          nextNodes[id] = { ...node, y: target };
+          changed = true;
+        }
+      });
+
+      if (!changed) return {};
+      return {
+        ...withHistory(state),
+        nodes: nextNodes,
+      };
+    }),
+  stackSelection: (axis, gap = 80) =>
+    set(state => {
+      const selected = state.selectedIds.filter(id => !!state.nodes[id]);
+      if (selected.length < 2) return {};
+
+      const anchorId = state.nodes[state.focusId] ? state.focusId : selected[0];
+      const anchor = state.nodes[anchorId];
+      if (!anchor) return {};
+
+      const ordered = [anchorId, ...selected.filter(id => id !== anchorId)].sort((a, b) => {
+        if (a === anchorId) return -1;
+        if (b === anchorId) return 1;
+        const na = state.nodes[a];
+        const nb = state.nodes[b];
+        return axis === 'x' ? na.y - nb.y : na.x - nb.x;
+      });
+
+      const nextNodes = { ...state.nodes };
+      let changed = false;
+
+      ordered.forEach((id, idx) => {
+        const node = nextNodes[id];
+        if (!node) return;
+        const target = (axis === 'x' ? anchor.x : anchor.y) + gap * idx;
+
         if (axis === 'x' && node.x !== target) {
           nextNodes[id] = { ...node, x: target };
           changed = true;

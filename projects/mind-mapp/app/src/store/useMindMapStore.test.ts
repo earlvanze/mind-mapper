@@ -346,6 +346,30 @@ describe('useMindMapStore history', () => {
     expect(next.nodes[b].y).toBeCloseTo(200, 5);
   });
 
+  it('stackSelection stacks selected nodes from focused anchor', () => {
+    const store = useMindMapStore.getState();
+    store.addChild(ROOT_ID);
+    store.addChild(ROOT_ID);
+    store.addChild(ROOT_ID);
+
+    const [a, b, c] = useMindMapStore.getState().nodes[ROOT_ID].children;
+    useMindMapStore.getState().setFocus(b);
+    useMindMapStore.getState().toggleSelection(a);
+    useMindMapStore.getState().toggleSelection(c);
+
+    const anchor = useMindMapStore.getState().nodes[b];
+
+    useMindMapStore.getState().stackSelection('x', 50);
+    let next = useMindMapStore.getState();
+    const xs = [next.nodes[a].x, next.nodes[b].x, next.nodes[c].x].sort((m, n) => m - n);
+    expect(xs).toEqual([anchor.x, anchor.x + 50, anchor.x + 100]);
+
+    useMindMapStore.getState().stackSelection('y', 40);
+    next = useMindMapStore.getState();
+    const ys = [next.nodes[a].y, next.nodes[b].y, next.nodes[c].y].sort((m, n) => m - n);
+    expect(ys).toEqual([anchor.y, anchor.y + 40, anchor.y + 80]);
+  });
+
   it('expandSelectionToNeighbors adds parent and children of selected nodes', () => {
     const store = useMindMapStore.getState();
     store.addChild(ROOT_ID);

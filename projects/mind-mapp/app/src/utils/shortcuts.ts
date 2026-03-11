@@ -25,6 +25,8 @@ export const SHORTCUTS = [
   { key: 'Alt+Shift+Y', desc: 'align selected nodes to focused Y' },
   { key: 'Alt+Shift+H', desc: 'distribute selected nodes horizontally' },
   { key: 'Alt+Shift+V', desc: 'distribute selected nodes vertically' },
+  { key: 'Alt+[', desc: 'stack selected nodes along X from focus' },
+  { key: 'Alt+]', desc: 'stack selected nodes along Y from focus' },
   { key: 'Alt+B', desc: 'select focused subtree' },
   { key: 'Alt+P', desc: 'select parent of focused node' },
   { key: 'E / double‑click', desc: 'edit node' },
