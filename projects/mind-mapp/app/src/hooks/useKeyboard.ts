@@ -7,6 +7,7 @@ type Props = {
   onFitSelection: () => void;
   onCenterFocus: () => void;
   onToggleGrid: () => void;
+  onToggleMiniMap: () => void;
   onToggleAdvanced: () => void;
   onHelp: () => void;
   onUndo: () => void;
@@ -14,7 +15,7 @@ type Props = {
   onExportMarkdown: () => void;
 };
 
-export function useKeyboard({ onSearch, onFit, onFitSelection, onCenterFocus, onToggleGrid, onToggleAdvanced, onHelp, onUndo, onRedo, onExportMarkdown }: Props) {
+export function useKeyboard({ onSearch, onFit, onFitSelection, onCenterFocus, onToggleGrid, onToggleMiniMap, onToggleAdvanced, onHelp, onUndo, onRedo, onExportMarkdown }: Props) {
   const { focusId, addSibling, addChild, promoteNode, deleteSelected, duplicateSelected, moveFocus, selectParent, setFocus, selectAll, invertSelection, selectSiblings, selectChildren, selectLeaves, selectAncestors, selectTopLevel, selectGeneration, clearSelectionSet, expandSelectionToNeighbors, selectSubtree, alignSelection, distributeSelection, layoutSelection, stackSelection, snapSelectionToGrid, mirrorSelection, autoLayoutChildren, nudgeSelected, editingId, startEditing } = useMindMapStore();
 
   useEffect(() => {
@@ -139,6 +140,10 @@ export function useKeyboard({ onSearch, onFit, onFitSelection, onCenterFocus, on
         e.preventDefault();
         onToggleGrid();
       }
+      if (e.shiftKey && e.key.toLowerCase() === 'm' && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        e.preventDefault();
+        onToggleMiniMap();
+      }
       if (e.shiftKey && e.key.toLowerCase() === 'a' && !e.metaKey && !e.ctrlKey && !e.altKey) {
         e.preventDefault();
         onToggleAdvanced();
@@ -255,6 +260,7 @@ export function useKeyboard({ onSearch, onFit, onFitSelection, onCenterFocus, on
     onFitSelection,
     onCenterFocus,
     onToggleGrid,
+    onToggleMiniMap,
     onToggleAdvanced,
     onHelp,
     onUndo,

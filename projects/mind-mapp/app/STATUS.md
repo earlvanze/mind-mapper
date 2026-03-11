@@ -8,6 +8,7 @@
 - CI: GitHub Actions workflow runs `npm test` + `npm run build` on app changes
 - Search/Help dialogs are lazy-loaded for faster initial paint
 - Advanced toolbar actions are collapsible to reduce UI clutter (Shift+A toggle, visibility persisted)
+- Grid/mini-map visibility prefs persist across reloads
 - Docs inventory + migration notes maintained
 - FAQ + glossary + exports/imports + architecture + gestures + style docs available
 
@@ -22,7 +23,7 @@
 - Autosave + JSON import/export (validated)
 - Markdown export (Cmd/Ctrl+Shift+M)
 - PNG export (Cmd/Ctrl+Shift+S)
-- Pan/zoom + fit-to-view + fit-selection + grid overlay toggle + reset view (mouse + touch, state-synced)
+- Pan/zoom + fit-to-view + fit-selection + grid/mini-map toggles + reset view (mouse + touch, state-synced)
 - Help dialog + shortcuts
 - Sample map loader
 - Curved edge rendering with arrowheads

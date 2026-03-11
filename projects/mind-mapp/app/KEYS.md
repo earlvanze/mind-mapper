@@ -44,6 +44,7 @@ Most selection/layout commands are also available in toolbar `Advanced ▾`.
 - F: fit to view
 - Alt+F: fit selected nodes
 - Shift+G: toggle grid overlay
+- Shift+M: toggle mini-map visibility
 - Shift+A: toggle advanced toolbar actions
 - C: center focused node
 - L: auto‑layout children

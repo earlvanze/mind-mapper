@@ -41,6 +41,7 @@ export const SHORTCUTS = [
   { key: 'F', desc: 'fit to view' },
   { key: 'Alt+F', desc: 'fit selected nodes' },
   { key: 'Shift+G', desc: 'toggle grid overlay' },
+  { key: 'Shift+M', desc: 'toggle mini-map visibility' },
   { key: 'Shift+A', desc: 'toggle advanced toolbar actions' },
   { key: 'C', desc: 'center focused node' },
   { key: 'L', desc: 'auto‑layout children' },

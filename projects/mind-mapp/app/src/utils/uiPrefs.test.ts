@@ -19,9 +19,9 @@ describe('uiPrefs', () => {
   });
 
   it('saves and loads UI prefs', () => {
-    saveUiPrefs({ showGrid: true, showAdvancedActions: false });
+    saveUiPrefs({ showGrid: true, showAdvancedActions: false, showMiniMap: true });
     const loaded = loadUiPrefs();
-    expect(loaded).toEqual({ showGrid: true, showAdvancedActions: false });
+    expect(loaded).toEqual({ showGrid: true, showAdvancedActions: false, showMiniMap: true });
   });
 
   it('returns null when storage has no value', () => {

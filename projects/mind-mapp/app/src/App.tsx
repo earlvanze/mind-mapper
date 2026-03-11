@@ -16,6 +16,7 @@ export default function App() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [showGrid, setShowGrid] = useState(false);
+  const [showMiniMap, setShowMiniMap] = useState(true);
   const [showAdvancedActions, setShowAdvancedActions] = useState(false);
   const [importNotice, setImportNotice] = useState<{ text: string; kind: 'success' | 'error' } | null>(null);
 
@@ -23,12 +24,13 @@ export default function App() {
     const prefs = loadUiPrefs();
     if (!prefs) return;
     if (typeof prefs.showGrid === 'boolean') setShowGrid(prefs.showGrid);
+    if (typeof prefs.showMiniMap === 'boolean') setShowMiniMap(prefs.showMiniMap);
     if (typeof prefs.showAdvancedActions === 'boolean') setShowAdvancedActions(prefs.showAdvancedActions);
   }, []);
 
   useEffect(() => {
-    saveUiPrefs({ showGrid, showAdvancedActions });
-  }, [showGrid, showAdvancedActions]);
+    saveUiPrefs({ showGrid, showMiniMap, showAdvancedActions });
+  }, [showGrid, showMiniMap, showAdvancedActions]);
 
   const centerOnWorld = (x: number, y: number) => {
     const el = document.querySelector('.canvas') as HTMLElement | null;
@@ -81,6 +83,7 @@ export default function App() {
     onFitSelection: () => fitSelection(),
     onCenterFocus: () => centerOnNode(focusId),
     onToggleGrid: () => setShowGrid(v => !v),
+    onToggleMiniMap: () => setShowMiniMap(v => !v),
     onToggleAdvanced: () => setShowAdvancedActions(v => !v),
     onHelp: () => setHelpOpen(true),
     onUndo: () => undo(),
@@ -131,6 +134,7 @@ export default function App() {
           <button title="Fit selected nodes (Alt+F)" onClick={fitSelection}>Fit Sel</button>
           <button title="Center focused node (C)" onClick={() => centerOnNode(focusId)}>Center</button>
           <button title="Toggle grid overlay (Shift+G)" onClick={() => setShowGrid(v => !v)}>{showGrid ? 'Grid On' : 'Grid Off'}</button>
+          <button title="Toggle mini-map (Shift+M)" onClick={() => setShowMiniMap(v => !v)}>{showMiniMap ? 'Mini-map On' : 'Mini-map Off'}</button>
           <button title="Show/Hide advanced actions (Shift+A)" onClick={() => setShowAdvancedActions(v => !v)}>
             {showAdvancedActions ? 'Advanced ▴' : 'Advanced ▾'}
           </button>
@@ -195,16 +199,18 @@ export default function App() {
         {Object.values(nodes).map(n => (
           <Node key={n.id} node={n} />
         ))}
-        <MiniMap
-          nodes={nodes}
-          focusId={focusId}
-          selectedIds={selectedIds}
-          onFocus={(id) => {
-            setFocus(id);
-            centerOnNode(id);
-          }}
-          onNavigate={(x, y) => centerOnWorld(x, y)}
-        />
+        {showMiniMap ? (
+          <MiniMap
+            nodes={nodes}
+            focusId={focusId}
+            selectedIds={selectedIds}
+            onFocus={(id) => {
+              setFocus(id);
+              centerOnNode(id);
+            }}
+            onNavigate={(x, y) => centerOnWorld(x, y)}
+          />
+        ) : null}
       </div>
       <Suspense fallback={null}>
         <SearchDialog open={searchOpen} onClose={() => setSearchOpen(false)} />

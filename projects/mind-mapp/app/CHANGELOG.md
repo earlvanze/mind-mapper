@@ -65,6 +65,7 @@
 - Added collapsible Advanced actions toolbar section to reduce top-bar clutter
 - Persisted UI prefs for grid/advanced toggle states across reloads
 - Added Shift+A shortcut for Advanced toolbar toggle
+- Added Shift+M mini-map visibility toggle and persisted mini-map preference
 - Search selection now centers viewport on the chosen node
 
 ## 0.1.1

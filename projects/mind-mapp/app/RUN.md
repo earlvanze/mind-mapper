@@ -8,7 +8,7 @@ npm run dev
 
 Then open the URL shown (usually http://localhost:5173).
 
-Tip: click `Advanced ▾` in the toolbar to reveal selection/layout actions (your grid/advanced visibility preferences persist between reloads).
+Tip: click `Advanced ▾` in the toolbar to reveal selection/layout actions (your grid/mini-map/advanced visibility preferences persist between reloads).
 
 ## Tests
 ```bash
@@ -57,6 +57,7 @@ npm test
 - F: fit to view
 - Alt+F: fit selected nodes
 - Shift+G: toggle grid overlay
+- Shift+M: toggle mini-map visibility
 - Shift+A: toggle advanced toolbar actions
 - C: center focused node
 - L: auto-layout children

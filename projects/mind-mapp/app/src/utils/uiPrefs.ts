@@ -3,6 +3,7 @@ const UI_PREFS_KEY = 'mindmapp.v0.1.ui';
 export type UiPrefs = {
   showGrid: boolean;
   showAdvancedActions: boolean;
+  showMiniMap: boolean;
 };
 
 export function loadUiPrefs(): Partial<UiPrefs> | null {
