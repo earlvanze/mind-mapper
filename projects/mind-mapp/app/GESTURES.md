@@ -3,6 +3,7 @@
 ## Mouse + Trackpad
 - Shift + drag: pan
 - Shift + G: toggle grid overlay
+- Shift + A: toggle advanced toolbar actions
 - Ctrl/Cmd + wheel: zoom
 - Cmd/Ctrl + click: add/remove node in multi-selection
 - Cmd/Ctrl + A: select all nodes

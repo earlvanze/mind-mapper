@@ -57,6 +57,7 @@ npm test
 - F: fit to view
 - Alt+F: fit selected nodes
 - Shift+G: toggle grid overlay
+- Shift+A: toggle advanced toolbar actions
 - C: center focused node
 - L: auto-layout children
 - Shift+drag: pan

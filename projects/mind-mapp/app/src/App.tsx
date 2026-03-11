@@ -81,6 +81,7 @@ export default function App() {
     onFitSelection: () => fitSelection(),
     onCenterFocus: () => centerOnNode(focusId),
     onToggleGrid: () => setShowGrid(v => !v),
+    onToggleAdvanced: () => setShowAdvancedActions(v => !v),
     onHelp: () => setHelpOpen(true),
     onUndo: () => undo(),
     onRedo: () => redo(),
@@ -130,7 +131,7 @@ export default function App() {
           <button title="Fit selected nodes (Alt+F)" onClick={fitSelection}>Fit Sel</button>
           <button title="Center focused node (C)" onClick={() => centerOnNode(focusId)}>Center</button>
           <button title="Toggle grid overlay (Shift+G)" onClick={() => setShowGrid(v => !v)}>{showGrid ? 'Grid On' : 'Grid Off'}</button>
-          <button title="Show/Hide advanced actions" onClick={() => setShowAdvancedActions(v => !v)}>
+          <button title="Show/Hide advanced actions (Shift+A)" onClick={() => setShowAdvancedActions(v => !v)}>
             {showAdvancedActions ? 'Advanced ▴' : 'Advanced ▾'}
           </button>
           <button title="Show shortcuts" onClick={() => setHelpOpen(true)}>Help</button>
