@@ -10,7 +10,7 @@ import SearchDialog from './components/SearchDialog';
 import HelpDialog from './components/HelpDialog';
 
 export default function App() {
-  const { nodes, importState, resetMap, undo, redo, canUndo, canRedo } = useMindMapStore();
+  const { nodes, selectedIds, importState, resetMap, undo, redo, canUndo, canRedo } = useMindMapStore();
   const [searchOpen, setSearchOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [importNotice, setImportNotice] = useState<{ text: string; kind: 'success' | 'error' } | null>(null);
@@ -52,6 +52,7 @@ export default function App() {
         <strong>Mind Mapp</strong>
         <span style={{ color: '#666' }}>v{APP_VERSION}</span>
         <span style={{ color: '#666' }}>{Object.keys(nodes).length} nodes</span>
+        <span style={{ color: '#666' }}>{selectedIds.length} selected</span>
         <span style={{ color: '#666' }}>Press ? for shortcuts</span>
         {importNotice ? (
           <span style={{ color: importNotice.kind === 'error' ? '#ff7b7b' : '#9ad67a' }}>

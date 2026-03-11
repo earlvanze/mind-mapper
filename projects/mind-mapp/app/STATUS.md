@@ -11,8 +11,9 @@
 
 ## Core Features
 - Node creation (Enter/Tab) + promote (Shift+Tab)
+- Multi-select + group drag move
 - Explicit edit mode (E/double‑click)
-- Delete node
+- Delete selected node(s)
 - Arrow key navigation
 - Search + keyboard navigation (Cmd/Ctrl+K)
 - Undo/redo (Cmd/Ctrl+Z, Cmd/Ctrl+Shift+Z/Cmd/Ctrl+Y)
@@ -25,4 +26,5 @@
 - Curved edge rendering with arrowheads
 
 ## Next Priorities
-- Multi-select + group move
+- Mini-map
+- Canvas renderer for larger maps

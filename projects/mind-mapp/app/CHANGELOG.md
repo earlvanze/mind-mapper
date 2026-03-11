@@ -32,6 +32,7 @@
 - Added Markdown export (button + shortcut)
 - Switched edge rendering from straight lines to curved paths
 - Added touch pan/pinch gestures for canvas navigation
+- Added multi-select + group drag move
 
 ## 0.1.1
 - Added toolbar actions (Fit/Help/Clear)

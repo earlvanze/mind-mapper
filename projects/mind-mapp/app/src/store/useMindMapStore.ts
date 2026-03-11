@@ -13,11 +13,13 @@ export type Node = {
 type Snapshot = {
   nodes: Record<string, Node>;
   focusId: string;
+  selectedIds: string[];
 };
 
 type MindMapState = {
   nodes: Record<string, Node>;
   focusId: string;
+  selectedIds: string[];
   editingId?: string;
   past: Snapshot[];
   future: Snapshot[];
@@ -25,7 +27,10 @@ type MindMapState = {
   canRedo: boolean;
   setText: (id: string, text: string) => void;
   setFocus: (id: string) => void;
+  toggleSelection: (id: string) => void;
+  clearSelection: () => void;
   moveNode: (id: string, x: number, y: number, commitHistory?: boolean) => void;
+  moveNodes: (updates: Record<string, { x: number; y: number }>, commitHistory?: boolean) => void;
   startEditing: (id: string) => void;
   addSibling: (id: string) => void;
   addChild: (id: string) => void;
@@ -33,6 +38,7 @@ type MindMapState = {
   importState: (nodes: Record<string, Node>) => void;
   resetMap: () => void;
   deleteNode: (id: string) => void;
+  deleteSelected: () => void;
   moveFocus: (direction: 'left' | 'right' | 'up' | 'down') => void;
   autoLayoutChildren: (parentId: string) => void;
   undo: () => void;
@@ -48,10 +54,11 @@ function cloneNodes(nodes: Record<string, Node>) {
   ) as Record<string, Node>;
 }
 
-function makeSnapshot(state: Pick<MindMapState, 'nodes' | 'focusId'>): Snapshot {
+function makeSnapshot(state: Pick<MindMapState, 'nodes' | 'focusId' | 'selectedIds'>): Snapshot {
   return {
     nodes: cloneNodes(state.nodes),
     focusId: state.focusId,
+    selectedIds: [...state.selectedIds],
   };
 }
 
@@ -70,6 +77,7 @@ const defaultState = {
     [rootId]: { id: rootId, text: 'Root', x: 320, y: 180, parentId: null, children: [] },
   },
   focusId: rootId,
+  selectedIds: [rootId],
   editingId: undefined,
   past: [] as Snapshot[],
   future: [] as Snapshot[],
@@ -80,7 +88,7 @@ const defaultState = {
 function loadState() {
   const parsed = loadFromStorage<{ nodes: Record<string, Node>; focusId: string }>();
   if (!parsed || !parsed.nodes || !parsed.focusId) return defaultState;
-  return { ...defaultState, nodes: parsed.nodes, focusId: parsed.focusId };
+  return { ...defaultState, nodes: parsed.nodes, focusId: parsed.focusId, selectedIds: [parsed.focusId] };
 }
 
 export const useMindMapStore = create<MindMapState>((set, get) => ({
@@ -94,8 +102,22 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
         nodes: { ...state.nodes, [id]: { ...current, text } },
       };
     }),
-  setFocus: id => set({ focusId: id, editingId: undefined }),
-  startEditing: id => set({ editingId: id, focusId: id }),
+  setFocus: id => set({ focusId: id, selectedIds: [id], editingId: undefined }),
+  toggleSelection: id =>
+    set(state => {
+      if (!state.nodes[id]) return {};
+      const exists = state.selectedIds.includes(id);
+      const selectedIds = exists
+        ? state.selectedIds.filter(sid => sid !== id)
+        : [...state.selectedIds, id];
+      return {
+        selectedIds,
+        focusId: id,
+        editingId: undefined,
+      };
+    }),
+  clearSelection: () => set(state => ({ selectedIds: state.focusId ? [state.focusId] : [] })),
+  startEditing: id => set({ editingId: id, focusId: id, selectedIds: [id] }),
   moveNode: (id, x, y, commitHistory = false) =>
     set(state => {
       const node = state.nodes[id];
@@ -109,6 +131,31 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
       return {
         ...withHistory(state),
         nodes: { ...state.nodes, [id]: { ...state.nodes[id], x, y } },
+      };
+    }),
+  moveNodes: (updates, commitHistory = false) =>
+    set(state => {
+      const updateEntries = Object.entries(updates).filter(([id]) => !!state.nodes[id]);
+      if (!updateEntries.length) return {};
+
+      const changed = updateEntries.some(([id, pos]) => {
+        const node = state.nodes[id];
+        return node.x !== pos.x || node.y !== pos.y;
+      });
+      if (!changed) return {};
+
+      const nextNodes = { ...state.nodes };
+      for (const [id, pos] of updateEntries) {
+        nextNodes[id] = { ...nextNodes[id], x: pos.x, y: pos.y };
+      }
+
+      if (!commitHistory) {
+        return { nodes: nextNodes };
+      }
+
+      return {
+        ...withHistory(state),
+        nodes: nextNodes,
       };
     }),
   addSibling: id => {
@@ -126,6 +173,7 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
           : {}),
       },
       focusId: newId,
+      selectedIds: [newId],
     }));
   },
   addChild: id => {
@@ -140,6 +188,7 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
         [id]: { ...s.nodes[id], children: [...s.nodes[id].children, newId] },
       },
       focusId: newId,
+      selectedIds: [newId],
     }));
   },
   promoteNode: id => {
@@ -161,9 +210,13 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
       updated[newParentId] = { ...grand, children: [...grand.children, id] };
     }
     updated[id] = { ...node, parentId: newParentId, x: node.x + 120 };
-    set(s => ({ ...withHistory(s), nodes: updated }));
+    set(s => ({ ...withHistory(s), nodes: updated, focusId: id, selectedIds: [id] }));
   },
-  importState: nodes => set(state => ({ ...withHistory(state), nodes, focusId: Object.keys(nodes)[0] || rootId })),
+  importState: nodes =>
+    set(state => {
+      const focusId = Object.keys(nodes)[0] || rootId;
+      return { ...withHistory(state), nodes, focusId, selectedIds: [focusId] };
+    }),
   resetMap: () => set(state => ({ ...withHistory(state), ...defaultState })),
   deleteNode: id => {
     if (id === rootId) return; // don't delete root
@@ -188,7 +241,48 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
         delete newNodes[current];
       }
     }
-    set(s => ({ ...withHistory(s), nodes: newNodes, focusId: rootId }));
+    const nextFocus = newNodes[rootId] ? rootId : Object.keys(newNodes)[0];
+    set(s => ({ ...withHistory(s), nodes: newNodes, focusId: nextFocus, selectedIds: nextFocus ? [nextFocus] : [] }));
+  },
+  deleteSelected: () => {
+    const state = get();
+    const seeds = state.selectedIds.filter(id => id !== rootId && !!state.nodes[id]);
+    if (!seeds.length) {
+      if (state.focusId !== rootId && state.nodes[state.focusId]) {
+        state.deleteNode(state.focusId);
+      }
+      return;
+    }
+
+    const toDelete = new Set<string>();
+    for (const seed of seeds) {
+      const stack = [seed];
+      while (stack.length) {
+        const id = stack.pop()!;
+        if (toDelete.has(id)) continue;
+        toDelete.add(id);
+        const n = state.nodes[id];
+        if (n) stack.push(...n.children);
+      }
+    }
+
+    const newNodes = { ...state.nodes };
+
+    for (const id of toDelete) {
+      const n = state.nodes[id];
+      if (!n?.parentId) continue;
+      if (toDelete.has(n.parentId)) continue;
+      if (!newNodes[n.parentId]) continue;
+      newNodes[n.parentId] = {
+        ...newNodes[n.parentId],
+        children: newNodes[n.parentId].children.filter(childId => childId !== id),
+      };
+    }
+
+    for (const id of toDelete) delete newNodes[id];
+
+    const nextFocus = newNodes[rootId] ? rootId : Object.keys(newNodes)[0];
+    set(s => ({ ...withHistory(s), nodes: newNodes, focusId: nextFocus, selectedIds: nextFocus ? [nextFocus] : [] }));
   },
   moveFocus: direction => {
     const state = get();
@@ -212,7 +306,7 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
       .filter(Boolean) as { id: string; score: number }[];
     if (!scored.length) return;
     scored.sort((a, b) => a.score - b.score);
-    set({ focusId: scored[0].id });
+    set({ focusId: scored[0].id, selectedIds: [scored[0].id] });
   },
   autoLayoutChildren: parentId => {
     const state = get();
@@ -236,6 +330,7 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
       return {
         nodes: previous.nodes,
         focusId: previous.focusId,
+        selectedIds: previous.selectedIds?.length ? previous.selectedIds : [previous.focusId],
         editingId: undefined,
         past,
         future,
@@ -252,6 +347,7 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
       return {
         nodes: next.nodes,
         focusId: next.focusId,
+        selectedIds: next.selectedIds?.length ? next.selectedIds : [next.focusId],
         editingId: undefined,
         past,
         future,

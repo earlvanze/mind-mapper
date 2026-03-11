@@ -16,6 +16,7 @@ function resetStore() {
   useMindMapStore.setState({
     nodes: { [ROOT_ID]: root },
     focusId: ROOT_ID,
+    selectedIds: [ROOT_ID],
     editingId: undefined,
     past: [],
     future: [],
@@ -62,5 +63,52 @@ describe('useMindMapStore history', () => {
 
     expect(useMindMapStore.getState().past).toHaveLength(0);
     expect(useMindMapStore.getState().canUndo).toBe(false);
+  });
+
+  it('moves selected nodes together with one history commit', () => {
+    const store = useMindMapStore.getState();
+    store.addChild(ROOT_ID);
+    store.addChild(ROOT_ID);
+
+    const state = useMindMapStore.getState();
+    const childIds = state.nodes[ROOT_ID].children;
+
+    state.setFocus(childIds[0]);
+    state.toggleSelection(childIds[1]);
+
+    useMindMapStore.getState().moveNodes(
+      {
+        [childIds[0]]: { x: 500, y: 200 },
+        [childIds[1]]: { x: 520, y: 280 },
+      },
+      true,
+    );
+
+    const moved = useMindMapStore.getState();
+    expect(moved.nodes[childIds[0]].x).toBe(500);
+    expect(moved.nodes[childIds[1]].x).toBe(520);
+    expect(moved.canUndo).toBe(true);
+
+    moved.undo();
+    const undone = useMindMapStore.getState();
+    expect(undone.nodes[childIds[0]].x).not.toBe(500);
+    expect(undone.nodes[childIds[1]].x).not.toBe(520);
+  });
+
+  it('deletes all selected nodes with one delete action', () => {
+    const store = useMindMapStore.getState();
+    store.addChild(ROOT_ID);
+    store.addChild(ROOT_ID);
+
+    const childIds = useMindMapStore.getState().nodes[ROOT_ID].children;
+
+    useMindMapStore.getState().setFocus(childIds[0]);
+    useMindMapStore.getState().toggleSelection(childIds[1]);
+    useMindMapStore.getState().deleteSelected();
+
+    const next = useMindMapStore.getState();
+    expect(next.nodes[childIds[0]]).toBeUndefined();
+    expect(next.nodes[childIds[1]]).toBeUndefined();
+    expect(next.nodes[ROOT_ID].children).toHaveLength(0);
   });
 });

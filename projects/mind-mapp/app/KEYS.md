@@ -3,7 +3,8 @@
 - Enter: new sibling
 - Tab: new child
 - Shift+Tab: promote node
-- Delete/Backspace: delete node
+- Delete/Backspace: delete selected node(s)
+- Cmd/Ctrl+click: multi-select nodes
 - Cmd/Ctrl+Z: undo
 - Cmd/Ctrl+Shift+Z or Cmd/Ctrl+Y: redo
 - E / double‑click: edit node

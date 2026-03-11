@@ -11,7 +11,7 @@ type Props = {
 };
 
 export function useKeyboard({ onSearch, onFit, onHelp, onUndo, onRedo, onExportMarkdown }: Props) {
-  const { focusId, addSibling, addChild, promoteNode, deleteNode, moveFocus, setFocus, autoLayoutChildren, editingId, startEditing } = useMindMapStore();
+  const { focusId, addSibling, addChild, promoteNode, deleteSelected, moveFocus, setFocus, autoLayoutChildren, editingId, startEditing } = useMindMapStore();
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -71,7 +71,7 @@ export function useKeyboard({ onSearch, onFit, onHelp, onUndo, onRedo, onExportM
       }
       if (e.key === 'Backspace' || e.key === 'Delete') {
         e.preventDefault();
-        deleteNode(focusId);
+        deleteSelected();
       }
       if (e.key === 'ArrowLeft') {
         e.preventDefault();
@@ -100,7 +100,7 @@ export function useKeyboard({ onSearch, onFit, onHelp, onUndo, onRedo, onExportM
     addSibling,
     addChild,
     promoteNode,
-    deleteNode,
+    deleteSelected,
     moveFocus,
     setFocus,
     autoLayoutChildren,

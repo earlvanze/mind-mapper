@@ -1,14 +1,14 @@
 # Mind Mapp — Roadmap
 
-## v0.2
+## v0.2 (done)
 - Undo/redo
 - Multi-select + group move
 - Curved edges
 - Touch gestures
 
-## v0.3
-- Import validation + schema versioning
-- Markdown export
+## v0.3 (in progress)
+- ✅ Import validation + schema versioning
+- ✅ Markdown export
 - Mini‑map
 
 ## v0.4
