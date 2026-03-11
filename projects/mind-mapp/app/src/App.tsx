@@ -5,7 +5,7 @@ import Edges from './components/Edges';
 import { useKeyboard } from './hooks/useKeyboard';
 import { usePanZoom } from './hooks/usePanZoom';
 import { useAutosave } from './hooks/useAutosave';
-import { exportPng, exportJsonData, exportMarkdownData, fitToView, computeFitView, centerPointInView, confirmAction, parseImportPayload, sampleMap, loadUiPrefs, saveUiPrefs, APP_VERSION } from './utils';
+import { exportPng, exportJsonData, exportMarkdownData, fitToView, computeFitView, computeSelectionBounds, centerPointInView, confirmAction, parseImportPayload, sampleMap, loadUiPrefs, saveUiPrefs, APP_VERSION } from './utils';
 import MiniMap from './components/MiniMap';
 
 const SearchDialog = lazy(() => import('./components/SearchDialog'));
@@ -77,10 +77,37 @@ export default function App() {
     el.style.transform = `translate(${view.originX}px, ${view.originY}px) scale(${view.scale})`;
   };
 
+  const zoomBy = (factor: number) => {
+    const el = document.querySelector('.canvas') as HTMLElement | null;
+    const panZoom = (window as any).__mindmappPanZoom;
+    if (!el || !panZoom?.setView || !panZoom?.getView) return;
+
+    const rect = el.getBoundingClientRect();
+    const current = panZoom.getView();
+    const originX = current.originX ?? 0;
+    const originY = current.originY ?? 0;
+    const scale = current.scale ?? 1;
+    const nextScale = Math.max(0.2, Math.min(3, scale * factor));
+    if (Math.abs(nextScale - scale) < 0.0001) return;
+
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    const worldX = (centerX - originX) / scale;
+    const worldY = (centerY - originY) / scale;
+
+    panZoom.setView({
+      originX: centerX - worldX * nextScale,
+      originY: centerY - worldY * nextScale,
+      scale: nextScale,
+    });
+  };
+
   useKeyboard({
     onSearch: () => setSearchOpen(true),
     onFit: () => fitToView(),
     onFitSelection: () => fitSelection(),
+    onZoomIn: () => zoomBy(1.15),
+    onZoomOut: () => zoomBy(1 / 1.15),
     onCenterFocus: () => centerOnNode(focusId),
     onToggleGrid: () => setShowGrid(v => !v),
     onToggleMiniMap: () => setShowMiniMap(v => !v),
@@ -92,6 +119,8 @@ export default function App() {
   });
   usePanZoom({ selector: '.canvas' });
   useAutosave(() => saveState(), 600);
+
+  const selectedBounds = computeSelectionBounds(nodes, selectedIds);
 
   const exportJson = () => exportJsonData(nodes);
 
@@ -121,6 +150,7 @@ export default function App() {
         <span style={{ color: '#666' }}>v{APP_VERSION}</span>
         <span style={{ color: '#666' }}>{Object.keys(nodes).length} nodes</span>
         <span style={{ color: '#666' }}>{selectedIds.length} selected</span>
+        {selectedBounds ? <span style={{ color: '#666' }}>sel box {selectedBounds.width}×{selectedBounds.height}</span> : null}
         <span style={{ color: '#666' }}>Press ? for shortcuts</span>
         {importNotice ? (
           <span style={{ color: importNotice.kind === 'error' ? '#ff7b7b' : '#9ad67a' }}>

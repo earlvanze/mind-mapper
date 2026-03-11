@@ -20,4 +20,4 @@ describe('computeSelectionBounds', () => {
   it('ignores unknown selection ids', () => {
     expect(computeSelectionBounds(nodes, ['missing', 'b'])).toEqual({ width: 0, height: 0 });
   });
-}
+});

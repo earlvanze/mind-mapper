@@ -47,5 +47,7 @@ export const SHORTCUTS = [
   { key: 'L', desc: 'auto‑layout children' },
   { key: 'Shift+drag', desc: 'pan' },
   { key: 'Ctrl/Cmd+wheel', desc: 'zoom' },
+  { key: '=/+', desc: 'zoom in' },
+  { key: '-', desc: 'zoom out' },
   { key: '?', desc: 'help' }
 ];

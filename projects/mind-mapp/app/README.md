@@ -10,7 +10,7 @@ A lightweight, keyboard‑first mind map app focused on speed and clarity.
 - Arrow‑key navigation
 - Search (Cmd/Ctrl+K) with focus+center on selection
 - Edit (double‑click or E)
-- Pan/zoom (Shift+drag, Ctrl/Cmd+wheel, touch pan/pinch)
+- Pan/zoom (Shift+drag, Ctrl/Cmd+wheel, +/- keys, touch pan/pinch)
 - Fit to view (F) + Fit selection (Alt+F) + Center focused node (C) + Grid overlay toggle (Shift+G) + Reset View button
 - Auto‑layout children (L)
 - Help dialog (?)

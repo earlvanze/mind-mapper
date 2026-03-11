@@ -50,5 +50,7 @@ Most selection/layout commands are also available in toolbar `Advanced ▾`.
 - L: auto‑layout children
 - Shift+drag: pan
 - Ctrl/Cmd+wheel: zoom
+- = / +: zoom in (center‑preserving)
+- -: zoom out (center‑preserving)
 - Double‑click background: reset view (also toolbar button)
 - ?: help

@@ -5,6 +5,8 @@ type Props = {
   onSearch: () => void;
   onFit: () => void;
   onFitSelection: () => void;
+  onZoomIn: () => void;
+  onZoomOut: () => void;
   onCenterFocus: () => void;
   onToggleGrid: () => void;
   onToggleMiniMap: () => void;
@@ -15,7 +17,7 @@ type Props = {
   onExportMarkdown: () => void;
 };
 
-export function useKeyboard({ onSearch, onFit, onFitSelection, onCenterFocus, onToggleGrid, onToggleMiniMap, onToggleAdvanced, onHelp, onUndo, onRedo, onExportMarkdown }: Props) {
+export function useKeyboard({ onSearch, onFit, onFitSelection, onZoomIn, onZoomOut, onCenterFocus, onToggleGrid, onToggleMiniMap, onToggleAdvanced, onHelp, onUndo, onRedo, onExportMarkdown }: Props) {
   const { focusId, addSibling, addChild, promoteNode, deleteSelected, duplicateSelected, moveFocus, selectParent, setFocus, selectAll, invertSelection, selectSiblings, selectChildren, selectLeaves, selectAncestors, selectTopLevel, selectGeneration, clearSelectionSet, expandSelectionToNeighbors, selectSubtree, alignSelection, distributeSelection, layoutSelection, stackSelection, snapSelectionToGrid, mirrorSelection, autoLayoutChildren, nudgeSelected, editingId, startEditing } = useMindMapStore();
 
   useEffect(() => {
@@ -135,6 +137,14 @@ export function useKeyboard({ onSearch, onFit, onFitSelection, onCenterFocus, on
       if (e.altKey && e.key.toLowerCase() === 'f' && !e.metaKey && !e.ctrlKey) {
         e.preventDefault();
         onFitSelection();
+      }
+      if ((e.key === '=' || e.key === '+') && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        e.preventDefault();
+        onZoomIn();
+      }
+      if (e.key === '-' && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        e.preventDefault();
+        onZoomOut();
       }
       if (e.shiftKey && e.key.toLowerCase() === 'g' && !e.metaKey && !e.ctrlKey && !e.altKey) {
         e.preventDefault();
@@ -258,6 +268,8 @@ export function useKeyboard({ onSearch, onFit, onFitSelection, onCenterFocus, on
     onSearch,
     onFit,
     onFitSelection,
+    onZoomIn,
+    onZoomOut,
     onCenterFocus,
     onToggleGrid,
     onToggleMiniMap,

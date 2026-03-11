@@ -7,6 +7,7 @@ export * from './fitViewMath';
 export * from './id';
 export * from './importValidation';
 export * from './sampleMap';
+export * from './selectionBounds';
 export * from './shortcuts';
 export * from './storage';
 export * from './uiPrefs';

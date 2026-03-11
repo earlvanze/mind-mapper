@@ -63,6 +63,8 @@ npm test
 - L: auto-layout children
 - Shift+drag: pan
 - Ctrl/Cmd + wheel: zoom
+- = / +: zoom in (center‑preserving)
+- -: zoom out (center‑preserving)
 - Double‑click background: reset view
 - Sample: load demo map (button)
 - Reset View: reset pan/zoom (button)
