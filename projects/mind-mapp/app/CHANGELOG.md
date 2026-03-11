@@ -28,6 +28,7 @@
 - Avoided no-op text edits in undo history
 - Added Vitest setup + import validation unit tests
 - Added undo/redo store unit tests
+- Added GitHub Actions CI for tests + build on app changes
 
 ## 0.1.1
 - Added toolbar actions (Fit/Help/Clear)

@@ -5,6 +5,7 @@
 - Current version: 0.1.2
 - Last build output in `dist/`
 - Test runner: Vitest (`npm test`) — import validation + undo/redo store covered
+- CI: GitHub Actions workflow runs `npm test` + `npm run build` on app changes
 - Docs inventory + migration notes maintained
 - FAQ + glossary + exports/imports + architecture + gestures + style docs available
 
