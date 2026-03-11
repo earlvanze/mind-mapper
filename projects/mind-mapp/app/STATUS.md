@@ -22,8 +22,8 @@
 - Pan/zoom + fit-to-view + reset view
 - Help dialog + shortcuts
 - Sample map loader
+- Curved edge rendering with arrowheads
 
 ## Next Priorities
 - Multi-select + group move
-- Curved edges
 - Touch gestures

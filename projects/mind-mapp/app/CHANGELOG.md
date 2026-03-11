@@ -30,6 +30,7 @@
 - Added undo/redo store unit tests
 - Added GitHub Actions CI for tests + build on app changes
 - Added Markdown export (button + shortcut)
+- Switched edge rendering from straight lines to curved paths
 
 ## 0.1.1
 - Added toolbar actions (Fit/Help/Clear)
