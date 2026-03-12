@@ -81,6 +81,7 @@
 - Added Alt+R + toolbar Back action to jump to previous focus node
 - Added Shift+C + toolbar action to center root without changing focus
 - Improved search ranking + ID matching with bounded selection index handling
+- Added path-aware multi-term search matching (label/id/path)
 - Added search-result metadata rows (node id + path context)
 
 ## 0.1.1
