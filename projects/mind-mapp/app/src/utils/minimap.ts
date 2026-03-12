@@ -94,3 +94,27 @@ export function worldRectToMini(
 
   return { x, y, width, height };
 }
+
+export function offsetMiniViewportCenter(
+  viewRect: MiniRect,
+  dx: number,
+  dy: number,
+  miniWidth: number,
+  miniHeight: number,
+): { x: number; y: number } {
+  const halfWidth = viewRect.width / 2;
+  const halfHeight = viewRect.height / 2;
+
+  const currentX = viewRect.x + halfWidth;
+  const currentY = viewRect.y + halfHeight;
+
+  const minX = Math.min(halfWidth, miniWidth - halfWidth);
+  const maxX = Math.max(halfWidth, miniWidth - halfWidth);
+  const minY = Math.min(halfHeight, miniHeight - halfHeight);
+  const maxY = Math.max(halfHeight, miniHeight - halfHeight);
+
+  return {
+    x: Math.max(minX, Math.min(maxX, currentX + dx)),
+    y: Math.max(minY, Math.min(maxY, currentY + dy)),
+  };
+}

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Node } from '../store/useMindMapStore';
-import { getMapBounds, mapToMini, miniToWorld, worldRectToMini, type MiniRect } from '../utils/minimap';
+import { getMapBounds, mapToMini, miniToWorld, offsetMiniViewportCenter, worldRectToMini, type MiniRect } from '../utils/minimap';
 
 type Props = {
   nodes: Record<string, Node>;
@@ -66,16 +66,48 @@ export default function MiniMap({ nodes, focusId, selectedIds, onFocus, onNaviga
     onNavigate(world.x, world.y);
   };
 
+  const navigateViewByKeyboard = (dx: number, dy: number) => {
+    if (!viewRect) return;
+    const center = offsetMiniViewportCenter(viewRect, dx, dy, MINI_W, MINI_H);
+    const world = miniToWorld(center.x, center.y, bounds, MINI_W, MINI_H);
+    onNavigate(world.x, world.y);
+  };
+
   return (
-    <div className="minimap" aria-label="Mini map navigator">
+    <div className="minimap" role="region" aria-label="Mini map navigator">
       <div className="minimap-title">Mini‑map (click/drag viewport)</div>
       <svg
         ref={miniRef}
         width={MINI_W}
         height={MINI_H}
         viewBox={`0 0 ${MINI_W} ${MINI_H}`}
+        tabIndex={0}
+        aria-label="Mini-map canvas. Click to recenter. Use Arrow keys to pan viewport; Shift+Arrow for larger steps."
         onClick={(e) => {
           navigateFromClient(e.clientX, e.clientY);
+        }}
+        onKeyDown={(e) => {
+          const step = e.shiftKey ? 24 : 10;
+          if (e.key === 'ArrowLeft') {
+            e.preventDefault();
+            e.stopPropagation();
+            navigateViewByKeyboard(-step, 0);
+          }
+          if (e.key === 'ArrowRight') {
+            e.preventDefault();
+            e.stopPropagation();
+            navigateViewByKeyboard(step, 0);
+          }
+          if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            e.stopPropagation();
+            navigateViewByKeyboard(0, -step);
+          }
+          if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            e.stopPropagation();
+            navigateViewByKeyboard(0, step);
+          }
         }}
       >
         {entries.flatMap(parent =>

@@ -59,6 +59,7 @@
 - Click mini-map node: focus + center that node
 - Click mini-map background: recenter viewport to that location
 - Mini-map viewport box: shows current visible canvas window; drag it to pan
+- Focus mini-map canvas (Tab), then Arrow keys to pan viewport (Shift + Arrow = faster)
 - Double-click background: reset view
 
 ## Touch

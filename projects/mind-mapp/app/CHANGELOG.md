@@ -106,6 +106,8 @@
 - Added automatic focus-history pruning when nodes disappear (import/reset/edit safety)
 - Added Alt+Shift+Home / Alt+Shift+End + toolbar actions to jump focus history to oldest/newest valid entries
 - Added compact Focus Navigation & History section in Help dialog to improve shortcut discoverability
+- Added focused mini-map Arrow/Shift+Arrow keyboard panning with clamped viewport stepping
+- Added breadcrumb navigation ARIA labels and mini-map region semantics for accessibility polish
 - Extracted focus-navigation helpers into tested utility functions
 - Moved parent/child focus resolution into shared focusNav helpers
 - Enabled mini-map viewport box dragging for pan navigation

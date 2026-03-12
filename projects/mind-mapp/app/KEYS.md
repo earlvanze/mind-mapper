@@ -43,6 +43,8 @@ Most selection/layout commands are also available in toolbar `Advanced ▾`.
 - Cmd/Ctrl+Shift+L: copy focused subtree outline
 - Cmd/Ctrl+Shift+S: export PNG
 - Arrow keys: move focus
+- Mini-map focused + Arrow keys: pan mini-map viewport
+- Mini-map focused + Shift+Arrow: pan mini-map viewport faster
 - Alt+Arrow: nudge selected node(s) by 10px
 - Shift+Alt+Arrow: nudge selected node(s) by 40px
 - F: fit to view

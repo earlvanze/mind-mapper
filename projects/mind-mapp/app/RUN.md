@@ -57,6 +57,8 @@ npm test
 - Cmd/Ctrl+Shift+S: export PNG
 - E / double‑click: edit node
 - Arrow keys: move focus
+- Mini-map focused + Arrow keys: pan mini-map viewport
+- Mini-map focused + Shift+Arrow: pan mini-map viewport faster
 - Alt+Arrow: nudge selected node(s) by 10px
 - Shift+Alt+Arrow: nudge selected node(s) by 40px
 - F: fit to view

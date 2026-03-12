@@ -488,12 +488,13 @@ export default function App() {
         {leafCycleEnabled ? <span style={{ color: '#666' }}>leaf {leafCycleIndex >= 0 ? leafCycleIndex + 1 : '•'}/{leafCycleLeaves.length}</span> : null}
         <span style={{ color: '#666' }}>hist {focusHistoryPosition}/{focusHistoryCount}</span>
         {focusPathSegments.length ? (
-          <span className="toolbar-path" title={focusedPath}>
+          <span className="toolbar-path" title={focusedPath} role="navigation" aria-label="Focused node breadcrumb path">
             {focusPathSegments.map((segment, index) => (
               <span key={segment.id}>
                 <button
                   className="toolbar-path-segment"
                   title={`Focus ${segment.label}`}
+                  aria-label={`Focus breadcrumb node ${segment.label}`}
                   onClick={() => {
                     setFocus(segment.id);
                     centerOnNode(segment.id);
