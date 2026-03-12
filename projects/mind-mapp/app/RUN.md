@@ -64,6 +64,7 @@ npm test
 - Shift+M: toggle mini-map visibility
 - Shift+A: toggle advanced toolbar actions
 - C: center focused node
+- Shift+C: center root node
 - R: focus + center root node
 - Alt+R: jump back to previous focus
 - L: auto-layout children

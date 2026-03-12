@@ -92,6 +92,10 @@ export default function App() {
     centerOnNode('n_root');
   };
 
+  const centerRoot = () => {
+    centerOnNode('n_root');
+  };
+
   const focusPrevious = () => {
     const previousId = previousFocusRef.current;
     if (!previousId || previousId === focusId || !nodes[previousId]) return;
@@ -196,6 +200,7 @@ export default function App() {
     onCopySelection: () => copySelectionText(),
     onCopySubtree: () => copySubtreeText(),
     onCopyPath: () => copyFocusPath(),
+    onCenterRoot: () => centerRoot(),
   });
   usePanZoom({ selector: '.canvas' });
   useAutosave(() => saveState(), 600);
@@ -336,6 +341,7 @@ export default function App() {
           <button title="Fit selected nodes (Alt+F)" onClick={fitSelection}>Fit Sel</button>
           <button title="Fit focused subtree (Alt+Shift+F)" onClick={fitFocusedSubtree}>Fit Sub</button>
           <button title="Center focused node (C)" onClick={() => centerOnNode(focusId)}>Center</button>
+          <button title="Center root node (Shift+C)" onClick={centerRoot}>Center Root</button>
           <button title="Jump focus to root node (R)" onClick={focusRoot}>Root</button>
           <button title="Jump back to previous focus (Alt+R)" onClick={focusPrevious}>Back</button>
           <button title="Toggle grid overlay (Shift+G)" onClick={() => setShowGrid(v => !v)}>{showGrid ? 'Grid On' : 'Grid Off'}</button>

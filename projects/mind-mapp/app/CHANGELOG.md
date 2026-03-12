@@ -79,6 +79,7 @@
 - Added Alt+Shift+P + toolbar action to copy focused node path
 - Made focused-path breadcrumb segments clickable for ancestor navigation
 - Added Alt+R + toolbar Back action to jump to previous focus node
+- Added Shift+C + toolbar action to center root without changing focus
 - Improved search ranking + ID matching with bounded selection index handling
 
 ## 0.1.1
