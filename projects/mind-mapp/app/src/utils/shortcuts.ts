@@ -10,6 +10,7 @@ export const SHORTCUTS = [
   { key: 'Cmd/Ctrl+Shift+S', desc: 'export PNG' },
   { key: 'Cmd/Ctrl+Shift+M', desc: 'export Markdown' },
   { key: 'Cmd/Ctrl+Shift+C', desc: 'copy selected/focused node text' },
+  { key: 'Cmd/Ctrl+Shift+L', desc: 'copy focused subtree outline' },
   { key: 'Cmd/Ctrl+click', desc: 'multi-select nodes' },
   { key: 'Cmd/Ctrl+A', desc: 'select all nodes' },
   { key: 'Alt+I', desc: 'invert selection' },

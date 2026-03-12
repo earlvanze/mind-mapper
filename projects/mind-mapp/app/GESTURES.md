@@ -15,6 +15,7 @@
 - Alt + I: invert selection
 - Cmd/Ctrl + D: duplicate selected node(s)
 - Cmd/Ctrl + Shift + C: copy selected/focused node text
+- Cmd/Ctrl + Shift + L: copy focused subtree outline
 - Alt + S: select siblings of focused node
 - Alt + C: select children of focused node
 - Alt + L: select leaves under focused subtree

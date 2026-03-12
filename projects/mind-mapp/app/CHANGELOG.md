@@ -74,6 +74,7 @@
 - Added Cmd/Ctrl+Shift+C + toolbar action to copy selected/focused node text
 - Added auto-dismissing toolbar notices with manual close control
 - Added Alt+Shift+F + toolbar action to fit the focused subtree in view
+- Added Cmd/Ctrl+Shift+L + toolbar action to copy focused subtree outline
 
 ## 0.1.1
 - Added toolbar actions (Fit/Help/Clear)

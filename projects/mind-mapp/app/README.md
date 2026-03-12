@@ -18,6 +18,7 @@ A lightweight, keyboard‑first mind map app focused on speed and clarity.
 - Autosave + JSON import/export
 - Markdown export (Cmd/Ctrl+Shift+M)
 - Copy selected/focused node text to clipboard (Cmd/Ctrl+Shift+C)
+- Copy focused subtree outline to clipboard (Cmd/Ctrl+Shift+L)
 - PNG export (Cmd/Ctrl+Shift+S)
 - Transient toolbar notices for copy/import outcomes (auto-dismiss + manual dismiss)
 - Curved edge rendering with arrowheads

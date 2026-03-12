@@ -19,9 +19,10 @@ type Props = {
   onRedo: () => void;
   onExportMarkdown: () => void;
   onCopySelection: () => void;
+  onCopySubtree: () => void;
 };
 
-export function useKeyboard({ onSearch, onFit, onFitSelection, onFitSubtree, onZoomIn, onZoomOut, onResetView, onCenterFocus, onFocusRoot, onToggleGrid, onToggleMiniMap, onToggleAdvanced, onHelp, onUndo, onRedo, onExportMarkdown, onCopySelection }: Props) {
+export function useKeyboard({ onSearch, onFit, onFitSelection, onFitSubtree, onZoomIn, onZoomOut, onResetView, onCenterFocus, onFocusRoot, onToggleGrid, onToggleMiniMap, onToggleAdvanced, onHelp, onUndo, onRedo, onExportMarkdown, onCopySelection, onCopySubtree }: Props) {
   const { focusId, addSibling, addChild, promoteNode, deleteSelected, duplicateSelected, moveFocus, selectParent, setFocus, selectAll, invertSelection, selectSiblings, selectChildren, selectLeaves, selectAncestors, selectTopLevel, selectGeneration, clearSelectionSet, expandSelectionToNeighbors, selectSubtree, alignSelection, distributeSelection, layoutSelection, stackSelection, snapSelectionToGrid, mirrorSelection, autoLayoutChildren, nudgeSelected, editingId, startEditing } = useMindMapStore();
 
   useEffect(() => {
@@ -219,6 +220,10 @@ export function useKeyboard({ onSearch, onFit, onFitSelection, onFitSubtree, onZ
         e.preventDefault();
         onCopySelection();
       }
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'l') {
+        e.preventDefault();
+        onCopySubtree();
+      }
       if (e.key === 'Backspace' || e.key === 'Delete') {
         e.preventDefault();
         deleteSelected();
@@ -302,5 +307,6 @@ export function useKeyboard({ onSearch, onFit, onFitSelection, onFitSubtree, onZ
     onRedo,
     onExportMarkdown,
     onCopySelection,
+    onCopySubtree,
   ]);
 }
