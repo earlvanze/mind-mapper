@@ -210,6 +210,23 @@ export default function App() {
   const focusPrevious = () => jumpFocusHistory(-1);
   const focusForward = () => jumpFocusHistory(1);
 
+  const jumpFocusHistoryEdge = (edge: 'start' | 'end') => {
+    const stepped = findEdgeFocus(
+      focusHistoryRef.current,
+      edge,
+      (id) => !!nodes[id],
+    );
+
+    focusHistoryRef.current = stepped.state;
+
+    if (!stepped.focusId) return;
+    setFocus(stepped.focusId);
+    centerOnNode(stepped.focusId);
+  };
+
+  const focusHistoryStart = () => jumpFocusHistoryEdge('start');
+  const focusHistoryEnd = () => jumpFocusHistoryEdge('end');
+
   const resetFocusHistoryNow = () => {
     focusHistoryRef.current = resetFocusHistory(focusHistoryRef.current, focusId);
     setImportNotice({ text: 'Focus history reset to current node.', kind: 'success' });

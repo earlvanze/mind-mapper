@@ -139,3 +139,30 @@ export function pruneFocusHistory(
     index: nextIndex,
   };
 }
+
+export function findEdgeFocus(
+  state: FocusHistoryState,
+  edge: 'start' | 'end',
+  isValid?: (focusId: string) => boolean,
+): { state: FocusHistoryState; focusId: string | null } {
+  if (!state.entries.length) return { state, focusId: null };
+
+  const direction = edge === 'start' ? 1 : -1;
+  let index = edge === 'start' ? 0 : state.entries.length - 1;
+
+  while (index >= 0 && index < state.entries.length) {
+    const focusId = state.entries[index];
+    if (!isValid || isValid(focusId)) {
+      return {
+        state: {
+          entries: state.entries,
+          index,
+        },
+        focusId,
+      };
+    }
+    index += direction;
+  }
+
+  return { state, focusId: null };
+}

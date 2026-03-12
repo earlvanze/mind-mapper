@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { canStepFocus, createFocusHistory, findStepFocus, pruneFocusHistory, recordFocus, resetFocusHistory, stepFocus } from './focusHistory';
+import { canStepFocus, createFocusHistory, findEdgeFocus, findStepFocus, pruneFocusHistory, recordFocus, resetFocusHistory, stepFocus } from './focusHistory';
 
 describe('focusHistory', () => {
   it('creates initial history from focused id', () => {
@@ -94,5 +94,24 @@ describe('pruneFocusHistory', () => {
       entries: ['a', 'b', 'c'],
       index: 2,
     });
+  });
+});
+
+describe('findEdgeFocus', () => {
+  it('returns first/last valid focus targets', () => {
+    const state = { entries: ['old', 'mid', 'new'], index: 1 };
+    expect(findEdgeFocus(state, 'start').focusId).toBe('old');
+    expect(findEdgeFocus(state, 'end').focusId).toBe('new');
+  });
+
+  it('skips invalid entries on edge search', () => {
+    const state = { entries: ['missing', 'a', 'b', 'gone'], index: 2 };
+    expect(findEdgeFocus(state, 'start', id => id !== 'missing' && id !== 'gone').focusId).toBe('a');
+    expect(findEdgeFocus(state, 'end', id => id !== 'missing' && id !== 'gone').focusId).toBe('b');
+  });
+
+  it('returns null when no valid edge target exists', () => {
+    const state = { entries: ['missing'], index: 0 };
+    expect(findEdgeFocus(state, 'start', () => false).focusId).toBeNull();
   });
 });
