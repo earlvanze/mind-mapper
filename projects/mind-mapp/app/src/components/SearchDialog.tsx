@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useMindMapStore } from '../store/useMindMapStore';
-import { centerPointInView, searchNodes } from '../utils';
+import { centerPointInView, formatFocusPath, searchNodes } from '../utils';
 
 export default function SearchDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { nodes, setFocus } = useMindMapStore();
@@ -32,7 +32,10 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
     }
   }, [open]);
 
-  const results = useMemo(() => searchNodes(nodes, query, 20), [nodes, query]);
+  const results = useMemo(
+    () => searchNodes(nodes, query, 20).map(node => ({ node, path: formatFocusPath(nodes, node.id) })),
+    [nodes, query],
+  );
 
   useEffect(() => {
     if (!results.length) {
@@ -56,7 +59,7 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
         setSelected(s => Math.max(0, s - 1));
       }
       if (e.key === 'Enter' && results.length) {
-        const item = results[selected];
+        const item = results[selected]?.node;
         if (item) {
           setFocus(item.id);
           centerOnNode(item.id);
@@ -82,15 +85,18 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
         <div className="search-results">
           {results.map((r, i) => (
             <div
-              key={r.id}
+              key={r.node.id}
               className={`search-item ${i === selected ? 'active' : ''}`}
               onClick={() => {
-                setFocus(r.id);
-                centerOnNode(r.id);
+                setFocus(r.node.id);
+                centerOnNode(r.node.id);
                 onClose();
               }}
             >
-              {r.text || '(empty)'}
+              <div className="search-item-title">{r.node.text || '(empty)'}</div>
+              <div className="search-item-meta" title={`${r.node.id} • ${r.path}`}>
+                {r.node.id} • {r.path || '(no path)'}
+              </div>
             </div>
           ))}
           {!results.length && query && <div className="search-empty">No results</div>}

@@ -256,6 +256,20 @@ body, html, #root {
   cursor: pointer;
 }
 
+.search-item-title {
+  font-size: 13px;
+  color: #111827;
+}
+
+.search-item-meta {
+  margin-top: 2px;
+  font-size: 11px;
+  color: #667085;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .search-item:hover,
 .search-item.active {
   background: #f1f5ff;
