@@ -68,6 +68,7 @@ npm test
 - C: center focused node
 - Alt+Shift+C: center selected nodes
 - Shift+C: center root node
+- Shift+P: focus + center parent node
 - R: focus + center root node
 - Alt+R: jump back to previous focus
 - L: auto-layout children

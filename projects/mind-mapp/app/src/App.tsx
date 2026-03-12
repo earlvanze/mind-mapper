@@ -143,6 +143,13 @@ export default function App() {
     centerOnWorld(sum.x / subtree.length, sum.y / subtree.length);
   };
 
+  const focusParentNode = () => {
+    const current = nodes[focusId];
+    if (!current?.parentId || !nodes[current.parentId]) return;
+    setFocus(current.parentId);
+    centerOnNode(current.parentId);
+  };
+
   const focusPrevious = () => {
     const previousId = previousFocusRef.current;
     if (!previousId || previousId === focusId || !nodes[previousId]) return;
@@ -237,6 +244,7 @@ export default function App() {
     onCenterFocus: () => centerOnNode(focusId),
     onCenterSelection: () => centerSelection(),
     onCenterSubtree: () => centerSubtree(),
+    onFocusParent: () => focusParentNode(),
     onFocusRoot: () => focusRoot(),
     onFocusPrevious: () => focusPrevious(),
     onToggleGrid: () => setShowGrid(v => !v),
@@ -393,6 +401,7 @@ export default function App() {
           <button title="Center selected nodes (Alt+Shift+C)" onClick={centerSelection}>Center Sel</button>
           <button title="Center focused subtree (Alt+Shift+B)" onClick={centerSubtree}>Center Sub</button>
           <button title="Center root node (Shift+C)" onClick={centerRoot}>Center Root</button>
+          <button title="Jump focus to parent node (Shift+P)" onClick={focusParentNode}>Parent Focus</button>
           <button title="Jump focus to root node (R)" onClick={focusRoot}>Root</button>
           <button title="Jump back to previous focus (Alt+R)" onClick={focusPrevious}>Back</button>
           <button title="Toggle grid overlay (Shift+G)" onClick={() => setShowGrid(v => !v)}>{showGrid ? 'Grid On' : 'Grid Off'}</button>

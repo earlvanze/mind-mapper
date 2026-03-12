@@ -12,6 +12,7 @@ type Props = {
   onCenterFocus: () => void;
   onCenterSelection: () => void;
   onCenterSubtree: () => void;
+  onFocusParent: () => void;
   onFocusRoot: () => void;
   onFocusPrevious: () => void;
   onToggleGrid: () => void;
@@ -27,7 +28,7 @@ type Props = {
   onCenterRoot: () => void;
 };
 
-export function useKeyboard({ onSearch, onFit, onFitSelection, onFitSubtree, onZoomIn, onZoomOut, onResetView, onCenterFocus, onCenterSelection, onCenterSubtree, onFocusRoot, onFocusPrevious, onToggleGrid, onToggleMiniMap, onToggleAdvanced, onHelp, onUndo, onRedo, onExportMarkdown, onCopySelection, onCopySubtree, onCopyPath, onCenterRoot }: Props) {
+export function useKeyboard({ onSearch, onFit, onFitSelection, onFitSubtree, onZoomIn, onZoomOut, onResetView, onCenterFocus, onCenterSelection, onCenterSubtree, onFocusParent, onFocusRoot, onFocusPrevious, onToggleGrid, onToggleMiniMap, onToggleAdvanced, onHelp, onUndo, onRedo, onExportMarkdown, onCopySelection, onCopySubtree, onCopyPath, onCenterRoot }: Props) {
   const { focusId, addSibling, addChild, promoteNode, deleteSelected, duplicateSelected, moveFocus, selectParent, setFocus, selectAll, invertSelection, selectSiblings, selectChildren, selectLeaves, selectAncestors, selectTopLevel, selectGeneration, clearSelectionSet, expandSelectionToNeighbors, selectSubtree, alignSelection, distributeSelection, layoutSelection, stackSelection, snapSelectionToGrid, mirrorSelection, autoLayoutChildren, nudgeSelected, editingId, startEditing } = useMindMapStore();
 
   useEffect(() => {
@@ -206,6 +207,10 @@ export function useKeyboard({ onSearch, onFit, onFitSelection, onFitSubtree, onZ
         e.preventDefault();
         onFocusRoot();
       }
+      if (e.shiftKey && e.key.toLowerCase() === 'p' && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        e.preventDefault();
+        onFocusParent();
+      }
       if (e.key.toLowerCase() === 'l' && !e.metaKey && !e.ctrlKey) {
         autoLayoutChildren(focusId);
       }
@@ -325,6 +330,7 @@ export function useKeyboard({ onSearch, onFit, onFitSelection, onFitSubtree, onZ
     onCenterFocus,
     onCenterSelection,
     onCenterSubtree,
+    onFocusParent,
     onFocusRoot,
     onFocusPrevious,
     onToggleGrid,

@@ -90,6 +90,7 @@
 - Unified search token parsing between matching and highlighting
 - Added Alt+Shift+C + toolbar action to center selected nodes in viewport
 - Added Alt+Shift+B + toolbar action to center focused subtree in viewport
+- Added Shift+P + toolbar action to focus and center parent node
 - Enabled mini-map viewport box dragging for pan navigation
 
 ## 0.1.1
