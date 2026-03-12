@@ -135,3 +135,20 @@ export function getCycledLeafId(
 
   return leaves[nextIndex] ?? null;
 }
+
+export function getLeafCycleRootId(
+  nodes: Record<string, Node>,
+  focusId: string,
+): string | null {
+  let currentId: string | null | undefined = focusId;
+  const visited = new Set<string>();
+
+  while (currentId && !visited.has(currentId) && nodes[currentId]) {
+    visited.add(currentId);
+    const leaves = getLeafIdsInSubtree(nodes, currentId);
+    if (leaves.length > 1) return currentId;
+    currentId = nodes[currentId].parentId;
+  }
+
+  return null;
+}

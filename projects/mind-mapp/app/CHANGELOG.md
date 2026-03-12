@@ -97,6 +97,7 @@
 - Added Shift+L + toolbar action to jump focus to first leaf in focused subtree
 - Added Shift+K + toolbar action to jump focus to last leaf in focused subtree
 - Added Shift+, / Shift+. + toolbar actions to cycle focused subtree leaves
+- Improved leaf-cycle behavior by climbing to nearest multi-leaf ancestor when focused node is a leaf
 - Extracted focus-navigation helpers into tested utility functions
 - Moved parent/child focus resolution into shared focusNav helpers
 - Enabled mini-map viewport box dragging for pan navigation

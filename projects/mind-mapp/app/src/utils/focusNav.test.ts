@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Node } from '../store/useMindMapStore';
-import { getCycledLeafId, getFirstChildId, getFirstLeafId, getLastLeafId, getLeafIdsInSubtree, getParentFocusId, getWrappedSiblingId } from './focusNav';
+import { getCycledLeafId, getFirstChildId, getFirstLeafId, getLastLeafId, getLeafCycleRootId, getLeafIdsInSubtree, getParentFocusId, getWrappedSiblingId } from './focusNav';
 
 const nodes: Record<string, Node> = {
   n_root: { id: 'n_root', text: 'Root', x: 0, y: 0, parentId: null, children: ['a', 'b', 'c'] },
@@ -114,5 +114,26 @@ describe('getCycledLeafId', () => {
 
   it('returns null when subtree has fewer than two leaves and current is already that leaf', () => {
     expect(getCycledLeafId(nodes, 'b', 'b', 1)).toBeNull();
+  });
+});
+
+describe('getLeafCycleRootId', () => {
+  it('returns focused node when its subtree has multiple leaves', () => {
+    expect(getLeafCycleRootId(nodes, 'n_root')).toBe('n_root');
+  });
+
+  it('climbs to nearest ancestor with multiple leaves', () => {
+    expect(getLeafCycleRootId(nodes, 'a1')).toBe('n_root');
+  });
+
+  it('falls back to nearest ancestor with multiple leaves', () => {
+    expect(getLeafCycleRootId(nodes, 'b')).toBe('n_root');
+  });
+
+  it('returns null when no cycle root exists in ancestor chain', () => {
+    const solo: Record<string, Node> = {
+      only: { id: 'only', text: 'Only', x: 0, y: 0, parentId: null, children: [] },
+    };
+    expect(getLeafCycleRootId(solo, 'only')).toBeNull();
   });
 });
