@@ -96,6 +96,24 @@ export default function App() {
     centerOnNode('n_root');
   };
 
+  const centerSelection = () => {
+    const selected = selectedIds
+      .map(id => nodes[id])
+      .filter(Boolean);
+
+    if (!selected.length) {
+      centerOnNode(focusId);
+      return;
+    }
+
+    const sum = selected.reduce(
+      (acc, node) => ({ x: acc.x + node.x + 30, y: acc.y + node.y + 16 }),
+      { x: 0, y: 0 },
+    );
+
+    centerOnWorld(sum.x / selected.length, sum.y / selected.length);
+  };
+
   const focusPrevious = () => {
     const previousId = previousFocusRef.current;
     if (!previousId || previousId === focusId || !nodes[previousId]) return;
@@ -188,6 +206,7 @@ export default function App() {
     onZoomOut: () => zoomBy(1 / 1.15),
     onResetView: () => (window as any).__mindmappResetView?.(),
     onCenterFocus: () => centerOnNode(focusId),
+    onCenterSelection: () => centerSelection(),
     onFocusRoot: () => focusRoot(),
     onFocusPrevious: () => focusPrevious(),
     onToggleGrid: () => setShowGrid(v => !v),
@@ -341,6 +360,7 @@ export default function App() {
           <button title="Fit selected nodes (Alt+F)" onClick={fitSelection}>Fit Sel</button>
           <button title="Fit focused subtree (Alt+Shift+F)" onClick={fitFocusedSubtree}>Fit Sub</button>
           <button title="Center focused node (C)" onClick={() => centerOnNode(focusId)}>Center</button>
+          <button title="Center selected nodes (Alt+Shift+C)" onClick={centerSelection}>Center Sel</button>
           <button title="Center root node (Shift+C)" onClick={centerRoot}>Center Root</button>
           <button title="Jump focus to root node (R)" onClick={focusRoot}>Root</button>
           <button title="Jump back to previous focus (Alt+R)" onClick={focusPrevious}>Back</button>

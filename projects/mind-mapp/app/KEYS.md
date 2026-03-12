@@ -51,6 +51,7 @@ Most selection/layout commands are also available in toolbar `Advanced ▾`.
 - Shift+M: toggle mini-map visibility
 - Shift+A: toggle advanced toolbar actions
 - C: center focused node
+- Alt+Shift+C: center selected nodes
 - Shift+C: center root node
 - R: focus + center root node
 - Alt+R: jump back to previous focus

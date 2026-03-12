@@ -9,6 +9,7 @@
 - = / +: zoom in (center‑preserving)
 - -: zoom out (center‑preserving)
 - 0: reset pan/zoom view
+- Alt + Shift + C: center selected nodes
 - Shift + C: center root node
 - R: focus + center root node
 - Alt + R: jump back to previous focus
