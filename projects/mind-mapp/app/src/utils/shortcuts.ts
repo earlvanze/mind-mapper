@@ -44,6 +44,7 @@ export const SHORTCUTS = [
   { key: 'Shift+M', desc: 'toggle mini-map visibility' },
   { key: 'Shift+A', desc: 'toggle advanced toolbar actions' },
   { key: 'C', desc: 'center focused node' },
+  { key: 'R', desc: 'focus + center root node' },
   { key: 'L', desc: 'auto‑layout children' },
   { key: 'Shift+drag', desc: 'pan' },
   { key: 'Ctrl/Cmd+wheel', desc: 'zoom' },

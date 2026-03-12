@@ -73,6 +73,11 @@ export default function App() {
     centerOnWorld(node.x + 30, node.y + 16);
   };
 
+  const focusRoot = () => {
+    setFocus('n_root');
+    centerOnNode('n_root');
+  };
+
   const fitSelection = () => {
     const selected = selectedIds
       .map(id => nodes[id])
@@ -127,6 +132,7 @@ export default function App() {
     onZoomOut: () => zoomBy(1 / 1.15),
     onResetView: () => (window as any).__mindmappResetView?.(),
     onCenterFocus: () => centerOnNode(focusId),
+    onFocusRoot: () => focusRoot(),
     onToggleGrid: () => setShowGrid(v => !v),
     onToggleMiniMap: () => setShowMiniMap(v => !v),
     onToggleAdvanced: () => setShowAdvancedActions(v => !v),
@@ -182,6 +188,7 @@ export default function App() {
           <button title="Fit to view" onClick={() => fitToView()}>Fit</button>
           <button title="Fit selected nodes (Alt+F)" onClick={fitSelection}>Fit Sel</button>
           <button title="Center focused node (C)" onClick={() => centerOnNode(focusId)}>Center</button>
+          <button title="Jump focus to root node (R)" onClick={focusRoot}>Root</button>
           <button title="Toggle grid overlay (Shift+G)" onClick={() => setShowGrid(v => !v)}>{showGrid ? 'Grid On' : 'Grid Off'}</button>
           <button title="Toggle mini-map (Shift+M)" onClick={() => setShowMiniMap(v => !v)}>{showMiniMap ? 'Mini-map On' : 'Mini-map Off'}</button>
           <button title="Show/Hide advanced actions (Shift+A)" onClick={() => setShowAdvancedActions(v => !v)}>

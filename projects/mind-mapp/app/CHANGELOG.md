@@ -70,6 +70,7 @@
 - Added keyboard +/- zoom shortcuts (center‑preserving)
 - Added toolbar zoom percentage indicator
 - Added keyboard 0 shortcut to reset pan/zoom view
+- Added R shortcut + toolbar button to focus and center root node
 
 ## 0.1.1
 - Added toolbar actions (Fit/Help/Clear)

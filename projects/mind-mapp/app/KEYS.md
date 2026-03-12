@@ -47,6 +47,7 @@ Most selection/layout commands are also available in toolbar `Advanced ▾`.
 - Shift+M: toggle mini-map visibility
 - Shift+A: toggle advanced toolbar actions
 - C: center focused node
+- R: focus + center root node
 - L: auto‑layout children
 - Shift+drag: pan
 - Ctrl/Cmd+wheel: zoom

@@ -9,6 +9,7 @@ type Props = {
   onZoomOut: () => void;
   onResetView: () => void;
   onCenterFocus: () => void;
+  onFocusRoot: () => void;
   onToggleGrid: () => void;
   onToggleMiniMap: () => void;
   onToggleAdvanced: () => void;
@@ -18,7 +19,7 @@ type Props = {
   onExportMarkdown: () => void;
 };
 
-export function useKeyboard({ onSearch, onFit, onFitSelection, onZoomIn, onZoomOut, onResetView, onCenterFocus, onToggleGrid, onToggleMiniMap, onToggleAdvanced, onHelp, onUndo, onRedo, onExportMarkdown }: Props) {
+export function useKeyboard({ onSearch, onFit, onFitSelection, onZoomIn, onZoomOut, onResetView, onCenterFocus, onFocusRoot, onToggleGrid, onToggleMiniMap, onToggleAdvanced, onHelp, onUndo, onRedo, onExportMarkdown }: Props) {
   const { focusId, addSibling, addChild, promoteNode, deleteSelected, duplicateSelected, moveFocus, selectParent, setFocus, selectAll, invertSelection, selectSiblings, selectChildren, selectLeaves, selectAncestors, selectTopLevel, selectGeneration, clearSelectionSet, expandSelectionToNeighbors, selectSubtree, alignSelection, distributeSelection, layoutSelection, stackSelection, snapSelectionToGrid, mirrorSelection, autoLayoutChildren, nudgeSelected, editingId, startEditing } = useMindMapStore();
 
   useEffect(() => {
@@ -169,6 +170,10 @@ export function useKeyboard({ onSearch, onFit, onFitSelection, onZoomIn, onZoomO
       if (e.key.toLowerCase() === 'c' && !e.metaKey && !e.ctrlKey && !e.altKey) {
         onCenterFocus();
       }
+      if (e.key.toLowerCase() === 'r' && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        e.preventDefault();
+        onFocusRoot();
+      }
       if (e.key.toLowerCase() === 'l' && !e.metaKey && !e.ctrlKey) {
         autoLayoutChildren(focusId);
       }
@@ -277,6 +282,7 @@ export function useKeyboard({ onSearch, onFit, onFitSelection, onZoomIn, onZoomO
     onZoomOut,
     onResetView,
     onCenterFocus,
+    onFocusRoot,
     onToggleGrid,
     onToggleMiniMap,
     onToggleAdvanced,
