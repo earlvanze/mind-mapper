@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Node } from '../store/useMindMapStore';
-import { getCycledLeafId, getFirstLeafId, getLastLeafId, getLeafIdsInSubtree, getWrappedSiblingId } from './focusNav';
+import { getCycledLeafId, getFirstChildId, getFirstLeafId, getLastLeafId, getLeafIdsInSubtree, getParentFocusId, getWrappedSiblingId } from './focusNav';
 
 const nodes: Record<string, Node> = {
   n_root: { id: 'n_root', text: 'Root', x: 0, y: 0, parentId: null, children: ['a', 'b', 'c'] },
@@ -9,6 +9,32 @@ const nodes: Record<string, Node> = {
   b: { id: 'b', text: 'B', x: 0, y: 0, parentId: 'n_root', children: [] },
   c: { id: 'c', text: 'C', x: 0, y: 0, parentId: 'n_root', children: [] },
 };
+
+describe('getParentFocusId', () => {
+  it('returns parent id when parent exists', () => {
+    expect(getParentFocusId(nodes, 'a1')).toBe('a');
+  });
+
+  it('returns null for root or missing node', () => {
+    expect(getParentFocusId(nodes, 'n_root')).toBeNull();
+    expect(getParentFocusId(nodes, 'missing')).toBeNull();
+  });
+});
+
+describe('getFirstChildId', () => {
+  it('returns first existing child id', () => {
+    expect(getFirstChildId(nodes, 'n_root')).toBe('a');
+  });
+
+  it('skips missing children and returns null if none exist', () => {
+    const sparse: Record<string, Node> = {
+      ...nodes,
+      n_root: { ...nodes.n_root, children: ['missing', 'b'] },
+    };
+    expect(getFirstChildId(sparse, 'n_root')).toBe('b');
+    expect(getFirstChildId(nodes, 'b')).toBeNull();
+  });
+});
 
 describe('getWrappedSiblingId', () => {
   it('wraps to last sibling when moving left from first', () => {

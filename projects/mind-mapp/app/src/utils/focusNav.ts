@@ -1,5 +1,28 @@
 import type { Node } from '../store/useMindMapStore';
 
+export function getParentFocusId(
+  nodes: Record<string, Node>,
+  focusId: string,
+): string | null {
+  const current = nodes[focusId];
+  if (!current?.parentId || !nodes[current.parentId]) return null;
+  return current.parentId;
+}
+
+export function getFirstChildId(
+  nodes: Record<string, Node>,
+  focusId: string,
+): string | null {
+  const current = nodes[focusId];
+  if (!current) return null;
+
+  for (const childId of current.children) {
+    if (nodes[childId]) return childId;
+  }
+
+  return null;
+}
+
 export function getWrappedSiblingId(
   nodes: Record<string, Node>,
   focusId: string,

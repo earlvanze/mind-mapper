@@ -5,7 +5,7 @@ import Edges from './components/Edges';
 import { useKeyboard } from './hooks/useKeyboard';
 import { usePanZoom } from './hooks/usePanZoom';
 import { useAutosave } from './hooks/useAutosave';
-import { exportPng, exportJsonData, exportMarkdownData, fitToView, computeFitView, computeSelectionBounds, formatSelectionText, formatSubtreeOutline, getFocusPathSegments, getWrappedSiblingId, getFirstLeafId, getLastLeafId, getCycledLeafId, centerPointInView, confirmAction, parseImportPayload, sampleMap, loadUiPrefs, saveUiPrefs, APP_VERSION } from './utils';
+import { exportPng, exportJsonData, exportMarkdownData, fitToView, computeFitView, computeSelectionBounds, formatSelectionText, formatSubtreeOutline, getFocusPathSegments, getParentFocusId, getFirstChildId, getWrappedSiblingId, getFirstLeafId, getLastLeafId, getCycledLeafId, centerPointInView, confirmAction, parseImportPayload, sampleMap, loadUiPrefs, saveUiPrefs, APP_VERSION } from './utils';
 import MiniMap from './components/MiniMap';
 
 const SearchDialog = lazy(() => import('./components/SearchDialog'));
@@ -144,16 +144,17 @@ export default function App() {
   };
 
   const focusParentNode = () => {
-    const current = nodes[focusId];
-    if (!current?.parentId || !nodes[current.parentId]) return;
-    setFocus(current.parentId);
-    centerOnNode(current.parentId);
+    const parentId = getParentFocusId(nodes, focusId);
+    if (!parentId) return;
+
+    setFocus(parentId);
+    centerOnNode(parentId);
   };
 
   const focusChildNode = () => {
-    const current = nodes[focusId];
-    const childId = current?.children?.[0];
-    if (!childId || !nodes[childId]) return;
+    const childId = getFirstChildId(nodes, focusId);
+    if (!childId) return;
+
     setFocus(childId);
     centerOnNode(childId);
   };
