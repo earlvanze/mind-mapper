@@ -52,6 +52,7 @@ export const SHORTCUTS = [
   { key: 'Alt+Shift+C', desc: 'center selected nodes' },
   { key: 'Shift+C', desc: 'center root node' },
   { key: 'R', desc: 'focus + center root node' },
+  { key: 'Shift+R', desc: 'focus history forward' },
   { key: 'Shift+P', desc: 'focus + center parent node' },
   { key: 'Shift+N', desc: 'focus + center first child node' },
   { key: 'Shift+H', desc: 'focus + center previous sibling' },

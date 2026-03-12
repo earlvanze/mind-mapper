@@ -63,6 +63,7 @@ Most selection/layout commands are also available in toolbar `Advanced ▾`.
 - Shift+,: focus + center previous leaf in focused subtree
 - Shift+.: focus + center next leaf in focused subtree
 - R: focus + center root node
+- Shift+R: jump forward in focus history
 - Alt+R: jump back to previous focus
 - L: auto‑layout children
 - Shift+drag: pan

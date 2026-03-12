@@ -20,6 +20,7 @@
 - Shift + ,: focus + center previous leaf in focused subtree
 - Shift + .: focus + center next leaf in focused subtree
 - R: focus + center root node
+- Shift + R: jump forward in focus history
 - Alt + R: jump back to previous focus
 - Cmd/Ctrl + click: add/remove node in multi-selection
 - Cmd/Ctrl + A: select all nodes

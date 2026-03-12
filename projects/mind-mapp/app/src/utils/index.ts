@@ -4,6 +4,7 @@ export * from './exportMarkdown';
 export * from './exportPng';
 export * from './fitToView';
 export * from './fitViewMath';
+export * from './focusHistory';
 export * from './focusNav';
 export * from './id';
 export * from './importValidation';

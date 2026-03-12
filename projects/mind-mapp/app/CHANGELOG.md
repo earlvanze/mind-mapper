@@ -100,6 +100,7 @@
 - Improved leaf-cycle behavior by climbing to nearest multi-leaf ancestor when focused node is a leaf
 - Added leaf-cycle toolbar indicator and disabled cycle controls when unavailable
 - Added context-aware disabling for parent/child/sibling/leaf focus actions
+- Added Shift+R + toolbar Forward action for focus-history forward navigation
 - Extracted focus-navigation helpers into tested utility functions
 - Moved parent/child focus resolution into shared focusNav helpers
 - Enabled mini-map viewport box dragging for pan navigation
