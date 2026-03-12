@@ -69,6 +69,7 @@ npm test
 - Alt+R: jump back to previous focus
 - L: auto-layout children
 - Shift+drag: pan
+- Drag mini-map viewport box: pan from mini-map
 - Ctrl/Cmd + wheel: zoom
 - = / +: zoom in (center‑preserving)
 - -: zoom out (center‑preserving)

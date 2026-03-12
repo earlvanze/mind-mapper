@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Node } from '../store/useMindMapStore';
 import { getMapBounds, mapToMini, miniToWorld, worldRectToMini, type MiniRect } from '../utils/minimap';
 
@@ -17,6 +17,8 @@ export default function MiniMap({ nodes, focusId, selectedIds, onFocus, onNaviga
   const bounds = useMemo(() => getMapBounds(nodes), [nodes]);
   const entries = Object.values(nodes);
   const [viewRect, setViewRect] = useState<MiniRect | null>(null);
+  const [draggingView, setDraggingView] = useState(false);
+  const miniRef = useRef<SVGSVGElement | null>(null);
 
   useEffect(() => {
     const sync = () => {
@@ -53,19 +55,27 @@ export default function MiniMap({ nodes, focusId, selectedIds, onFocus, onNaviga
     };
   }, [bounds]);
 
+  const navigateFromClient = (clientX: number, clientY: number) => {
+    const svg = miniRef.current;
+    if (!svg) return;
+
+    const rect = svg.getBoundingClientRect();
+    const mx = clientX - rect.left;
+    const my = clientY - rect.top;
+    const world = miniToWorld(mx, my, bounds, MINI_W, MINI_H);
+    onNavigate(world.x, world.y);
+  };
+
   return (
     <div className="minimap" aria-label="Mini map navigator">
-      <div className="minimap-title">Mini‑map</div>
+      <div className="minimap-title">Mini‑map (click/drag viewport)</div>
       <svg
+        ref={miniRef}
         width={MINI_W}
         height={MINI_H}
         viewBox={`0 0 ${MINI_W} ${MINI_H}`}
         onClick={(e) => {
-          const rect = e.currentTarget.getBoundingClientRect();
-          const mx = e.clientX - rect.left;
-          const my = e.clientY - rect.top;
-          const world = miniToWorld(mx, my, bounds, MINI_W, MINI_H);
-          onNavigate(world.x, world.y);
+          navigateFromClient(e.clientX, e.clientY);
         }}
       >
         {entries.flatMap(parent =>
@@ -93,12 +103,31 @@ export default function MiniMap({ nodes, focusId, selectedIds, onFocus, onNaviga
 
         {viewRect ? (
           <rect
-            className="minimap-view"
+            className={`minimap-view ${draggingView ? 'dragging' : ''}`}
             x={viewRect.x}
             y={viewRect.y}
             width={viewRect.width}
             height={viewRect.height}
             rx={4}
+            onPointerDown={(e) => {
+              e.stopPropagation();
+              (e.currentTarget as SVGRectElement).setPointerCapture(e.pointerId);
+              setDraggingView(true);
+              navigateFromClient(e.clientX, e.clientY);
+            }}
+            onPointerMove={(e) => {
+              if (!draggingView) return;
+              e.stopPropagation();
+              navigateFromClient(e.clientX, e.clientY);
+            }}
+            onPointerUp={(e) => {
+              if (!draggingView) return;
+              e.stopPropagation();
+              setDraggingView(false);
+              (e.currentTarget as SVGRectElement).releasePointerCapture(e.pointerId);
+            }}
+            onPointerCancel={() => setDraggingView(false)}
+            onClick={(e) => e.stopPropagation()}
           />
         ) : null}
 

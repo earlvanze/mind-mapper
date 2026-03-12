@@ -157,10 +157,14 @@ body, html, #root {
 }
 
 .minimap-view {
-  fill: rgba(79, 70, 229, 0.1);
-  stroke: rgba(79, 70, 229, 0.8);
+  fill: rgba(79, 70, 229, 0.12);
+  stroke: rgba(79, 70, 229, 0.85);
   stroke-width: 1;
-  pointer-events: none;
+  cursor: grab;
+}
+
+.minimap-view.dragging {
+  cursor: grabbing;
 }
 
 .node {
