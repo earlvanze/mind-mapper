@@ -6,6 +6,9 @@
 - Shift + M: toggle mini-map visibility
 - Shift + A: toggle advanced toolbar actions
 - Ctrl/Cmd + wheel: zoom
+- = / +: zoom in (center‑preserving)
+- -: zoom out (center‑preserving)
+- 0: reset pan/zoom view
 - Cmd/Ctrl + click: add/remove node in multi-selection
 - Cmd/Ctrl + A: select all nodes
 - Alt + I: invert selection

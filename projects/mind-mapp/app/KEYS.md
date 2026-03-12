@@ -52,5 +52,6 @@ Most selection/layout commands are also available in toolbar `Advanced ▾`.
 - Ctrl/Cmd+wheel: zoom
 - = / +: zoom in (center‑preserving)
 - -: zoom out (center‑preserving)
+- 0: reset pan/zoom view
 - Double‑click background: reset view (also toolbar button)
 - ?: help

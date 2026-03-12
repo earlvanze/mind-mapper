@@ -49,5 +49,6 @@ export const SHORTCUTS = [
   { key: 'Ctrl/Cmd+wheel', desc: 'zoom' },
   { key: '=/+', desc: 'zoom in' },
   { key: '-', desc: 'zoom out' },
+  { key: '0', desc: 'reset pan/zoom view' },
   { key: '?', desc: 'help' }
 ];

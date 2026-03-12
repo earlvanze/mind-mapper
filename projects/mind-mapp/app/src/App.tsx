@@ -125,6 +125,7 @@ export default function App() {
     onFitSelection: () => fitSelection(),
     onZoomIn: () => zoomBy(1.15),
     onZoomOut: () => zoomBy(1 / 1.15),
+    onResetView: () => (window as any).__mindmappResetView?.(),
     onCenterFocus: () => centerOnNode(focusId),
     onToggleGrid: () => setShowGrid(v => !v),
     onToggleMiniMap: () => setShowMiniMap(v => !v),

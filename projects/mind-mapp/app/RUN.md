@@ -65,6 +65,7 @@ npm test
 - Ctrl/Cmd + wheel: zoom
 - = / +: zoom in (center‑preserving)
 - -: zoom out (center‑preserving)
+- 0: reset pan/zoom view
 - Double‑click background: reset view
 - Sample: load demo map (button)
 - Reset View: reset pan/zoom (button)

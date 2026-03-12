@@ -69,6 +69,7 @@
 - Search selection now centers viewport on the chosen node
 - Added keyboard +/- zoom shortcuts (center‑preserving)
 - Added toolbar zoom percentage indicator
+- Added keyboard 0 shortcut to reset pan/zoom view
 
 ## 0.1.1
 - Added toolbar actions (Fit/Help/Clear)
