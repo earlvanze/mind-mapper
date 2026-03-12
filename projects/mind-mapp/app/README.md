@@ -13,6 +13,7 @@ A lightweight, keyboard‑first mind map app focused on speed and clarity.
 - Pan/zoom (Shift+drag, Ctrl/Cmd+wheel, +/- keys, 0 reset, touch pan/pinch) + toolbar zoom % indicator
 - Fit to view (F) + Fit selection (Alt+F) + Fit focused subtree (Alt+Shift+F) + Center focused node (C) + Center selection (Alt+Shift+C) + Center focused subtree (Alt+Shift+B) + Center root (Shift+C) + Focus parent/child/siblings/leaf (Shift+P/N/H/J/L/K/</>, sibling + leaf wrap enabled, context-aware disabled controls) + Focus root (R) + Focus history (Alt+R back / Shift+R forward / Alt+Shift+Q reset) + Grid overlay toggle (Shift+G) + Reset View button
 - Leaf-cycle status indicator in toolbar (`leaf i/n`) with disabled leaf-cycle buttons when unavailable
+- Focus history status indicator (`hist i/n`) with context-aware Back/Forward target hints
 - Auto‑layout children (L)
 - Help dialog (?) with live shortcut filter
 - Collapsible Advanced actions panel in toolbar (Shift+A, state persists)

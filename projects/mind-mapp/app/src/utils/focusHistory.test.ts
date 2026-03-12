@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { canStepFocus, createFocusHistory, recordFocus, resetFocusHistory, stepFocus } from './focusHistory';
+import { canStepFocus, createFocusHistory, findStepFocus, recordFocus, resetFocusHistory, stepFocus } from './focusHistory';
 
 describe('focusHistory', () => {
   it('creates initial history from focused id', () => {
@@ -52,5 +52,21 @@ describe('focusHistory', () => {
     state = recordFocus(state, 'c');
 
     expect(resetFocusHistory(state, 'b')).toEqual({ entries: ['b'], index: 0 });
+  });
+});
+
+describe('findStepFocus', () => {
+  it('skips invalid ids while stepping backward', () => {
+    const state = { entries: ['a', 'missing', 'b'], index: 2 };
+    const stepped = findStepFocus(state, -1, id => id !== 'missing');
+    expect(stepped.focusId).toBe('a');
+    expect(stepped.state.index).toBe(0);
+  });
+
+  it('returns null when no valid target exists in direction', () => {
+    const state = { entries: ['a', 'missing'], index: 1 };
+    const stepped = findStepFocus(state, -1, id => id !== 'a');
+    expect(stepped.focusId).toBeNull();
+    expect(stepped.state.index).toBe(0);
   });
 });

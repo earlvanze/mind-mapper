@@ -69,3 +69,23 @@ export function stepFocus(
     focusId: state.entries[nextIndex] ?? null,
   };
 }
+
+export function findStepFocus(
+  state: FocusHistoryState,
+  direction: -1 | 1,
+  isValid?: (focusId: string) => boolean,
+): { state: FocusHistoryState; focusId: string | null } {
+  let cursor = state;
+
+  while (canStepFocus(cursor, direction)) {
+    const stepped = stepFocus(cursor, direction);
+    cursor = stepped.state;
+
+    if (!stepped.focusId) continue;
+    if (!isValid || isValid(stepped.focusId)) {
+      return { state: cursor, focusId: stepped.focusId };
+    }
+  }
+
+  return { state: cursor, focusId: null };
+}

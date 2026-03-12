@@ -5,7 +5,7 @@ import Edges from './components/Edges';
 import { useKeyboard } from './hooks/useKeyboard';
 import { usePanZoom } from './hooks/usePanZoom';
 import { useAutosave } from './hooks/useAutosave';
-import { exportPng, exportJsonData, exportMarkdownData, fitToView, computeFitView, computeSelectionBounds, formatSelectionText, formatSubtreeOutline, getFocusPathSegments, getParentFocusId, getFirstChildId, getWrappedSiblingId, getFirstLeafId, getLastLeafId, getCycledLeafId, getLeafCycleRootId, getLeafIdsInSubtree, createFocusHistory, recordFocus, resetFocusHistory, stepFocus, canStepFocus, centerPointInView, confirmAction, parseImportPayload, sampleMap, loadUiPrefs, saveUiPrefs, APP_VERSION } from './utils';
+import { exportPng, exportJsonData, exportMarkdownData, fitToView, computeFitView, computeSelectionBounds, formatSelectionText, formatSubtreeOutline, getFocusPathSegments, getParentFocusId, getFirstChildId, getWrappedSiblingId, getFirstLeafId, getLastLeafId, getCycledLeafId, getLeafCycleRootId, getLeafIdsInSubtree, createFocusHistory, recordFocus, resetFocusHistory, findStepFocus, centerPointInView, confirmAction, parseImportPayload, sampleMap, loadUiPrefs, saveUiPrefs, APP_VERSION } from './utils';
 import MiniMap from './components/MiniMap';
 
 const SearchDialog = lazy(() => import('./components/SearchDialog'));
@@ -192,22 +192,17 @@ export default function App() {
   };
 
   const jumpFocusHistory = (direction: -1 | 1) => {
-    let state = focusHistoryRef.current;
+    const stepped = findStepFocus(
+      focusHistoryRef.current,
+      direction,
+      (id) => !!nodes[id],
+    );
 
-    while (canStepFocus(state, direction)) {
-      const stepped = stepFocus(state, direction);
-      state = stepped.state;
+    focusHistoryRef.current = stepped.state;
 
-      const targetId = stepped.focusId;
-      if (!targetId || !nodes[targetId]) continue;
-
-      focusHistoryRef.current = state;
-      setFocus(targetId);
-      centerOnNode(targetId);
-      return;
-    }
-
-    focusHistoryRef.current = state;
+    if (!stepped.focusId) return;
+    setFocus(stepped.focusId);
+    centerOnNode(stepped.focusId);
   };
 
   const focusPrevious = () => jumpFocusHistory(-1);
@@ -341,8 +336,20 @@ export default function App() {
   const leafCycleLeaves = leafCycleRootId ? getLeafIdsInSubtree(nodes, leafCycleRootId) : [];
   const leafCycleEnabled = leafCycleLeaves.length > 1;
   const leafCycleIndex = leafCycleLeaves.indexOf(focusId);
-  const canFocusBack = canStepFocus(focusHistoryRef.current, -1);
-  const canFocusForward = canStepFocus(focusHistoryRef.current, 1);
+  const historyBackTargetId = findStepFocus(
+    { entries: focusHistoryRef.current.entries, index: focusHistoryRef.current.index },
+    -1,
+    (id) => !!nodes[id],
+  ).focusId;
+  const historyForwardTargetId = findStepFocus(
+    { entries: focusHistoryRef.current.entries, index: focusHistoryRef.current.index },
+    1,
+    (id) => !!nodes[id],
+  ).focusId;
+  const historyBackLabel = historyBackTargetId ? (nodes[historyBackTargetId]?.text.trim() || historyBackTargetId) : null;
+  const historyForwardLabel = historyForwardTargetId ? (nodes[historyForwardTargetId]?.text.trim() || historyForwardTargetId) : null;
+  const canFocusBack = !!historyBackTargetId;
+  const canFocusForward = !!historyForwardTargetId;
   const focusHistoryCount = focusHistoryRef.current.entries.length;
   const focusHistoryPosition = focusHistoryRef.current.index + 1;
 
@@ -540,8 +547,8 @@ export default function App() {
             Next Leaf
           </button>
           <button title="Jump focus to root node (R)" onClick={focusRoot}>Root</button>
-          <button title={canFocusBack ? 'Jump back to previous focus (Alt+R)' : 'No previous focus in history'} onClick={focusPrevious} disabled={!canFocusBack}>Back</button>
-          <button title={canFocusForward ? 'Jump forward in focus history (Shift+R)' : 'No forward focus history'} onClick={focusForward} disabled={!canFocusForward}>Forward</button>
+          <button title={canFocusBack ? `Jump back to previous focus (Alt+R): ${historyBackLabel}` : 'No previous focus in history'} onClick={focusPrevious} disabled={!canFocusBack}>Back</button>
+          <button title={canFocusForward ? `Jump forward in focus history (Shift+R): ${historyForwardLabel}` : 'No forward focus history'} onClick={focusForward} disabled={!canFocusForward}>Forward</button>
           <button title={focusHistoryCount > 1 ? 'Reset focus history to current node (Alt+Shift+Q)' : 'Focus history already reset'} onClick={resetFocusHistoryNow} disabled={focusHistoryCount <= 1}>Reset Hist</button>
           <button title="Toggle grid overlay (Shift+G)" onClick={() => setShowGrid(v => !v)}>{showGrid ? 'Grid On' : 'Grid Off'}</button>
           <button title="Toggle mini-map (Shift+M)" onClick={() => setShowMiniMap(v => !v)}>{showMiniMap ? 'Mini-map On' : 'Mini-map Off'}</button>
