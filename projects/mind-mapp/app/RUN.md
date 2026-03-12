@@ -44,6 +44,7 @@ npm test
 - Alt+]: stack selected nodes along Y from focus
 - Alt+B: select focused subtree
 - Alt+P: select parent of focused node
+- Alt+Shift+P: copy focused node path
 - Cmd/Ctrl+Z: undo
 - Cmd/Ctrl+Shift+Z or Cmd/Ctrl+Y: redo
 - Cmd/Ctrl+K: search

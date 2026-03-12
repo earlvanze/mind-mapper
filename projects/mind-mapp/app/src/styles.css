@@ -32,6 +32,14 @@ body, html, #root {
   flex-wrap: wrap;
 }
 
+.toolbar-path {
+  color: #666;
+  max-width: 320px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .toolbar-notice {
   display: inline-flex;
   align-items: center;

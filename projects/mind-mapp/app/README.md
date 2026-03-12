@@ -19,6 +19,7 @@ A lightweight, keyboard‑first mind map app focused on speed and clarity.
 - Markdown export (Cmd/Ctrl+Shift+M)
 - Copy selected/focused node text to clipboard (Cmd/Ctrl+Shift+C)
 - Copy focused subtree outline to clipboard (Cmd/Ctrl+Shift+L)
+- Copy focused node path to clipboard (Alt+Shift+P)
 - PNG export (Cmd/Ctrl+Shift+S)
 - Transient toolbar notices for copy/import outcomes (auto-dismiss + manual dismiss)
 - Curved edge rendering with arrowheads

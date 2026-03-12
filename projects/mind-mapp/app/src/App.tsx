@@ -5,7 +5,7 @@ import Edges from './components/Edges';
 import { useKeyboard } from './hooks/useKeyboard';
 import { usePanZoom } from './hooks/usePanZoom';
 import { useAutosave } from './hooks/useAutosave';
-import { exportPng, exportJsonData, exportMarkdownData, fitToView, computeFitView, computeSelectionBounds, formatSelectionText, formatSubtreeOutline, centerPointInView, confirmAction, parseImportPayload, sampleMap, loadUiPrefs, saveUiPrefs, APP_VERSION } from './utils';
+import { exportPng, exportJsonData, exportMarkdownData, fitToView, computeFitView, computeSelectionBounds, formatSelectionText, formatSubtreeOutline, formatFocusPath, centerPointInView, confirmAction, parseImportPayload, sampleMap, loadUiPrefs, saveUiPrefs, APP_VERSION } from './utils';
 import MiniMap from './components/MiniMap';
 
 const SearchDialog = lazy(() => import('./components/SearchDialog'));
@@ -175,11 +175,13 @@ export default function App() {
     onExportMarkdown: () => exportMarkdownData(nodes),
     onCopySelection: () => copySelectionText(),
     onCopySubtree: () => copySubtreeText(),
+    onCopyPath: () => copyFocusPath(),
   });
   usePanZoom({ selector: '.canvas' });
   useAutosave(() => saveState(), 600);
 
   const selectedBounds = computeSelectionBounds(nodes, selectedIds);
+  const focusedPath = formatFocusPath(nodes, focusId);
 
   const exportJson = () => exportJsonData(nodes);
 
@@ -239,6 +241,20 @@ export default function App() {
     }
   };
 
+  const copyFocusPath = async () => {
+    if (!focusedPath) {
+      setImportNotice({ text: 'No focused path available to copy.', kind: 'error' });
+      return;
+    }
+
+    try {
+      await writeClipboard(focusedPath);
+      setImportNotice({ text: 'Copied focused path to clipboard.', kind: 'success' });
+    } catch {
+      setImportNotice({ text: 'Path copy failed. Use Copy Tree as fallback.', kind: 'error' });
+    }
+  };
+
   const importJson = async (file: File) => {
     try {
       const text = await file.text();
@@ -261,6 +277,7 @@ export default function App() {
         <span style={{ color: '#666' }}>{selectedIds.length} selected</span>
         {selectedBounds ? <span style={{ color: '#666' }}>sel box {selectedBounds.width}×{selectedBounds.height}</span> : null}
         <span style={{ color: '#666' }}>zoom {Math.round(viewScale * 100)}%</span>
+        {focusedPath ? <span className="toolbar-path" title={focusedPath}>{focusedPath}</span> : null}
         <span style={{ color: '#666' }}>Press ? for shortcuts</span>
         {importNotice ? (
           <span className={`toolbar-notice ${importNotice.kind === 'error' ? 'is-error' : 'is-success'}`}>
@@ -311,6 +328,7 @@ export default function App() {
           <button title="Export Markdown" data-export="markdown" onClick={() => exportMarkdownData(nodes)}>Export MD</button>
           <button title="Copy selected/focused node text (Cmd/Ctrl+Shift+C)" onClick={copySelectionText}>Copy Sel</button>
           <button title="Copy focused subtree outline (Cmd/Ctrl+Shift+L)" onClick={copySubtreeText}>Copy Tree</button>
+          <button title="Copy focused node path (Alt+Shift+P)" onClick={copyFocusPath}>Copy Path</button>
           <button title="Export PNG" data-export="png" onClick={exportPngClick}>Export PNG</button>
           <button title="Reset pan/zoom" onClick={() => (window as any).__mindmappResetView?.()}>Reset View</button>
 

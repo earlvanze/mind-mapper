@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Node } from '../store/useMindMapStore';
-import { formatSelectionText, formatSubtreeOutline } from './selectionText';
+import { formatFocusPath, formatSelectionText, formatSubtreeOutline } from './selectionText';
 
 const nodes: Record<string, Node> = {
   n_root: { id: 'n_root', text: 'Root', x: 0, y: 0, parentId: null, children: ['a', 'b'] },
@@ -31,5 +31,15 @@ describe('formatSubtreeOutline', () => {
 
   it('returns empty string when root does not exist', () => {
     expect(formatSubtreeOutline(nodes, 'missing')).toBe('');
+  });
+});
+
+describe('formatFocusPath', () => {
+  it('formats focus ancestry from root to focused node', () => {
+    expect(formatFocusPath(nodes, 'a1')).toBe('Root / Alpha / Alpha Child');
+  });
+
+  it('returns empty string when focus node does not exist', () => {
+    expect(formatFocusPath(nodes, 'missing')).toBe('');
   });
 });

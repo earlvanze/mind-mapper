@@ -53,3 +53,20 @@ export function formatSubtreeOutline(nodes: Record<string, Node>, rootId?: strin
 
   return lines.join('\n');
 }
+
+export function formatFocusPath(nodes: Record<string, Node>, focusId?: string): string {
+  if (!focusId || !nodes[focusId]) return '';
+
+  const chain: string[] = [];
+  const visited = new Set<string>();
+  let currentId: string | null | undefined = focusId;
+
+  while (currentId && !visited.has(currentId) && nodes[currentId]) {
+    visited.add(currentId);
+    const current = nodes[currentId];
+    chain.push(nodeLabel(current));
+    currentId = current.parentId;
+  }
+
+  return chain.reverse().join(' / ');
+}
