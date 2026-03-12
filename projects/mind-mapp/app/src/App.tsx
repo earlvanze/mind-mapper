@@ -5,7 +5,7 @@ import Edges from './components/Edges';
 import { useKeyboard } from './hooks/useKeyboard';
 import { usePanZoom } from './hooks/usePanZoom';
 import { useAutosave } from './hooks/useAutosave';
-import { exportPng, exportJsonData, exportMarkdownData, fitToView, computeFitView, computeSelectionBounds, formatSelectionText, formatSubtreeOutline, getFocusPathSegments, centerPointInView, confirmAction, parseImportPayload, sampleMap, loadUiPrefs, saveUiPrefs, APP_VERSION } from './utils';
+import { exportPng, exportJsonData, exportMarkdownData, fitToView, computeFitView, computeSelectionBounds, formatSelectionText, formatSubtreeOutline, getFocusPathSegments, getWrappedSiblingId, getFirstLeafId, centerPointInView, confirmAction, parseImportPayload, sampleMap, loadUiPrefs, saveUiPrefs, APP_VERSION } from './utils';
 import MiniMap from './components/MiniMap';
 
 const SearchDialog = lazy(() => import('./components/SearchDialog'));
@@ -159,51 +159,19 @@ export default function App() {
   };
 
   const focusSibling = (direction: -1 | 1) => {
-    const current = nodes[focusId];
-    if (!current?.parentId) return;
+    const siblingId = getWrappedSiblingId(nodes, focusId, direction);
+    if (!siblingId) return;
 
-    const parent = nodes[current.parentId];
-    if (!parent) return;
-
-    const siblings = parent.children.filter(id => !!nodes[id]);
-    if (!siblings.length) return;
-
-    const index = siblings.indexOf(focusId);
-    if (index < 0) return;
-
-    const nextIndex = (index + direction + siblings.length) % siblings.length;
-    if (nextIndex === index) return;
-
-    const siblingId = siblings[nextIndex];
     setFocus(siblingId);
     centerOnNode(siblingId);
   };
 
   const focusSubtreeFirstLeaf = () => {
-    if (!nodes[focusId]) return;
+    const leafId = getFirstLeafId(nodes, focusId);
+    if (!leafId) return;
 
-    const stack = [focusId];
-    const visited = new Set<string>();
-
-    while (stack.length) {
-      const id = stack.pop();
-      if (!id || visited.has(id)) continue;
-      visited.add(id);
-
-      const node = nodes[id];
-      if (!node) continue;
-
-      const children = node.children.filter(childId => !!nodes[childId]);
-      if (!children.length) {
-        setFocus(id);
-        centerOnNode(id);
-        return;
-      }
-
-      for (let i = children.length - 1; i >= 0; i -= 1) {
-        stack.push(children[i]);
-      }
-    }
+    setFocus(leafId);
+    centerOnNode(leafId);
   };
 
   const focusPrevious = () => {

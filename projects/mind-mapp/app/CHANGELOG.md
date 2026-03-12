@@ -95,6 +95,7 @@
 - Added Shift+H/Shift+J + toolbar actions to focus previous/next siblings
 - Updated sibling focus navigation to wrap at ends
 - Added Shift+L + toolbar action to jump focus to first leaf in focused subtree
+- Extracted focus-navigation helpers into tested utility functions
 - Enabled mini-map viewport box dragging for pan navigation
 
 ## 0.1.1
