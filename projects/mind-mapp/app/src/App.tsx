@@ -5,7 +5,7 @@ import Edges from './components/Edges';
 import { useKeyboard } from './hooks/useKeyboard';
 import { usePanZoom } from './hooks/usePanZoom';
 import { useAutosave } from './hooks/useAutosave';
-import { exportPng, exportJsonData, exportMarkdownData, fitToView, computeFitView, computeSelectionBounds, formatSelectionText, formatSubtreeOutline, getFocusPathSegments, getParentFocusId, getFirstChildId, getWrappedSiblingId, getFirstLeafId, getLastLeafId, getCycledLeafId, getLeafCycleRootId, centerPointInView, confirmAction, parseImportPayload, sampleMap, loadUiPrefs, saveUiPrefs, APP_VERSION } from './utils';
+import { exportPng, exportJsonData, exportMarkdownData, fitToView, computeFitView, computeSelectionBounds, formatSelectionText, formatSubtreeOutline, getFocusPathSegments, getParentFocusId, getFirstChildId, getWrappedSiblingId, getFirstLeafId, getLastLeafId, getCycledLeafId, getLeafCycleRootId, getLeafIdsInSubtree, centerPointInView, confirmAction, parseImportPayload, sampleMap, loadUiPrefs, saveUiPrefs, APP_VERSION } from './utils';
 import MiniMap from './components/MiniMap';
 
 const SearchDialog = lazy(() => import('./components/SearchDialog'));
@@ -316,6 +316,10 @@ export default function App() {
   const selectedBounds = computeSelectionBounds(nodes, selectedIds);
   const focusPathSegments = getFocusPathSegments(nodes, focusId);
   const focusedPath = focusPathSegments.map(segment => segment.label).join(' / ');
+  const leafCycleRootId = getLeafCycleRootId(nodes, focusId);
+  const leafCycleLeaves = leafCycleRootId ? getLeafIdsInSubtree(nodes, leafCycleRootId) : [];
+  const leafCycleEnabled = leafCycleLeaves.length > 1;
+  const leafCycleIndex = leafCycleLeaves.indexOf(focusId);
 
   const exportJson = () => exportJsonData(nodes);
 
@@ -411,6 +415,7 @@ export default function App() {
         <span style={{ color: '#666' }}>{selectedIds.length} selected</span>
         {selectedBounds ? <span style={{ color: '#666' }}>sel box {selectedBounds.width}×{selectedBounds.height}</span> : null}
         <span style={{ color: '#666' }}>zoom {Math.round(viewScale * 100)}%</span>
+        {leafCycleEnabled ? <span style={{ color: '#666' }}>leaf {leafCycleIndex >= 0 ? leafCycleIndex + 1 : '•'}/{leafCycleLeaves.length}</span> : null}
         {focusPathSegments.length ? (
           <span className="toolbar-path" title={focusedPath}>
             {focusPathSegments.map((segment, index) => (
@@ -458,8 +463,20 @@ export default function App() {
           <button title="Jump focus to next sibling (Shift+J)" onClick={() => focusSibling(1)}>Next Sib</button>
           <button title="Jump focus to first leaf in focused subtree (Shift+L)" onClick={focusSubtreeFirstLeaf}>Leaf Focus</button>
           <button title="Jump focus to last leaf in focused subtree (Shift+K)" onClick={focusSubtreeLastLeaf}>Last Leaf</button>
-          <button title="Jump focus to previous leaf in focused subtree (Shift+,)" onClick={() => focusSubtreeLeafCycle(-1)}>Prev Leaf</button>
-          <button title="Jump focus to next leaf in focused subtree (Shift+.)" onClick={() => focusSubtreeLeafCycle(1)}>Next Leaf</button>
+          <button
+            title={leafCycleEnabled ? 'Jump focus to previous leaf in focused subtree (Shift+,)' : 'Leaf cycle unavailable (need multiple leaves in focus chain)'}
+            onClick={() => focusSubtreeLeafCycle(-1)}
+            disabled={!leafCycleEnabled}
+          >
+            Prev Leaf
+          </button>
+          <button
+            title={leafCycleEnabled ? 'Jump focus to next leaf in focused subtree (Shift+.)' : 'Leaf cycle unavailable (need multiple leaves in focus chain)'}
+            onClick={() => focusSubtreeLeafCycle(1)}
+            disabled={!leafCycleEnabled}
+          >
+            Next Leaf
+          </button>
           <button title="Jump focus to root node (R)" onClick={focusRoot}>Root</button>
           <button title="Jump back to previous focus (Alt+R)" onClick={focusPrevious}>Back</button>
           <button title="Toggle grid overlay (Shift+G)" onClick={() => setShowGrid(v => !v)}>{showGrid ? 'Grid On' : 'Grid Off'}</button>
