@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useMindMapStore } from '../store/useMindMapStore';
-import { centerPointInView, clampSearchSelection, edgeSearchSelection, formatFocusPath, moveSearchSelection, searchNodesWithTotal, tokenizeSearchQuery } from '../utils';
+import { centerPointInView, clampSearchSelection, cycleSearchSelection, edgeSearchSelection, formatFocusPath, moveSearchSelection, searchNodesWithTotal, tokenizeSearchQuery } from '../utils';
 
 export default function SearchDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { nodes, setFocus } = useMindMapStore();
@@ -132,8 +132,8 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
       if (e.key === 'Tab' && results.length) {
         e.preventDefault();
         setSelected(s => {
-          if (e.shiftKey) return moveSearchSelection(s, results.length, -1);
-          return moveSearchSelection(s, results.length, 1);
+          if (e.shiftKey) return cycleSearchSelection(s, results.length, -1);
+          return cycleSearchSelection(s, results.length, 1);
         });
       }
       if (e.key === 'Enter' && results.length) {
@@ -186,7 +186,7 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
             );
           })}
           {!results.length && query && <div className="search-empty">No results</div>}
-          <div className="search-hint">Tab/Shift+Tab: move selection • PageUp/PageDown: jump by 5 • Home/End: first/last • Enter: jump • Cmd/Ctrl+F: focus search</div>
+          <div className="search-hint">Tab/Shift+Tab: cycle selection • PageUp/PageDown: jump by 5 • Home/End: first/last • Enter: jump • Cmd/Ctrl+F: focus search</div>
         </div>
       </div>
     </div>

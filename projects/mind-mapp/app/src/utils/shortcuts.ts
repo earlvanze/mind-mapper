@@ -6,7 +6,7 @@ export const SHORTCUTS = [
   { key: 'Cmd/Ctrl+Z', desc: 'undo' },
   { key: 'Cmd/Ctrl+Shift+Z / Cmd/Ctrl+Y', desc: 'redo' },
   { key: 'Cmd/Ctrl+K', desc: 'search' },
-  { key: 'Search: Tab / Shift+Tab', desc: 'move active result selection' },
+  { key: 'Search: Tab / Shift+Tab', desc: 'cycle active result selection' },
   { key: 'Search: PageUp / PageDown', desc: 'jump active result by 5 items' },
   { key: 'Search: Home / End', desc: 'jump to first/last search result' },
   { key: 'Cmd/Ctrl+S', desc: 'export JSON' },

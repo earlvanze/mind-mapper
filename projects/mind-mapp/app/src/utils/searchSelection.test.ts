@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { clampSearchSelection, edgeSearchSelection, moveSearchSelection } from './searchSelection';
+import { clampSearchSelection, cycleSearchSelection, edgeSearchSelection, moveSearchSelection } from './searchSelection';
 
 describe('searchSelection', () => {
   it('clamps selection inside bounds', () => {
@@ -24,5 +24,12 @@ describe('searchSelection', () => {
   it('jumps to start or end edge', () => {
     expect(edgeSearchSelection(8, 'start')).toBe(0);
     expect(edgeSearchSelection(8, 'end')).toBe(7);
+  });
+
+  it('cycles selection index with wrap-around', () => {
+    expect(cycleSearchSelection(0, 5, -1)).toBe(4);
+    expect(cycleSearchSelection(4, 5, 1)).toBe(0);
+    expect(cycleSearchSelection(2, 5, 1)).toBe(3);
+    expect(cycleSearchSelection(2, 5, -1)).toBe(1);
   });
 });

@@ -13,3 +13,10 @@ export function edgeSearchSelection(total: number, edge: 'start' | 'end'): numbe
   if (total <= 0) return 0;
   return edge === 'start' ? 0 : total - 1;
 }
+
+export function cycleSearchSelection(index: number, total: number, direction: -1 | 1): number {
+  if (total <= 0) return 0;
+
+  const normalized = ((index % total) + total) % total;
+  return (normalized + direction + total) % total;
+}
