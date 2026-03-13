@@ -5,6 +5,10 @@ export type SearchToken = {
   negated: boolean;
 };
 
+function normalizeSearchText(value: string): string {
+  return value.toLowerCase().replace(/\s+/g, ' ').trim();
+}
+
 export function tokenizeSearchQuery(query: string): SearchToken[] {
   const tokens: SearchToken[] = [];
   const normalized = query.trim().toLowerCase();
@@ -15,7 +19,7 @@ export function tokenizeSearchQuery(query: string): SearchToken[] {
 
   while ((match = pattern.exec(normalized)) !== null) {
     const prefix = match[1] || match[3] || '';
-    const raw = (match[2] || match[4] || '').trim();
+    const raw = normalizeSearchText(match[2] || match[4] || '');
     if (!raw) continue;
 
     tokens.push({
@@ -37,7 +41,7 @@ function buildSearchPathCache(nodes: Record<string, Node>): Record<string, strin
     const node = nodes[id];
     if (!node) return '';
 
-    const label = node.text.toLowerCase();
+    const label = normalizeSearchText(node.text);
 
     if (visiting.has(id)) {
       cache[id] = label;
@@ -73,8 +77,8 @@ function rankSearchMatches(
 
   const scored = Object.values(nodes)
     .map((node) => {
-      const label = node.text.toLowerCase();
-      const id = node.id.toLowerCase();
+      const label = normalizeSearchText(node.text);
+      const id = normalizeSearchText(node.id);
       const path = pathCache[node.id] ?? label;
       const searchable = `${label} ${id} ${path}`;
 

@@ -23,6 +23,13 @@ describe('tokenizeSearchQuery', () => {
   it('ignores empty tokens', () => {
     expect(tokenizeSearchQuery('   ""   ')).toEqual([]);
   });
+
+  it('normalizes repeated whitespace inside tokens', () => {
+    expect(tokenizeSearchQuery('"alpha   review"   beta')).toEqual([
+      { value: 'alpha review', negated: false },
+      { value: 'beta', negated: false },
+    ]);
+  });
 });
 
 describe('searchNodes', () => {
@@ -85,5 +92,15 @@ describe('searchNodes', () => {
 
     const results = searchNodes(cyclic, 'alpha beta');
     expect(results.map(node => node.id)).toEqual(['a', 'b']);
+  });
+
+  it('matches phrases across irregular whitespace in node text', () => {
+    const spaced: Record<string, Node> = {
+      root: { id: 'root', text: 'Root', x: 0, y: 0, parentId: null, children: ['n1'] },
+      n1: { id: 'n1', text: 'Alpha   Review', x: 0, y: 0, parentId: 'root', children: [] },
+    };
+
+    const results = searchNodes(spaced, '"alpha review"');
+    expect(results.map(node => node.id)).toEqual(['n1']);
   });
 });

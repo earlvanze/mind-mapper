@@ -114,6 +114,7 @@
 - Optimized search path matching with per-query path caching (cycle-safe) for large maps
 - Restored Search dialog Tab/Shift+Tab wrap-around cycling while keeping Arrow/Page/Home-End navigation
 - Improved Search dialog accessibility semantics (dialog/listbox/option roles, active-descendant wiring, live summary, keyboard-selected option auto-scroll)
+- Normalized search whitespace so quoted phrases still match labels/paths with irregular spacing
 - Extracted focus-navigation helpers into tested utility functions
 - Moved parent/child focus resolution into shared focusNav helpers
 - Enabled mini-map viewport box dragging for pan navigation
