@@ -111,6 +111,7 @@
 - Reset focus history to root automatically on Clear/Sample/Import map actions to avoid cross-map stale trails
 - Prevented global map shortcuts from firing while typing in text inputs/contenteditable fields
 - Added search result keyboard jumps (PageUp/PageDown/Home/End) for faster navigation in large result sets
+- Optimized search path matching with per-query path caching (cycle-safe) for large maps
 - Extracted focus-navigation helpers into tested utility functions
 - Moved parent/child focus resolution into shared focusNav helpers
 - Enabled mini-map viewport box dragging for pan navigation

@@ -76,4 +76,14 @@ describe('searchNodes', () => {
     expect(results).toHaveLength(2);
     expect(total).toBeGreaterThan(results.length);
   });
+
+  it('handles cyclic parent chains without hanging', () => {
+    const cyclic: Record<string, Node> = {
+      a: { id: 'a', text: 'Alpha', x: 0, y: 0, parentId: 'b', children: [] },
+      b: { id: 'b', text: 'Beta', x: 0, y: 0, parentId: 'a', children: [] },
+    };
+
+    const results = searchNodes(cyclic, 'alpha beta');
+    expect(results.map(node => node.id)).toEqual(['a', 'b']);
+  });
 });

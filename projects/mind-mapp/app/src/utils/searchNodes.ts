@@ -27,19 +27,36 @@ export function tokenizeSearchQuery(query: string): SearchToken[] {
   return tokens;
 }
 
-function nodePathLabels(nodes: Record<string, Node>, startId: string): string {
-  const labels: string[] = [];
-  const visited = new Set<string>();
-  let currentId: string | null | undefined = startId;
+function buildSearchPathCache(nodes: Record<string, Node>): Record<string, string> {
+  const cache: Record<string, string> = {};
+  const visiting = new Set<string>();
 
-  while (currentId && !visited.has(currentId) && nodes[currentId]) {
-    visited.add(currentId);
-    const node = nodes[currentId];
-    labels.push(node.text.toLowerCase());
-    currentId = node.parentId;
-  }
+  const getPath = (id: string): string => {
+    if (cache[id] !== undefined) return cache[id];
 
-  return labels.reverse().join(' ');
+    const node = nodes[id];
+    if (!node) return '';
+
+    const label = node.text.toLowerCase();
+
+    if (visiting.has(id)) {
+      cache[id] = label;
+      return cache[id];
+    }
+
+    visiting.add(id);
+    const parentPath = node.parentId ? getPath(node.parentId) : '';
+    visiting.delete(id);
+
+    cache[id] = parentPath ? `${parentPath} ${label}` : label;
+    return cache[id];
+  };
+
+  Object.keys(nodes).forEach((id) => {
+    getPath(id);
+  });
+
+  return cache;
 }
 
 function rankSearchMatches(
@@ -52,12 +69,13 @@ function rankSearchMatches(
   const positiveTerms = tokens.filter(token => !token.negated).map(token => token.value);
   const negativeTerms = tokens.filter(token => token.negated).map(token => token.value);
   const phrase = positiveTerms.join(' ');
+  const pathCache = buildSearchPathCache(nodes);
 
   const scored = Object.values(nodes)
     .map((node) => {
       const label = node.text.toLowerCase();
       const id = node.id.toLowerCase();
-      const path = nodePathLabels(nodes, node.id);
+      const path = pathCache[node.id] ?? label;
       const searchable = `${label} ${id} ${path}`;
 
       if (positiveTerms.length && !positiveTerms.every(term => searchable.includes(term))) {
