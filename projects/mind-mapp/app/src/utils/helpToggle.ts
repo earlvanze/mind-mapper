@@ -7,13 +7,13 @@ export type HelpToggleKeyState = {
 };
 
 export function isHelpToggleEvent(event: HelpToggleKeyState, typingTarget: boolean): boolean {
-  if (typingTarget) return false;
-
-  if (event.key === '?' && !event.metaKey && !event.ctrlKey && !event.altKey) {
+  if ((event.metaKey || event.ctrlKey) && !event.altKey && !event.shiftKey && event.key === '/') {
     return true;
   }
 
-  if ((event.metaKey || event.ctrlKey) && !event.altKey && !event.shiftKey && event.key === '/') {
+  if (typingTarget) return false;
+
+  if (event.key === '?' && !event.metaKey && !event.ctrlKey && !event.altKey) {
     return true;
   }
 

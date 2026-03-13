@@ -11,9 +11,13 @@ describe('isHelpToggleEvent', () => {
     expect(isHelpToggleEvent({ key: '/', ctrlKey: true }, false)).toBe(true);
   });
 
-  it('ignores help toggle when typing target is active', () => {
+  it('blocks plain ? when typing target is active', () => {
     expect(isHelpToggleEvent({ key: '?' }, true)).toBe(false);
-    expect(isHelpToggleEvent({ key: '/', ctrlKey: true }, true)).toBe(false);
+  });
+
+  it('allows cmd/ctrl + / even when typing target is active', () => {
+    expect(isHelpToggleEvent({ key: '/', ctrlKey: true }, true)).toBe(true);
+    expect(isHelpToggleEvent({ key: '/', metaKey: true }, true)).toBe(true);
   });
 
   it('ignores non-matching combinations', () => {

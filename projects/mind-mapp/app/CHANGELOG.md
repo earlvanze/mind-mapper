@@ -128,6 +128,7 @@
 - Centralized Help dialog Focus Navigation & History key list in shared shortcut registry with regression tests
 - Made Search/Help toggles mutually exclusive (opening one closes the other) and set ? / Cmd/Ctrl+/ to toggle help consistently
 - Added env-configurable Vite `allowedHosts` via `MINDMAPP_ALLOWED_HOSTS` with parsing/validation tests (hostname/URL normalization)
+- Allowed Cmd/Ctrl+/ help toggle while typing in dialog inputs (keeping plain ? typing-safe)
 - Extracted focus-navigation helpers into tested utility functions
 - Moved parent/child focus resolution into shared focusNav helpers
 - Enabled mini-map viewport box dragging for pan navigation
