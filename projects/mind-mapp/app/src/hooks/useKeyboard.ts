@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useMindMapStore } from '../store/useMindMapStore';
+import { isTypingTarget } from '../utils/keyboardTarget';
 
 type Props = {
   onSearch: () => void;
@@ -45,6 +46,7 @@ export function useKeyboard({ onSearch, onFit, onFitSelection, onFitSubtree, onZ
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (editingId) return;
+      if (isTypingTarget(e.target)) return;
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z' && !e.shiftKey) {
         e.preventDefault();
         onUndo();

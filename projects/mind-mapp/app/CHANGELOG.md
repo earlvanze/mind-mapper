@@ -109,6 +109,7 @@
 - Added focused mini-map Arrow/Shift+Arrow keyboard panning with clamped viewport stepping
 - Added breadcrumb navigation ARIA labels and mini-map region semantics for accessibility polish
 - Reset focus history to root automatically on Clear/Sample/Import map actions to avoid cross-map stale trails
+- Prevented global map shortcuts from firing while typing in text inputs/contenteditable fields
 - Extracted focus-navigation helpers into tested utility functions
 - Moved parent/child focus resolution into shared focusNav helpers
 - Enabled mini-map viewport box dragging for pan navigation

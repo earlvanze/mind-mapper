@@ -16,6 +16,7 @@ A lightweight, keyboard‑first mind map app focused on speed and clarity.
 - Focus history status indicator (`hist i/n`) with context-aware Back/Forward target hints
 - Auto‑layout children (L)
 - Help dialog (?) with a compact Focus Navigation & History section + live shortcut filter
+- Global map shortcuts pause while typing in text fields/dialog inputs
 - Collapsible Advanced actions panel in toolbar (Shift+A, state persists)
 - Autosave + JSON import/export (import clears stale trails by resetting focus history)
 - Markdown export (Cmd/Ctrl+Shift+M)

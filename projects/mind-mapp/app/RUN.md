@@ -50,6 +50,7 @@ npm test
 - Cmd/Ctrl+Shift+Z or Cmd/Ctrl+Y: redo
 - Cmd/Ctrl+K: search (matches node text + id + path terms; supports "quoted phrases" and -exclude terms)
 - Search dialog: Tab/Shift+Tab move result selection, Enter jumps, Cmd/Ctrl+F focuses query input
+- Global map shortcuts are suspended while typing in inputs/contenteditable fields
 - Cmd/Ctrl+S: export JSON
 - Cmd/Ctrl+Shift+M: export Markdown
 - Cmd/Ctrl+Shift+C: copy selected/focused node text
