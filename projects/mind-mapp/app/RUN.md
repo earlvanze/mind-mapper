@@ -12,6 +12,7 @@ Optional host allowlist override (for remote/dev tunnel access):
 ```bash
 MINDMAPP_ALLOWED_HOSTS="cyber.earlco.in,cyber.talpa-stargazer.ts.net,example.com" npm run dev
 ```
+(Hostnames or full URLs are accepted; URLs are normalized to hosts.)
 
 Tip: click `Advanced ▾` in the toolbar to reveal selection/layout actions (your grid/mini-map/advanced visibility preferences persist between reloads).
 

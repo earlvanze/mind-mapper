@@ -3,12 +3,20 @@ export const DEFAULT_ALLOWED_HOSTS = [
   'cyber.talpa-stargazer.ts.net',
 ] as const;
 
+function normalizeAllowedHost(value: string): string {
+  return value
+    .trim()
+    .replace(/^[a-z]+:\/\//i, '')
+    .replace(/[/?#].*$/, '')
+    .toLowerCase();
+}
+
 export function parseAllowedHosts(raw?: string): string[] {
   if (!raw) return [];
 
   const parts = raw
     .split(/[\s,]+/)
-    .map(part => part.trim())
+    .map(part => normalizeAllowedHost(part))
     .filter(Boolean);
 
   return [...new Set(parts)];

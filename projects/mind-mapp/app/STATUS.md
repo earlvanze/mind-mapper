@@ -6,7 +6,7 @@
 - Last build output in `dist/`
 - Test runner: Vitest (`npm test`) — import, store history, minimap, fit math, edge/path, and pan/zoom math covered
 - CI: GitHub Actions workflow runs `npm test` + `npm run build` on app changes
-- Vite server/preview `allowedHosts` is configurable via `MINDMAPP_ALLOWED_HOSTS` (comma/space-separated)
+- Vite server/preview `allowedHosts` is configurable via `MINDMAPP_ALLOWED_HOSTS` (comma/space-separated; hostnames or URLs)
 - Search/Help dialogs are lazy-loaded for faster initial paint and use mutually exclusive open-state toggles
 - Advanced toolbar actions are collapsible to reduce UI clutter (Shift+A toggle, visibility persisted)
 - Grid/mini-map visibility prefs persist across reloads

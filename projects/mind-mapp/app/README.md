@@ -41,6 +41,7 @@ Optional host allowlist override:
 ```bash
 MINDMAPP_ALLOWED_HOSTS="cyber.earlco.in,cyber.talpa-stargazer.ts.net,example.com" npm run dev
 ```
+(Hostnames or full URLs are accepted; URLs are normalized to hosts.)
 
 ## Files
 - `src/` — app source

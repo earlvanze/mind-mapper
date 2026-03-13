@@ -10,6 +10,14 @@ describe('parseAllowedHosts', () => {
     expect(parseAllowedHosts('a.com,a.com b.com')).toEqual(['a.com', 'b.com']);
   });
 
+  it('normalizes url-like host values', () => {
+    expect(parseAllowedHosts('https://A.COM/path, http://b.com:5173?q=1')).toEqual(['a.com', 'b.com:5173']);
+  });
+
+  it('deduplicates hosts case-insensitively after normalization', () => {
+    expect(parseAllowedHosts('HTTPS://EXAMPLE.COM,example.com')).toEqual(['example.com']);
+  });
+
   it('returns empty list for blank input', () => {
     expect(parseAllowedHosts('   ')).toEqual([]);
     expect(parseAllowedHosts(undefined)).toEqual([]);
