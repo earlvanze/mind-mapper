@@ -124,7 +124,7 @@
 - Made Cmd/Ctrl+K a true Search toggle (open/close) including close support while Search dialog is active
 - Suspended global map shortcuts while Search/Help dialogs are open to prevent accidental canvas actions
 - Unified Search result highlighting with normalized matching (diacritics/whitespace/punctuation aware)
-- Added punctuation-insensitive search matching for ids/labels (e.g., n-root ↔ n_root, auto scale ↔ Auto-Scale)
+- Added punctuation/camelCase-insensitive search matching for ids/labels (e.g., n-root ↔ n_root, auto scale ↔ Auto-Scale, auto scale v2 ↔ AutoScaleV2)
 - Extracted focus-navigation helpers into tested utility functions
 - Moved parent/child focus resolution into shared focusNav helpers
 - Enabled mini-map viewport box dragging for pan navigation

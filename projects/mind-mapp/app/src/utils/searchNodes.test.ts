@@ -132,4 +132,14 @@ describe('searchNodes', () => {
     expect(searchNodes(punct, 'n-root').map(node => node.id)).toEqual(['n_root']);
     expect(searchNodes(punct, 'auto scale').map(node => node.id)).toEqual(['node-1']);
   });
+
+  it('matches camelCase and mixed alnum boundaries', () => {
+    const camel: Record<string, Node> = {
+      root: { id: 'rootNode', text: 'Root', x: 0, y: 0, parentId: null, children: ['n1'] },
+      n1: { id: 'autoScaleV2', text: 'BudgetTrackerV2', x: 0, y: 0, parentId: 'rootNode', children: [] },
+    };
+
+    expect(searchNodes(camel, 'auto scale v2').map(node => node.id)).toEqual(['autoScaleV2']);
+    expect(searchNodes(camel, 'budget tracker v2').map(node => node.id)).toEqual(['autoScaleV2']);
+  });
 });

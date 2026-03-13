@@ -10,7 +10,26 @@ export function foldSearchText(source: string): { text: string; map: number[] } 
   const rawMap: number[] = [];
 
   for (let i = 0; i < source.length; i += 1) {
-    const folded = source[i]
+    const current = source[i];
+    const previous = i > 0 ? source[i - 1] : '';
+
+    const prevIsLower = /[a-z]/.test(previous);
+    const prevIsLetter = /[A-Za-z]/.test(previous);
+    const prevIsDigit = /\d/.test(previous);
+    const currentIsUpper = /[A-Z]/.test(current);
+    const currentIsLetter = /[A-Za-z]/.test(current);
+    const currentIsDigit = /\d/.test(current);
+
+    if (
+      (prevIsLower && currentIsUpper)
+      || (prevIsLetter && currentIsDigit)
+      || (prevIsDigit && currentIsLetter)
+    ) {
+      rawChars.push(' ');
+      rawMap.push(i);
+    }
+
+    const folded = current
       .normalize('NFD')
       .replace(DIACRITIC_RE, '')
       .toLowerCase()

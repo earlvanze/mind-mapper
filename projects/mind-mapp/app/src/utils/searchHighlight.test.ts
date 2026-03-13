@@ -9,6 +9,10 @@ describe('foldSearchText', () => {
   it('normalizes punctuation separators', () => {
     expect(foldSearchText('node-1 / auto_scale').text).toBe('node 1 auto scale');
   });
+
+  it('normalizes camelCase and alnum boundaries', () => {
+    expect(foldSearchText('AutoScaleV2').text).toBe('auto scale v 2');
+  });
 });
 
 describe('computeHighlightRanges', () => {
@@ -26,6 +30,10 @@ describe('computeHighlightRanges', () => {
 
   it('matches punctuation-insensitive phrases', () => {
     expect(computeHighlightRanges('Auto-Scale', ['auto scale'])).toEqual([{ start: 0, end: 10 }]);
+  });
+
+  it('matches camelCase phrases', () => {
+    expect(computeHighlightRanges('AutoScaleV2', ['auto scale v2'])).toEqual([{ start: 0, end: 11 }]);
   });
 
   it('merges overlapping ranges', () => {
