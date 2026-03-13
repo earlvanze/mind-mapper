@@ -6,7 +6,12 @@ export type SearchToken = {
 };
 
 function normalizeSearchText(value: string): string {
-  return value.toLowerCase().replace(/\s+/g, ' ').trim();
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 export function tokenizeSearchQuery(query: string): SearchToken[] {

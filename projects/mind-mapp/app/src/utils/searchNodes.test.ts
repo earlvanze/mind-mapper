@@ -30,6 +30,12 @@ describe('tokenizeSearchQuery', () => {
       { value: 'beta', negated: false },
     ]);
   });
+
+  it('normalizes diacritics in tokens', () => {
+    expect(tokenizeSearchQuery('"résumé café"')).toEqual([
+      { value: 'resume cafe', negated: false },
+    ]);
+  });
 });
 
 describe('searchNodes', () => {
@@ -102,5 +108,18 @@ describe('searchNodes', () => {
 
     const results = searchNodes(spaced, '"alpha review"');
     expect(results.map(node => node.id)).toEqual(['n1']);
+  });
+
+  it('matches diacritic-insensitive queries against labels and paths', () => {
+    const accented: Record<string, Node> = {
+      root: { id: 'root', text: 'Café', x: 0, y: 0, parentId: null, children: ['n1'] },
+      n1: { id: 'n1', text: 'Résumé', x: 0, y: 0, parentId: 'root', children: [] },
+    };
+
+    const direct = searchNodes(accented, 'resume');
+    expect(direct.map(node => node.id)).toEqual(['n1']);
+
+    const pathAware = searchNodes(accented, 'cafe resume');
+    expect(pathAware.map(node => node.id)).toEqual(['n1']);
   });
 });
