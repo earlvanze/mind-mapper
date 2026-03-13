@@ -125,6 +125,7 @@
 - Suspended global map shortcuts while Search/Help dialogs are open to prevent accidental canvas actions
 - Unified Search result highlighting with normalized matching (diacritics/whitespace/punctuation aware)
 - Added punctuation/camelCase-insensitive search matching for ids/labels (e.g., n-root ↔ n_root, auto scale ↔ Auto-Scale, auto scale v2 ↔ AutoScaleV2)
+- Centralized Help dialog Focus Navigation & History key list in shared shortcut registry with regression tests
 - Extracted focus-navigation helpers into tested utility functions
 - Moved parent/child focus resolution into shared focusNav helpers
 - Enabled mini-map viewport box dragging for pan navigation

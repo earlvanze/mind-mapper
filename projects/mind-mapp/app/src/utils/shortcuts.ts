@@ -1,4 +1,9 @@
-export const SHORTCUTS = [
+export type Shortcut = {
+  key: string;
+  desc: string;
+};
+
+export const SHORTCUTS: Shortcut[] = [
   { key: 'Enter', desc: 'new sibling' },
   { key: 'Tab', desc: 'new child' },
   { key: 'Shift+Tab', desc: 'promote node' },
@@ -82,3 +87,27 @@ export const SHORTCUTS = [
   { key: '0', desc: 'reset pan/zoom view' },
   { key: '?', desc: 'help' }
 ];
+
+export const FOCUS_NAV_HISTORY_SHORTCUT_KEYS: string[] = [
+  'Shift+P',
+  'Shift+N',
+  'Shift+H',
+  'Shift+J',
+  'Shift+L',
+  'Shift+K',
+  'Shift+,',
+  'Shift+.',
+  'R',
+  'Alt+R',
+  'Shift+R',
+  'Alt+Shift+Home',
+  'Alt+Shift+End',
+  'Alt+Shift+Q',
+];
+
+export function pickShortcutsByKeys(shortcuts: Shortcut[], keys: string[]): Shortcut[] {
+  const map = new Map(shortcuts.map(shortcut => [shortcut.key, shortcut]));
+  return keys
+    .map(key => map.get(key))
+    .filter((shortcut): shortcut is Shortcut => !!shortcut);
+}

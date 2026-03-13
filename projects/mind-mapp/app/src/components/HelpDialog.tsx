@@ -1,22 +1,5 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
-import { SHORTCUTS } from '../utils';
-
-const FOCUS_NAV_HISTORY_KEYS = [
-  'Shift+P',
-  'Shift+N',
-  'Shift+H',
-  'Shift+J',
-  'Shift+L',
-  'Shift+K',
-  'Shift+,',
-  'Shift+.',
-  'R',
-  'Alt+R',
-  'Shift+R',
-  'Alt+Shift+Home',
-  'Alt+Shift+End',
-  'Alt+Shift+Q',
-];
+import { FOCUS_NAV_HISTORY_SHORTCUT_KEYS, pickShortcutsByKeys, SHORTCUTS } from '../utils';
 
 export default function HelpDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [query, setQuery] = useState('');
@@ -65,9 +48,7 @@ export default function HelpDialog({ open, onClose }: { open: boolean; onClose: 
     [normalized],
   );
   const focusNavHistory = useMemo(
-    () => FOCUS_NAV_HISTORY_KEYS
-      .map((key) => SHORTCUTS.find(shortcut => shortcut.key === key))
-      .filter((shortcut): shortcut is (typeof SHORTCUTS)[number] => !!shortcut),
+    () => pickShortcutsByKeys(SHORTCUTS, FOCUS_NAV_HISTORY_SHORTCUT_KEYS),
     [],
   );
 
