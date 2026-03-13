@@ -85,3 +85,4 @@ Most selection/layout commands are also available in toolbar `Advanced ▾`.
 - 0: reset pan/zoom view
 - Double‑click background: reset view (also toolbar button)
 - ?: toggle help dialog
+- Cmd/Ctrl+/: toggle help dialog

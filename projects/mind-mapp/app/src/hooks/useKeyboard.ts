@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useMindMapStore } from '../store/useMindMapStore';
 import { isTypingTarget } from '../utils/keyboardTarget';
+import { isHelpToggleEvent } from '../utils/helpToggle';
 
 type Props = {
   onSearch: () => void;
@@ -53,7 +54,7 @@ export function useKeyboard({ onSearch, onFit, onFitSelection, onFitSubtree, onZ
           e.preventDefault();
           onSearch();
         }
-        if (e.key === '?' && !typingTarget) {
+        if (isHelpToggleEvent(e, typingTarget)) {
           e.preventDefault();
           onHelp();
         }
@@ -289,7 +290,8 @@ export function useKeyboard({ onSearch, onFit, onFitSelection, onFitSubtree, onZ
       if (e.key.toLowerCase() === 'e') {
         startEditing(focusId);
       }
-      if (e.key === '?') {
+      if (isHelpToggleEvent(e, typingTarget)) {
+        e.preventDefault();
         onHelp();
       }
       if (e.key === 'Enter') {

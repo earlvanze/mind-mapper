@@ -8,6 +8,7 @@ export * from './fitViewMath';
 export * from './focusHistory';
 export * from './focusHistoryStorage';
 export * from './focusNav';
+export * from './helpToggle';
 export * from './id';
 export * from './importValidation';
 export * from './sampleMap';

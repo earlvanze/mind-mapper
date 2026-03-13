@@ -56,7 +56,7 @@ npm test
 - Cmd/Ctrl+Shift+Z or Cmd/Ctrl+Y: redo
 - Cmd/Ctrl+K: toggle search (matches node text + id + path terms; supports "quoted phrases", -exclude terms, and diacritic/punctuation/camelCase-insensitive matching)
 - Search dialog: Tab/Shift+Tab cycle result selection, PageUp/PageDown jump by 5, Home/End jump to first/last, Enter/click jumps + closes, Shift/Cmd/Ctrl/Alt+Enter/click jumps + keeps dialog open, Esc clears query (or closes when empty), Cmd/Ctrl+F focuses query input
-- ?: toggle help dialog (opening help closes search)
+- ? or Cmd/Ctrl+/: toggle help dialog (opening help closes search)
 - Help dialog: Esc clears filter (or closes when empty), Cmd/Ctrl+F focuses filter input
 - Global map shortcuts are suspended while typing in inputs/contenteditable fields and while Search/Help dialogs are open
 - Cmd/Ctrl+S: export JSON
