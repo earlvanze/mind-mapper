@@ -49,7 +49,7 @@ npm test
 - Cmd/Ctrl+Z: undo
 - Cmd/Ctrl+Shift+Z or Cmd/Ctrl+Y: redo
 - Cmd/Ctrl+K: search (matches node text + id + path terms; supports "quoted phrases" and -exclude terms)
-- Search dialog: Tab/Shift+Tab cycle result selection, PageUp/PageDown jump by 5, Home/End jump to first/last, Enter jumps + closes, Shift/Cmd/Ctrl+Enter jumps + keeps dialog open, Cmd/Ctrl+F focuses query input
+- Search dialog: Tab/Shift+Tab cycle result selection, PageUp/PageDown jump by 5, Home/End jump to first/last, Enter jumps + closes, Shift/Cmd/Ctrl+Enter jumps + keeps dialog open, Esc clears query (or closes when empty), Cmd/Ctrl+F focuses query input
 - Global map shortcuts are suspended while typing in inputs/contenteditable fields
 - Cmd/Ctrl+S: export JSON
 - Cmd/Ctrl+Shift+M: export Markdown

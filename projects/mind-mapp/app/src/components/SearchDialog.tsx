@@ -117,7 +117,16 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') {
+        if (query.trim()) {
+          e.preventDefault();
+          setQuery('');
+          setSelected(0);
+          inputRef.current?.focus();
+          return;
+        }
+        onClose();
+      }
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'f') {
         e.preventDefault();
         inputRef.current?.focus();
@@ -171,7 +180,7 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [open, onClose, results, selected, setFocus]);
+  }, [open, onClose, query, results, selected, setFocus]);
 
   if (!open) return null;
 
@@ -227,7 +236,7 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
             );
           })}
           {!results.length && query && <div className="search-empty" role="status">No results</div>}
-          <div className="search-hint">Tab/Shift+Tab: cycle selection • PageUp/PageDown: jump by 5 • Home/End: first/last • Enter: jump + close • Shift/Cmd/Ctrl+Enter: jump + keep open • Cmd/Ctrl+F: focus search</div>
+          <div className="search-hint">Tab/Shift+Tab: cycle selection • PageUp/PageDown: jump by 5 • Home/End: first/last • Enter: jump + close • Shift/Cmd/Ctrl+Enter: jump + keep open • Esc: clear query (or close when empty) • Cmd/Ctrl+F: focus search</div>
         </div>
       </div>
     </div>

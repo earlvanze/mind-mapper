@@ -117,6 +117,7 @@
 - Normalized search whitespace so quoted phrases still match labels/paths with irregular spacing
 - Added Search dialog Shift/Cmd/Ctrl+Enter to jump to selected result without closing the dialog
 - Persisted focus history across reloads with safe index validation and missing-node pruning
+- Added Search dialog Esc behavior to clear query first and only close when already empty
 - Extracted focus-navigation helpers into tested utility functions
 - Moved parent/child focus resolution into shared focusNav helpers
 - Enabled mini-map viewport box dragging for pan navigation
