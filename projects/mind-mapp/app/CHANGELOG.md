@@ -123,6 +123,7 @@
 - Improved Help dialog accessibility + keyboard flow (dialog semantics, Esc clear-then-close, Cmd/Ctrl+F focus)
 - Made Cmd/Ctrl+K a true Search toggle (open/close) including close support while Search dialog is active
 - Suspended global map shortcuts while Search/Help dialogs are open to prevent accidental canvas actions
+- Unified Search result highlighting with normalized matching (diacritics/whitespace aware)
 - Extracted focus-navigation helpers into tested utility functions
 - Moved parent/child focus resolution into shared focusNav helpers
 - Enabled mini-map viewport box dragging for pan navigation

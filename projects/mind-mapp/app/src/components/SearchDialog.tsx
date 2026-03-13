@@ -1,6 +1,6 @@
 import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useMindMapStore } from '../store/useMindMapStore';
-import { centerPointInView, clampSearchSelection, cycleSearchSelection, edgeSearchSelection, formatFocusPath, moveSearchSelection, searchNodesWithTotal, shouldKeepSearchOpen, tokenizeSearchQuery } from '../utils';
+import { centerPointInView, clampSearchSelection, computeHighlightRanges, cycleSearchSelection, edgeSearchSelection, formatFocusPath, moveSearchSelection, searchNodesWithTotal, shouldKeepSearchOpen, tokenizeSearchQuery } from '../utils';
 
 export default function SearchDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { nodes, setFocus } = useMindMapStore();
@@ -44,39 +44,18 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
     if (!terms.length) return text;
 
     const source = text || '(empty)';
-    const lower = source.toLowerCase();
-    const ranges: Array<{ start: number; end: number }> = [];
-
-    for (const term of [...new Set(terms)]) {
-      if (!term) continue;
-      let cursor = 0;
-      while (cursor < lower.length) {
-        const at = lower.indexOf(term, cursor);
-        if (at === -1) break;
-        ranges.push({ start: at, end: at + term.length });
-        cursor = at + term.length;
-      }
-    }
-
+    const ranges = computeHighlightRanges(source, terms);
     if (!ranges.length) return source;
-
-    ranges.sort((a, b) => a.start - b.start || b.end - a.end);
-    const merged: Array<{ start: number; end: number }> = [];
-    for (const r of ranges) {
-      const last = merged[merged.length - 1];
-      if (!last || r.start > last.end) merged.push({ ...r });
-      else if (r.end > last.end) last.end = r.end;
-    }
 
     const parts: ReactNode[] = [];
     let cursor = 0;
-    merged.forEach((r, i) => {
-      if (r.start > cursor) parts.push(source.slice(cursor, r.start));
-      parts.push(<mark key={`m-${i}-${r.start}`}>{source.slice(r.start, r.end)}</mark>);
-      cursor = r.end;
+    ranges.forEach((range, i) => {
+      if (range.start > cursor) parts.push(source.slice(cursor, range.start));
+      parts.push(<mark key={`m-${i}-${range.start}`}>{source.slice(range.start, range.end)}</mark>);
+      cursor = range.end;
     });
-    if (cursor < source.length) parts.push(source.slice(cursor));
 
+    if (cursor < source.length) parts.push(source.slice(cursor));
     return parts;
   };
 

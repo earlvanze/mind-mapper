@@ -13,6 +13,7 @@ export * from './sampleMap';
 export * from './searchNodes';
 export * from './searchSelection';
 export * from './searchJump';
+export * from './searchHighlight';
 export * from './selectionBounds';
 export * from './selectionText';
 export * from './shortcuts';
