@@ -10,6 +10,7 @@ function normalizeSearchText(value: string): string {
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase()
+    .replace(/[-_./:]+/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
 }

@@ -5,6 +5,10 @@ describe('foldSearchText', () => {
   it('normalizes diacritics and whitespace', () => {
     expect(foldSearchText('  Café   Résumé  ').text).toBe('cafe resume');
   });
+
+  it('normalizes punctuation separators', () => {
+    expect(foldSearchText('node-1 / auto_scale').text).toBe('node 1 auto scale');
+  });
 });
 
 describe('computeHighlightRanges', () => {
@@ -18,6 +22,10 @@ describe('computeHighlightRanges', () => {
 
   it('matches phrases across irregular whitespace', () => {
     expect(computeHighlightRanges('Alpha   Review', ['alpha review'])).toEqual([{ start: 0, end: 14 }]);
+  });
+
+  it('matches punctuation-insensitive phrases', () => {
+    expect(computeHighlightRanges('Auto-Scale', ['auto scale'])).toEqual([{ start: 0, end: 10 }]);
   });
 
   it('merges overlapping ranges', () => {

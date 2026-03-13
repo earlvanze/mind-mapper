@@ -18,7 +18,7 @@
 - Explicit edit mode (E/double‑click)
 - Delete selected node(s)
 - Arrow key navigation
-- Search + keyboard navigation (Cmd/Ctrl+K toggle, centers selected result, supports ID/path multi-term matching + path metadata + normalized term highlighting + quoted/negated terms + whitespace/diacritic-normalized phrase matching + Tab cycle + PageUp/PageDown + Home/End jumps + Shift/Cmd/Ctrl/Alt+Enter/click jump-without-close + Esc clear-then-close + capped-result match counts, parser unified, cached path ranking, listbox/active-descendant a11y semantics)
+- Search + keyboard navigation (Cmd/Ctrl+K toggle, centers selected result, supports ID/path multi-term matching + path metadata + normalized term highlighting + quoted/negated terms + whitespace/diacritic/punctuation-normalized phrase matching + Tab cycle + PageUp/PageDown + Home/End jumps + Shift/Cmd/Ctrl/Alt+Enter/click jump-without-close + Esc clear-then-close + capped-result match counts, parser unified, cached path ranking, listbox/active-descendant a11y semantics)
 - Global shortcuts ignore text-input/contenteditable targets and suspend while Search/Help dialogs are open to avoid accidental canvas actions
 - Undo/redo (Cmd/Ctrl+Z, Cmd/Ctrl+Shift+Z/Cmd/Ctrl+Y)
 - Autosave + JSON import/export (validated)

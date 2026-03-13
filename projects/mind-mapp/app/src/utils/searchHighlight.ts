@@ -13,7 +13,8 @@ export function foldSearchText(source: string): { text: string; map: number[] } 
     const folded = source[i]
       .normalize('NFD')
       .replace(DIACRITIC_RE, '')
-      .toLowerCase();
+      .toLowerCase()
+      .replace(/[-_./:]+/g, ' ');
 
     for (let j = 0; j < folded.length; j += 1) {
       rawChars.push(folded[j]);

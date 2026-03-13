@@ -16,7 +16,7 @@ describe('tokenizeSearchQuery', () => {
     expect(tokenizeSearchQuery('"alpha review" -beta id:foo')).toEqual([
       { value: 'alpha review', negated: false },
       { value: 'beta', negated: true },
-      { value: 'id:foo', negated: false },
+      { value: 'id foo', negated: false },
     ]);
   });
 
@@ -121,5 +121,15 @@ describe('searchNodes', () => {
 
     const pathAware = searchNodes(accented, 'cafe resume');
     expect(pathAware.map(node => node.id)).toEqual(['n1']);
+  });
+
+  it('matches punctuation-insensitive ids and labels', () => {
+    const punct: Record<string, Node> = {
+      root: { id: 'n_root', text: 'Root', x: 0, y: 0, parentId: null, children: ['n1'] },
+      n1: { id: 'node-1', text: 'Auto-Scale', x: 0, y: 0, parentId: 'n_root', children: [] },
+    };
+
+    expect(searchNodes(punct, 'n-root').map(node => node.id)).toEqual(['n_root']);
+    expect(searchNodes(punct, 'auto scale').map(node => node.id)).toEqual(['node-1']);
   });
 });
