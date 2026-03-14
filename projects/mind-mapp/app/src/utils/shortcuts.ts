@@ -54,6 +54,7 @@ export const SHORTCUTS: Shortcut[] = [
   { key: 'Arrow keys', desc: 'move focus' },
   { key: 'Mini-map: Arrow keys', desc: 'pan mini-map viewport when mini-map is focused' },
   { key: 'Mini-map: Shift+Arrow', desc: 'pan mini-map viewport faster when mini-map is focused' },
+  { key: 'Mini-map: Home / End', desc: 'jump mini-map viewport to map edges when mini-map is focused' },
   { key: 'Alt+Arrow', desc: 'nudge selected node(s) by 10px' },
   { key: 'Shift+Alt+Arrow', desc: 'nudge selected node(s) by 40px' },
   { key: 'F', desc: 'fit to view' },

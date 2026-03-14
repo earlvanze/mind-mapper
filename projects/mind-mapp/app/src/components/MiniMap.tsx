@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Node } from '../store/useMindMapStore';
-import { getMapBounds, mapToMini, miniToWorld, offsetMiniViewportCenter, worldRectToMini, type MiniRect } from '../utils/minimap';
+import { edgeMiniViewportCenter, getMapBounds, mapToMini, miniToWorld, offsetMiniViewportCenter, worldRectToMini, type MiniRect } from '../utils/minimap';
 
 type Props = {
   nodes: Record<string, Node>;
@@ -73,6 +73,13 @@ export default function MiniMap({ nodes, focusId, selectedIds, onFocus, onNaviga
     onNavigate(world.x, world.y);
   };
 
+  const navigateViewToEdge = (edge: 'home' | 'end') => {
+    if (!viewRect) return;
+    const center = edgeMiniViewportCenter(viewRect, edge, MINI_W, MINI_H);
+    const world = miniToWorld(center.x, center.y, bounds, MINI_W, MINI_H);
+    onNavigate(world.x, world.y);
+  };
+
   return (
     <div className="minimap" role="region" aria-label="Mini map navigator">
       <div className="minimap-title">Mini‑map (click/drag viewport)</div>
@@ -82,7 +89,7 @@ export default function MiniMap({ nodes, focusId, selectedIds, onFocus, onNaviga
         height={MINI_H}
         viewBox={`0 0 ${MINI_W} ${MINI_H}`}
         tabIndex={0}
-        aria-label="Mini-map canvas. Click to recenter. Use Arrow keys to pan viewport; Shift+Arrow for larger steps."
+        aria-label="Mini-map canvas. Click to recenter. Use Arrow keys to pan viewport, Shift+Arrow for larger steps, Home/End to jump viewport to map edges."
         onClick={(e) => {
           navigateFromClient(e.clientX, e.clientY);
         }}
@@ -107,6 +114,16 @@ export default function MiniMap({ nodes, focusId, selectedIds, onFocus, onNaviga
             e.preventDefault();
             e.stopPropagation();
             navigateViewByKeyboard(0, step);
+          }
+          if (e.key === 'Home') {
+            e.preventDefault();
+            e.stopPropagation();
+            navigateViewToEdge('home');
+          }
+          if (e.key === 'End') {
+            e.preventDefault();
+            e.stopPropagation();
+            navigateViewToEdge('end');
           }
         }}
       >

@@ -95,6 +95,22 @@ export function worldRectToMini(
   return { x, y, width, height };
 }
 
+function miniViewportCenterBounds(
+  viewRect: MiniRect,
+  miniWidth: number,
+  miniHeight: number,
+): { minX: number; maxX: number; minY: number; maxY: number } {
+  const halfWidth = viewRect.width / 2;
+  const halfHeight = viewRect.height / 2;
+
+  return {
+    minX: Math.min(halfWidth, miniWidth - halfWidth),
+    maxX: Math.max(halfWidth, miniWidth - halfWidth),
+    minY: Math.min(halfHeight, miniHeight - halfHeight),
+    maxY: Math.max(halfHeight, miniHeight - halfHeight),
+  };
+}
+
 export function offsetMiniViewportCenter(
   viewRect: MiniRect,
   dx: number,
@@ -107,14 +123,25 @@ export function offsetMiniViewportCenter(
 
   const currentX = viewRect.x + halfWidth;
   const currentY = viewRect.y + halfHeight;
-
-  const minX = Math.min(halfWidth, miniWidth - halfWidth);
-  const maxX = Math.max(halfWidth, miniWidth - halfWidth);
-  const minY = Math.min(halfHeight, miniHeight - halfHeight);
-  const maxY = Math.max(halfHeight, miniHeight - halfHeight);
+  const bounds = miniViewportCenterBounds(viewRect, miniWidth, miniHeight);
 
   return {
-    x: Math.max(minX, Math.min(maxX, currentX + dx)),
-    y: Math.max(minY, Math.min(maxY, currentY + dy)),
+    x: Math.max(bounds.minX, Math.min(bounds.maxX, currentX + dx)),
+    y: Math.max(bounds.minY, Math.min(bounds.maxY, currentY + dy)),
   };
+}
+
+export function edgeMiniViewportCenter(
+  viewRect: MiniRect,
+  edge: 'home' | 'end',
+  miniWidth: number,
+  miniHeight: number,
+): { x: number; y: number } {
+  const bounds = miniViewportCenterBounds(viewRect, miniWidth, miniHeight);
+
+  if (edge === 'home') {
+    return { x: bounds.minX, y: bounds.minY };
+  }
+
+  return { x: bounds.maxX, y: bounds.maxY };
 }

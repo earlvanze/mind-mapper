@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getMapBounds, mapToMini, miniToWorld, offsetMiniViewportCenter, worldRectToMini } from './minimap';
+import { edgeMiniViewportCenter, getMapBounds, mapToMini, miniToWorld, offsetMiniViewportCenter, worldRectToMini } from './minimap';
 import type { Node } from '../store/useMindMapStore';
 
 describe('minimap utils', () => {
@@ -60,5 +60,12 @@ describe('minimap utils', () => {
     );
 
     expect(center).toEqual({ x: 30, y: 105 });
+  });
+
+  it('jumps viewport center to home/end edges', () => {
+    const viewRect = { x: 20, y: 10, width: 60, height: 30 };
+
+    expect(edgeMiniViewportCenter(viewRect, 'home', 180, 120)).toEqual({ x: 30, y: 15 });
+    expect(edgeMiniViewportCenter(viewRect, 'end', 180, 120)).toEqual({ x: 150, y: 105 });
   });
 });
