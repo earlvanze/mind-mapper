@@ -632,13 +632,13 @@ export default function App() {
           <button title={canFocusHistoryStart ? `Jump to oldest focus in history (Alt+Shift+Home): ${historyStartLabel}` : 'Already at oldest focus history entry'} onClick={focusHistoryStart} disabled={!canFocusHistoryStart}>Hist Start</button>
           <button title={canFocusHistoryEnd ? `Jump to newest focus in history (Alt+Shift+End): ${historyEndLabel}` : 'Already at newest focus history entry'} onClick={focusHistoryEnd} disabled={!canFocusHistoryEnd}>Hist End</button>
           <button title={focusHistoryCount > 1 ? 'Reset focus history to current node (Alt+Shift+Q)' : 'Focus history already reset'} onClick={resetFocusHistoryNow} disabled={focusHistoryCount <= 1}>Reset Hist</button>
-          <button title="Toggle grid overlay (Shift+G)" onClick={() => setShowGrid(v => !v)}>{showGrid ? 'Grid On' : 'Grid Off'}</button>
-          <button title="Toggle mini-map (Shift+M)" onClick={() => setShowMiniMap(v => !v)}>{showMiniMap ? 'Mini-map On' : 'Mini-map Off'}</button>
-          <button title="Show/Hide advanced actions (Shift+A)" onClick={() => setShowAdvancedActions(v => !v)}>
+          <button title="Toggle grid overlay (Shift+G)" aria-pressed={showGrid} onClick={() => setShowGrid(v => !v)}>{showGrid ? 'Grid On' : 'Grid Off'}</button>
+          <button title="Toggle mini-map (Shift+M)" aria-pressed={showMiniMap} onClick={() => setShowMiniMap(v => !v)}>{showMiniMap ? 'Mini-map On' : 'Mini-map Off'}</button>
+          <button title="Show/Hide advanced actions (Shift+A)" aria-pressed={showAdvancedActions} onClick={() => setShowAdvancedActions(v => !v)}>
             {showAdvancedActions ? 'Advanced ▴' : 'Advanced ▾'}
           </button>
-          <button title={searchOpen ? 'Hide search (Cmd/Ctrl+K)' : 'Show search (Cmd/Ctrl+K)'} onClick={toggleSearchDialog}>{searchOpen ? 'Search On' : 'Search Off'}</button>
-          <button title={helpOpen ? 'Hide shortcuts (? / Cmd/Ctrl+/)' : 'Show shortcuts (? / Cmd/Ctrl+/)'} onClick={toggleHelpDialog}>Help</button>
+          <button title={searchOpen ? 'Hide search (Cmd/Ctrl+K)' : 'Show search (Cmd/Ctrl+K)'} aria-pressed={searchOpen} onClick={toggleSearchDialog}>{searchOpen ? 'Search On' : 'Search Off'}</button>
+          <button title={helpOpen ? 'Hide shortcuts (? / Cmd/Ctrl+/)' : 'Show shortcuts (? / Cmd/Ctrl+/)'} aria-pressed={helpOpen} onClick={toggleHelpDialog}>{helpOpen ? 'Help On' : 'Help Off'}</button>
           <button
             title="Clear map"
             onClick={() => {

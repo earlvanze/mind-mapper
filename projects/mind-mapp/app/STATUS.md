@@ -19,7 +19,7 @@
 - Explicit edit mode (E/double‑click)
 - Delete selected node(s)
 - Arrow key navigation
-- Search + keyboard navigation (Cmd/Ctrl+K toggle + toolbar toggle button, centers selected result, supports ID/path multi-term matching + path metadata + normalized term highlighting + quoted/negated terms + whitespace/diacritic/punctuation/camelCase-normalized phrase matching + Tab cycle + PageUp/PageDown + Home/End jumps + Shift/Cmd/Ctrl/Alt+Enter/click jump-without-close + Esc clear-then-close + capped-result match counts, parser unified, cached path ranking, listbox/active-descendant a11y semantics)
+- Search + keyboard navigation (Cmd/Ctrl+K toggle + toolbar Search On/Off button, centers selected result, supports ID/path multi-term matching + path metadata + normalized term highlighting + quoted/negated terms + whitespace/diacritic/punctuation/camelCase-normalized phrase matching + Tab cycle + PageUp/PageDown + Home/End jumps + Shift/Cmd/Ctrl/Alt+Enter/click jump-without-close + Esc clear-then-close + capped-result match counts, parser unified, cached path ranking, listbox/active-descendant a11y semantics)
 - Global shortcuts ignore text-input/contenteditable targets and suspend while Search/Help dialogs are open to avoid accidental canvas actions
 - Undo/redo (Cmd/Ctrl+Z, Cmd/Ctrl+Shift+Z/Cmd/Ctrl+Y)
 - Autosave + JSON import/export (validated)
@@ -30,7 +30,7 @@
 - Clickable focused-path breadcrumbs for fast ancestor focus jumps
 - PNG export (Cmd/Ctrl+Shift+S)
 - Pan/zoom + fit-to-view + fit-selection + fit-focused-subtree + keyboard +/- zoom + 0 reset shortcut + toolbar zoom indicator + leaf-cycle index indicator + focus history index + focus/selection/subtree/root centering + parent/child/sibling-wrap/leaf-cycle(root-aware)/root/back+forward/oldest+newest+reset focus history shortcuts + context-aware disabled focus controls + auto-pruned history after node removals + clear/sample/import map actions reset history to root + focus-history persistence across reloads + grid/mini-map toggles + reset view (mouse + touch, state-synced, helper-tested incl. parent/child)
-- Help dialog + compact Focus Navigation & History section + live shortcut filtering + Esc clear-then-close / Cmd/Ctrl+F filter focus (? / Cmd/Ctrl+/ toggle, including while typing; section keys sourced from shared shortcuts registry)
+- Help dialog + compact Focus Navigation & History section + live shortcut filtering + Esc clear-then-close / Cmd/Ctrl+F filter focus (? / Cmd/Ctrl+/ + toolbar Help On/Off toggle, including while typing; section keys sourced from shared shortcuts registry)
 - Auto-dismissing toolbar notices for copy/import feedback (with manual dismiss)
 - Sample map loader
 - Curved edge rendering with arrowheads

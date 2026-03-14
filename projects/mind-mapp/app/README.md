@@ -8,14 +8,14 @@ A lightweight, keyboard‑first mind map app focused on speed and clarity.
 - Explicit edit mode (double‑click or E)
 - Delete node (Backspace/Delete)
 - Arrow‑key navigation
-- Search (Cmd/Ctrl+K toggle + toolbar toggle button) with focus+center on selection, ID + path matching, ranked results, path/context metadata, highlighted matches, quoted/negated query terms, whitespace/diacritic/punctuation/camelCase-normalized phrase matching, Tab cycle + Page/Home-End navigation hints, Shift/Cmd/Ctrl/Alt+Enter/click jump-without-close, Esc clear-then-close behavior, accurate match counts, cached path matching, and improved listbox accessibility semantics
+- Search (Cmd/Ctrl+K toggle + toolbar Search On/Off toggle button) with focus+center on selection, ID + path matching, ranked results, path/context metadata, highlighted matches, quoted/negated query terms, whitespace/diacritic/punctuation/camelCase-normalized phrase matching, Tab cycle + Page/Home-End navigation hints, Shift/Cmd/Ctrl/Alt+Enter/click jump-without-close, Esc clear-then-close behavior, accurate match counts, cached path matching, and improved listbox accessibility semantics
 - Edit (double‑click or E)
 - Pan/zoom (Shift+drag, Ctrl/Cmd+wheel, +/- keys, 0 reset, touch pan/pinch) + toolbar zoom % indicator
 - Fit to view (F) + Fit selection (Alt+F) + Fit focused subtree (Alt+Shift+F) + Center focused node (C) + Center selection (Alt+Shift+C) + Center focused subtree (Alt+Shift+B) + Center root (Shift+C) + Focus parent/child/siblings/leaf (Shift+P/N/H/J/L/K/</>, sibling + leaf wrap enabled, context-aware disabled controls) + Focus root (R) + Focus history (Alt+R back / Shift+R forward / Alt+Shift+Home oldest / Alt+Shift+End newest / Alt+Shift+Q reset, auto-pruned on node removal, persisted across reloads) + Grid overlay toggle (Shift+G) + Reset View button
 - Leaf-cycle status indicator in toolbar (`leaf i/n`) with disabled leaf-cycle buttons when unavailable
 - Focus history status indicator (`hist i/n`) with context-aware Back/Forward target hints
 - Auto‑layout children (L)
-- Help dialog (? / Cmd/Ctrl+/) toggle with a compact Focus Navigation & History section + live shortcut filter (Esc clear-then-close + Cmd/Ctrl+F focus; Cmd/Ctrl+/ works even when typing in dialog inputs)
+- Help dialog (? / Cmd/Ctrl+/) toggle with toolbar Help On/Off state, compact Focus Navigation & History section, and live shortcut filter (Esc clear-then-close + Cmd/Ctrl+F focus; Cmd/Ctrl+/ works even when typing in dialog inputs)
 - Global map shortcuts pause while typing in text fields/dialog inputs and while Search/Help dialogs are open
 - Collapsible Advanced actions panel in toolbar (Shift+A, state persists)
 - Autosave + JSON import/export (import clears stale trails by resetting focus history)
