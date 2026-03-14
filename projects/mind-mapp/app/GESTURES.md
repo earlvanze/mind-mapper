@@ -60,6 +60,8 @@
 - Click mini-map background: recenter viewport to that location
 - Mini-map viewport box: shows current visible canvas window; drag it to pan
 - Focus mini-map canvas (Tab), then Arrow keys to pan viewport (Shift + Arrow = faster)
+- Focus mini-map canvas (Tab), then PageUp/PageDown to pan viewport by large steps
+- Focus mini-map canvas (Tab), then Home/End to jump viewport to map edges
 - Double-click background: reset view
 
 ## Touch

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { edgeMiniViewportCenter, getMapBounds, mapToMini, miniToWorld, offsetMiniViewportCenter, worldRectToMini } from './minimap';
+import { edgeMiniViewportCenter, getMapBounds, mapToMini, miniToWorld, miniViewportPageStep, offsetMiniViewportCenter, worldRectToMini } from './minimap';
 import type { Node } from '../store/useMindMapStore';
 
 describe('minimap utils', () => {
@@ -67,5 +67,12 @@ describe('minimap utils', () => {
 
     expect(edgeMiniViewportCenter(viewRect, 'home', 180, 120)).toEqual({ x: 30, y: 15 });
     expect(edgeMiniViewportCenter(viewRect, 'end', 180, 120)).toEqual({ x: 150, y: 105 });
+  });
+
+  it('computes page steps with ratio + minimum clamp', () => {
+    const viewRect = { x: 0, y: 0, width: 60, height: 30 };
+
+    expect(miniViewportPageStep(viewRect, 'y')).toBe(24);
+    expect(miniViewportPageStep(viewRect, 'x')).toBe(48);
   });
 });

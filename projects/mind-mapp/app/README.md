@@ -27,7 +27,7 @@ A lightweight, keyboard‑first mind map app focused on speed and clarity.
 - PNG export (Cmd/Ctrl+Shift+S)
 - Transient toolbar notices for copy/import outcomes (auto-dismiss + manual dismiss)
 - Curved edge rendering with arrowheads
-- Mini-map navigator (Shift+M toggle; click node to focus + center, click background to recenter, drag viewport box to pan, Arrow/Shift+Arrow pan and Home/End edge-jump when mini-map is focused) with live viewport indicator
+- Mini-map navigator (Shift+M toggle; click node to focus + center, click background to recenter, drag viewport box to pan, Arrow/Shift+Arrow pan + PageUp/PageDown large pan + Home/End edge-jump when mini-map is focused) with live viewport indicator
 - Sample map loader
 
 ## Run

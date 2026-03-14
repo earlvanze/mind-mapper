@@ -130,7 +130,7 @@
 - Added env-configurable Vite `allowedHosts` via `MINDMAPP_ALLOWED_HOSTS` with parsing/validation tests (hostname/URL normalization)
 - Allowed Cmd/Ctrl+/ help toggle while typing in dialog inputs (keeping plain ? typing-safe)
 - Added toolbar Help On/Off label and aria-pressed states for toolbar toggle buttons (Search/Help/Grid/Mini-map/Advanced)
-- Added mini-map Home/End keyboard edge-jump navigation when mini-map canvas is focused
+- Added mini-map Home/End keyboard edge-jump + PageUp/PageDown large-step navigation when mini-map canvas is focused
 - Added toolbar Search toggle button to mirror Cmd/Ctrl+K discoverability
 - Extracted focus-navigation helpers into tested utility functions
 - Moved parent/child focus resolution into shared focusNav helpers

@@ -145,3 +145,13 @@ export function edgeMiniViewportCenter(
 
   return { x: bounds.maxX, y: bounds.maxY };
 }
+
+export function miniViewportPageStep(
+  viewRect: MiniRect,
+  axis: 'x' | 'y',
+  ratio = 0.8,
+  minStep = 24,
+): number {
+  const size = axis === 'x' ? viewRect.width : viewRect.height;
+  return Math.max(minStep, size * ratio);
+}

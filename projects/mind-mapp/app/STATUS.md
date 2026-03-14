@@ -34,7 +34,7 @@
 - Auto-dismissing toolbar notices for copy/import feedback (with manual dismiss)
 - Sample map loader
 - Curved edge rendering with arrowheads
-- Mini-map navigator (focus + center + background recenter + viewport drag pan + focused mini-map Arrow/Shift+Arrow panning + Home/End edge-jumps) with live viewport indicator (event-synced)
+- Mini-map navigator (focus + center + background recenter + viewport drag pan + focused mini-map Arrow/Shift+Arrow panning + PageUp/PageDown large-step panning + Home/End edge-jumps) with live viewport indicator (event-synced)
 
 ## Next Priorities
 - Canvas renderer for larger maps

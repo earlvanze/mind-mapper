@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Node } from '../store/useMindMapStore';
-import { edgeMiniViewportCenter, getMapBounds, mapToMini, miniToWorld, offsetMiniViewportCenter, worldRectToMini, type MiniRect } from '../utils/minimap';
+import { edgeMiniViewportCenter, getMapBounds, mapToMini, miniToWorld, miniViewportPageStep, offsetMiniViewportCenter, worldRectToMini, type MiniRect } from '../utils/minimap';
 
 type Props = {
   nodes: Record<string, Node>;
@@ -89,7 +89,7 @@ export default function MiniMap({ nodes, focusId, selectedIds, onFocus, onNaviga
         height={MINI_H}
         viewBox={`0 0 ${MINI_W} ${MINI_H}`}
         tabIndex={0}
-        aria-label="Mini-map canvas. Click to recenter. Use Arrow keys to pan viewport, Shift+Arrow for larger steps, Home/End to jump viewport to map edges."
+        aria-label="Mini-map canvas. Click to recenter. Use Arrow keys to pan viewport, Shift+Arrow for larger steps, PageUp/PageDown for viewport paging, Home/End to jump viewport to map edges."
         onClick={(e) => {
           navigateFromClient(e.clientX, e.clientY);
         }}
@@ -114,6 +114,18 @@ export default function MiniMap({ nodes, focusId, selectedIds, onFocus, onNaviga
             e.preventDefault();
             e.stopPropagation();
             navigateViewByKeyboard(0, step);
+          }
+          if (e.key === 'PageUp') {
+            e.preventDefault();
+            e.stopPropagation();
+            if (!viewRect) return;
+            navigateViewByKeyboard(0, -miniViewportPageStep(viewRect, 'y'));
+          }
+          if (e.key === 'PageDown') {
+            e.preventDefault();
+            e.stopPropagation();
+            if (!viewRect) return;
+            navigateViewByKeyboard(0, miniViewportPageStep(viewRect, 'y'));
           }
           if (e.key === 'Home') {
             e.preventDefault();

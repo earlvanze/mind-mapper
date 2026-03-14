@@ -52,6 +52,7 @@ Most selection/layout commands are also available in toolbar `Advanced ▾`.
 - Arrow keys: move focus
 - Mini-map focused + Arrow keys: pan mini-map viewport
 - Mini-map focused + Shift+Arrow: pan mini-map viewport faster
+- Mini-map focused + PageUp/PageDown: pan mini-map viewport by large steps
 - Mini-map focused + Home/End: jump mini-map viewport to map edges
 - Alt+Arrow: nudge selected node(s) by 10px
 - Shift+Alt+Arrow: nudge selected node(s) by 40px
