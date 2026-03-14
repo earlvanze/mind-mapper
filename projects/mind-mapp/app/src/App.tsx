@@ -530,22 +530,28 @@ export default function App() {
         <span style={{ color: '#666' }}>hist {focusHistoryPosition}/{focusHistoryCount}</span>
         {focusPathSegments.length ? (
           <span className="toolbar-path" title={focusedPath} role="navigation" aria-label="Focused node breadcrumb path">
-            {focusPathSegments.map((segment, index) => (
-              <span key={segment.id}>
-                <button
-                  className="toolbar-path-segment"
-                  title={`Focus ${segment.label}`}
-                  aria-label={`Focus breadcrumb node ${segment.label}`}
-                  onClick={() => {
-                    setFocus(segment.id);
-                    centerOnNode(segment.id);
-                  }}
-                >
-                  {segment.label}
-                </button>
-                {index < focusPathSegments.length - 1 ? <span className="toolbar-path-sep">/</span> : null}
-              </span>
-            ))}
+            {focusPathSegments.map((segment, index) => {
+              const isCurrent = index === focusPathSegments.length - 1;
+              return (
+                <span key={segment.id}>
+                  <button
+                    className="toolbar-path-segment"
+                    title={isCurrent ? `Current focus: ${segment.label}` : `Focus ${segment.label}`}
+                    aria-label={isCurrent ? `Current breadcrumb node ${segment.label}` : `Focus breadcrumb node ${segment.label}`}
+                    aria-current={isCurrent ? 'page' : undefined}
+                    disabled={isCurrent}
+                    onClick={() => {
+                      if (isCurrent) return;
+                      setFocus(segment.id);
+                      centerOnNode(segment.id);
+                    }}
+                  >
+                    {segment.label}
+                  </button>
+                  {index < focusPathSegments.length - 1 ? <span className="toolbar-path-sep" aria-hidden="true">/</span> : null}
+                </span>
+              );
+            })}
           </span>
         ) : null}
         <span style={{ color: '#666' }}>Press ? for shortcuts</span>

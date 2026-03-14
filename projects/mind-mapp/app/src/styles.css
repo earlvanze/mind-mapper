@@ -59,6 +59,18 @@ body, html, #root {
   text-decoration: underline;
 }
 
+.toolbar .toolbar-path-segment:disabled {
+  color: #111827;
+  cursor: default;
+  text-decoration: none;
+  opacity: 0.9;
+}
+
+.toolbar .toolbar-path-segment:disabled:hover {
+  color: #111827;
+  text-decoration: none;
+}
+
 .toolbar-path-sep {
   color: #98a2b3;
   margin: 0 2px;

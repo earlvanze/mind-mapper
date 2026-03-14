@@ -132,6 +132,7 @@
 - Added toolbar Help On/Off label and aria-pressed states for toolbar toggle buttons (Search/Help/Grid/Mini-map/Advanced)
 - Improved Help shortcut filtering with punctuation-agnostic multi-term matching + symbol/alias terms (e.g., ctrl slash, command slash, shift plus pageup)
 - Unified search normalization logic in shared helper to keep search matching and highlighting behavior in lockstep
+- Marked current breadcrumb segment as aria-current/disabled to prevent redundant refocus clicks
 - Added mini-map Home/End keyboard edge-jump + PageUp/PageDown vertical and Shift+PageUp/PageDown horizontal large-step navigation when mini-map canvas is focused
 - Made mini-map viewport handle keyboard-focusable with the same Arrow/Page/Home/End navigation support
 - Added toolbar Search toggle button to mirror Cmd/Ctrl+K discoverability
