@@ -152,6 +152,7 @@
 - Added Search/Help Cmd/Ctrl+A select-input shortcuts to shared registry + dialog keymap metadata
 - Added explicit input-level aria-keyshortcuts metadata on Search/Help filter fields using shared dialogKeyshortcuts constants
 - Centralized Search/Help dialog input key-event parsing in shared dialogInputKeys helper utilities
+- Hardened dialog input select-shortcut guard to skip textarea/contenteditable targets in addition to input fields
 - Added Search: Cmd/Ctrl+F entry to shared shortcut registry for Help filter discoverability parity
 - Improved toolbar import/copy notices with status/alert live-region semantics and explicit dismiss button labels for screen-reader clarity
 - Centralized Search/Help dialog close handlers in App to keep keyboard and overlay close paths consistent

@@ -11,9 +11,17 @@ function normalizedKey(value: string): string {
   return value.toLowerCase();
 }
 
-function isInputTarget(target: EventTarget | null | undefined): boolean {
-  const tagName = (target as { tagName?: string } | null)?.tagName;
-  return typeof tagName === 'string' && tagName.toLowerCase() === 'input';
+function isTextEntryTarget(target: EventTarget | null | undefined): boolean {
+  const element = target as { tagName?: string; isContentEditable?: boolean } | null;
+  if (!element) return false;
+
+  if (element.isContentEditable) return true;
+
+  const tagName = element.tagName;
+  if (typeof tagName !== 'string') return false;
+
+  const normalized = tagName.toLowerCase();
+  return normalized === 'input' || normalized === 'textarea';
 }
 
 export function isDialogFocusInputEvent(event: DialogInputKeyState): boolean {
@@ -29,5 +37,5 @@ export function isDialogClearInputEvent(event: DialogInputKeyState): boolean {
 }
 
 export function shouldSkipDialogSelectShortcut(event: DialogInputKeyState): boolean {
-  return isInputTarget(event.target);
+  return isTextEntryTarget(event.target);
 }

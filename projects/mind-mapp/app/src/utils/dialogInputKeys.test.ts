@@ -33,9 +33,11 @@ describe('dialogInputKeys', () => {
     expect(isDialogClearInputEvent(event({ key: 'k', ctrlKey: true }))).toBe(false);
   });
 
-  it('skips select shortcut when target is already an input', () => {
+  it('skips select shortcut when target is already a text-entry field', () => {
     expect(shouldSkipDialogSelectShortcut(event({ target: { tagName: 'INPUT' } as unknown as EventTarget }))).toBe(true);
-    expect(shouldSkipDialogSelectShortcut(event({ target: { tagName: 'textarea' } as unknown as EventTarget }))).toBe(false);
+    expect(shouldSkipDialogSelectShortcut(event({ target: { tagName: 'textarea' } as unknown as EventTarget }))).toBe(true);
+    expect(shouldSkipDialogSelectShortcut(event({ target: { isContentEditable: true } as unknown as EventTarget }))).toBe(true);
+    expect(shouldSkipDialogSelectShortcut(event({ target: { tagName: 'div' } as unknown as EventTarget }))).toBe(false);
     expect(shouldSkipDialogSelectShortcut(event({ target: null }))).toBe(false);
   });
 });
