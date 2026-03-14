@@ -170,6 +170,7 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
   return (
     <div className="search-overlay" onClick={onClose}>
       <div
+        id="mindmapp-search-dialog"
         className="search-box"
         role="dialog"
         aria-modal="true"

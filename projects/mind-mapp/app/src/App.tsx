@@ -643,8 +643,24 @@ export default function App() {
           <button title="Show/Hide advanced actions (Shift+A)" aria-pressed={showAdvancedActions} onClick={() => setShowAdvancedActions(v => !v)}>
             {showAdvancedActions ? 'Advanced ▴' : 'Advanced ▾'}
           </button>
-          <button title={searchOpen ? 'Hide search (Cmd/Ctrl+K)' : 'Show search (Cmd/Ctrl+K)'} aria-pressed={searchOpen} onClick={toggleSearchDialog}>{searchOpen ? 'Search On' : 'Search Off'}</button>
-          <button title={helpOpen ? 'Hide shortcuts (? / Cmd/Ctrl+/)' : 'Show shortcuts (? / Cmd/Ctrl+/)'} aria-pressed={helpOpen} onClick={toggleHelpDialog}>{helpOpen ? 'Help On' : 'Help Off'}</button>
+          <button
+            title={searchOpen ? 'Hide search (Cmd/Ctrl+K)' : 'Show search (Cmd/Ctrl+K)'}
+            aria-pressed={searchOpen}
+            aria-expanded={searchOpen}
+            aria-controls="mindmapp-search-dialog"
+            onClick={toggleSearchDialog}
+          >
+            {searchOpen ? 'Search On' : 'Search Off'}
+          </button>
+          <button
+            title={helpOpen ? 'Hide shortcuts (? / Cmd/Ctrl+/)' : 'Show shortcuts (? / Cmd/Ctrl+/)'}
+            aria-pressed={helpOpen}
+            aria-expanded={helpOpen}
+            aria-controls="mindmapp-help-dialog"
+            onClick={toggleHelpDialog}
+          >
+            {helpOpen ? 'Help On' : 'Help Off'}
+          </button>
           <button
             title="Clear map"
             onClick={() => {

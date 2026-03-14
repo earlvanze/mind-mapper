@@ -56,6 +56,7 @@ export default function HelpDialog({ open, onClose }: { open: boolean; onClose: 
   return (
     <div className="search-overlay" onClick={onClose}>
       <div
+        id="mindmapp-help-dialog"
         className="help-box"
         role="dialog"
         aria-modal="true"
