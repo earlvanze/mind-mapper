@@ -8,8 +8,8 @@
 - CI: GitHub Actions workflow runs `npm test` + `npm run build` on app changes
 - Vite server/preview `allowedHosts` is configurable via `MINDMAPP_ALLOWED_HOSTS` (comma/space-separated; hostnames or URLs)
 - Search/Help dialogs are lazy-loaded for faster initial paint and use mutually exclusive open-state toggles
-- Advanced toolbar actions are collapsible to reduce UI clutter (Shift+A toggle, visibility persisted; toggle wired with aria-expanded/aria-controls to grouped advanced actions)
-- Grid/mini-map visibility prefs persist across reloads (mini-map toggle wired with aria-expanded/aria-controls)
+- Advanced toolbar actions are collapsible to reduce UI clutter (Shift+A toggle, visibility persisted; toggle wired with aria-expanded/aria-controls + aria-keyshortcuts to grouped advanced actions)
+- Grid/mini-map visibility prefs persist across reloads (mini-map toggle wired with aria-expanded/aria-controls + aria-keyshortcuts)
 - Docs inventory + migration notes maintained
 - FAQ + glossary + exports/imports + architecture + gestures + style docs available
 
@@ -19,7 +19,7 @@
 - Explicit edit mode (E/double‑click)
 - Delete selected node(s)
 - Arrow key navigation
-- Search + keyboard navigation (Cmd/Ctrl+K toggle + toolbar Search On/Off button with aria-expanded/aria-controls, centers selected result, supports ID/path multi-term matching + path metadata + normalized term highlighting + quoted/negated terms + whitespace/diacritic/punctuation/camelCase-normalized phrase matching + Tab cycle + PageUp/PageDown + Home/End jumps + Shift/Cmd/Ctrl/Alt+Enter/click jump-without-close + Esc clear-then-close + Cmd/Ctrl+Shift+K clear + capped-result match counts, parser unified, cached path ranking, listbox/active-descendant + posinset/setsize a11y semantics; shared normalization helper for match/highlight parity)
+- Search + keyboard navigation (Cmd/Ctrl+K toggle + toolbar Search On/Off button with aria-expanded/aria-controls + aria-keyshortcuts, centers selected result, supports ID/path multi-term matching + path metadata + normalized term highlighting + quoted/negated terms + whitespace/diacritic/punctuation/camelCase-normalized phrase matching + Tab cycle + PageUp/PageDown + Home/End jumps + Shift/Cmd/Ctrl/Alt+Enter/click jump-without-close + Esc clear-then-close + Cmd/Ctrl+Shift+K clear + capped-result match counts, parser unified, cached path ranking, listbox/active-descendant + posinset/setsize a11y semantics; shared normalization helper for match/highlight parity)
 - Toolbar container now exposes role="toolbar" with horizontal orientation + labeled primary action group semantics (named group ids for toggle relationships)
 - Global shortcuts ignore text-input/contenteditable targets and suspend while Search/Help dialogs are open to avoid accidental canvas actions (Cmd/Ctrl+K remains available as global search toggle outside node edit mode)
 - Undo/redo (Cmd/Ctrl+Z, Cmd/Ctrl+Shift+Z/Cmd/Ctrl+Y)

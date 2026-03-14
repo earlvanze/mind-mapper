@@ -130,8 +130,8 @@
 - Added env-configurable Vite `allowedHosts` via `MINDMAPP_ALLOWED_HOSTS` with parsing/validation tests (hostname/URL normalization)
 - Allowed Cmd/Ctrl+/ help toggle while typing in dialog inputs (keeping plain ? typing-safe)
 - Added toolbar Help On/Off label and aria-pressed states for toolbar toggle buttons (Search/Help/Grid/Mini-map/Advanced)
-- Added aria-expanded/aria-controls wiring between toolbar Search/Help toggles and their dialogs
-- Added aria-expanded/aria-controls wiring for toolbar Mini-map and Advanced toggles
+- Added aria-expanded/aria-controls + aria-keyshortcuts wiring between toolbar Search/Help toggles and their dialogs
+- Added aria-expanded/aria-controls + aria-keyshortcuts wiring for toolbar Mini-map and Advanced toggles
 - Added Search result aria-posinset/aria-setsize metadata for clearer listbox announcements
 - Added toolbar role/labeled group semantics to improve assistive-tech navigation of action controls
 - Added explicit toolbar horizontal orientation and named primary action group id for stronger structural semantics
