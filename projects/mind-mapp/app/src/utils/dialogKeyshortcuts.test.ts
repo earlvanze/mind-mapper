@@ -9,6 +9,7 @@ import {
   SEARCH_INPUT_ARIA_KEYSHORTCUTS,
   SEARCH_TOGGLE_ARIA_KEYSHORTCUTS,
 } from './dialogKeyshortcuts';
+import { SHORTCUTS } from './shortcuts';
 
 describe('dialog keyshortcuts constants', () => {
   it('keeps search/help toggle strings in canonical order', () => {
@@ -24,6 +25,24 @@ describe('dialog keyshortcuts constants', () => {
   it('defines shared input keyshortcuts for search/help filters', () => {
     expect(SEARCH_INPUT_ARIA_KEYSHORTCUTS).toBe('Control+F Meta+F Control+A Meta+A Control+Shift+K Meta+Shift+K');
     expect(HELP_INPUT_ARIA_KEYSHORTCUTS).toBe('Control+F Meta+F Control+A Meta+A Control+Shift+K Meta+Shift+K');
+  });
+
+  it('stays aligned with shortcut-registry search/help input entries', () => {
+    const keys = SHORTCUTS.map(shortcut => shortcut.key);
+
+    expect(keys).toContain('Search: Cmd/Ctrl+F');
+    expect(keys).toContain('Search: Cmd/Ctrl+A');
+    expect(keys).toContain('Search: Cmd/Ctrl+Shift+K');
+    expect(keys).toContain('Help: Cmd/Ctrl+F');
+    expect(keys).toContain('Help: Cmd/Ctrl+A');
+    expect(keys).toContain('Help: Cmd/Ctrl+Shift+K');
+
+    expect(SEARCH_INPUT_ARIA_KEYSHORTCUTS).toContain('Control+F Meta+F');
+    expect(SEARCH_INPUT_ARIA_KEYSHORTCUTS).toContain('Control+A Meta+A');
+    expect(SEARCH_INPUT_ARIA_KEYSHORTCUTS).toContain('Control+Shift+K Meta+Shift+K');
+    expect(HELP_INPUT_ARIA_KEYSHORTCUTS).toContain('Control+F Meta+F');
+    expect(HELP_INPUT_ARIA_KEYSHORTCUTS).toContain('Control+A Meta+A');
+    expect(HELP_INPUT_ARIA_KEYSHORTCUTS).toContain('Control+Shift+K Meta+Shift+K');
   });
 
   it('includes close + input key groups in dialog metadata', () => {

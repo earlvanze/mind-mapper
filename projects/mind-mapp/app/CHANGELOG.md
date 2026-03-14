@@ -147,6 +147,7 @@
 - Added explicit Close buttons to Search/Help dialog headers with accessible labels/titles + aria-keyshortcuts metadata for non-keyboard dismissal discoverability
 - Added dialog-level aria-keyshortcuts maps on Search/Help containers to expose in-dialog keyboard affordances to assistive tech
 - Centralized Search/Help aria-keyshortcuts strings in shared dialogKeyshortcuts constants with regression tests
+- Added dialogKeyshortcuts regression checks to keep shared keymap constants aligned with shortcut-registry Search/Help input entries
 - Added Help dialog Cmd/Ctrl+Shift+K shortcut to clear filter while keeping dialog open
 - Added shortcut-registry regression check ensuring Search/Help clear + focus shortcuts remain listed
 - Added Search/Help Cmd/Ctrl+A select-input shortcuts to shared registry + dialog keymap metadata
