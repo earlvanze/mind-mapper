@@ -77,6 +77,7 @@ export default function HelpDialog({ open, onClose }: { open: boolean; onClose: 
             className="dialog-close-btn"
             title="Close shortcuts (Esc, ? or Cmd/Ctrl+/)"
             aria-label="Close shortcuts dialog"
+            aria-keyshortcuts="Escape Shift+Slash Control+Slash Meta+Slash"
             onClick={onClose}
           >
             ×

@@ -192,6 +192,7 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
             className="dialog-close-btn"
             title="Close search (Esc or Cmd/Ctrl+K)"
             aria-label="Close search dialog"
+            aria-keyshortcuts="Escape Control+K Meta+K"
             onClick={onClose}
           >
             ×
