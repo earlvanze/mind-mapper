@@ -140,6 +140,7 @@
 - Added aria-keyshortcuts metadata to toolbar undo/redo, fit/center, and focus traversal buttons (parent/child/sibling/leaf jumps)
 - Added aria-keyshortcuts metadata to toolbar export/copy/reset-view buttons (JSON/Markdown/PNG, copy text/tree/path, reset pan+zoom)
 - Added aria-keyshortcuts metadata to Advanced toolbar action buttons (selection tools, transforms, stack/mirror, duplicate)
+- Improved Search dialog accessibility wiring by linking keyboard-hint + summary text to combobox/listbox via aria-describedby
 - Improved toolbar import/copy notices with status/alert live-region semantics and explicit dismiss button labels for screen-reader clarity
 - Centralized Search/Help dialog close handlers in App to keep keyboard and overlay close paths consistent
 - Kept Cmd/Ctrl+K search toggle available while typing in non-editing inputs for faster command access

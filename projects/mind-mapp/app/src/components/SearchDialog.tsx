@@ -35,6 +35,7 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
   const dialogTitleId = useId();
   const summaryId = useId();
   const listboxId = useId();
+  const hintId = useId();
   const terms = useMemo(
     () => tokenizeSearchQuery(query).filter(token => !token.negated).map(token => token.value),
     [query],
@@ -191,6 +192,7 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
           role="combobox"
           aria-label="Search nodes"
           aria-controls={listboxId}
+          aria-describedby={`${summaryId} ${hintId}`}
           aria-expanded={results.length > 0}
           aria-activedescendant={selectedOptionId}
           placeholder='Search nodes… (use "phrase" or -exclude)'
@@ -200,7 +202,7 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
         <div id={summaryId} className="search-summary" aria-live="polite">
           {results.length} shown / {totalMatches} matches{totalMatches > results.length ? ' (refine to narrow)' : ''}
         </div>
-        <div id={listboxId} className="search-results" role="listbox" aria-describedby={summaryId}>
+        <div id={listboxId} className="search-results" role="listbox" aria-describedby={`${summaryId} ${hintId}`}>
           {results.map((r, i) => {
             const title = r.node.text || '(empty)';
             const meta = `${r.node.id} • ${r.path || '(no path)'}`;
@@ -230,7 +232,7 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
             );
           })}
           {!results.length && query && <div className="search-empty" role="status">No results</div>}
-          <div className="search-hint">Tab/Shift+Tab: cycle selection • PageUp/PageDown: jump by 5 • Home/End: first/last • Enter/click: jump + close • Shift/Cmd/Ctrl/Alt+Enter/click: jump + keep open • Esc: clear query (or close when empty) • Cmd/Ctrl+Shift+K: clear query • Cmd/Ctrl+F: focus search • Cmd/Ctrl+K: close search</div>
+          <div id={hintId} className="search-hint">Tab/Shift+Tab: cycle selection • PageUp/PageDown: jump by 5 • Home/End: first/last • Enter/click: jump + close • Shift/Cmd/Ctrl/Alt+Enter/click: jump + keep open • Esc: clear query (or close when empty) • Cmd/Ctrl+Shift+K: clear query • Cmd/Ctrl+F: focus search • Cmd/Ctrl+K: close search</div>
         </div>
       </div>
     </div>
