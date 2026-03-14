@@ -132,6 +132,7 @@
 - Added toolbar Help On/Off label and aria-pressed states for toolbar toggle buttons (Search/Help/Grid/Mini-map/Advanced)
 - Added aria-expanded/aria-controls wiring between toolbar Search/Help toggles and their dialogs
 - Added Search result aria-posinset/aria-setsize metadata for clearer listbox announcements
+- Kept Cmd/Ctrl+K search toggle available while typing in non-editing inputs for faster command access
 - Improved Help shortcut filtering with punctuation-agnostic multi-term matching + symbol/alias terms (e.g., ctrl slash, command slash, shift plus pageup)
 - Unified search normalization logic in shared helper to keep search matching and highlighting behavior in lockstep
 - Marked current breadcrumb segment as aria-current/disabled to prevent redundant refocus clicks

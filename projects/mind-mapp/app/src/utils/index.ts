@@ -16,6 +16,7 @@ export * from './searchNodes';
 export * from './searchNormalize';
 export * from './shortcutFilter';
 export * from './searchSelection';
+export * from './searchToggle';
 export * from './searchJump';
 export * from './searchHighlight';
 export * from './selectionBounds';

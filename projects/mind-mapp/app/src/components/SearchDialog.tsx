@@ -1,6 +1,6 @@
 import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useMindMapStore } from '../store/useMindMapStore';
-import { centerPointInView, clampSearchSelection, computeHighlightRanges, cycleSearchSelection, edgeSearchSelection, formatFocusPath, moveSearchSelection, searchNodesWithTotal, shouldKeepSearchOpen, tokenizeSearchQuery } from '../utils';
+import { centerPointInView, clampSearchSelection, computeHighlightRanges, cycleSearchSelection, edgeSearchSelection, formatFocusPath, isSearchToggleEvent, moveSearchSelection, searchNodesWithTotal, shouldKeepSearchOpen, tokenizeSearchQuery } from '../utils';
 
 export default function SearchDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { nodes, setFocus } = useMindMapStore();
@@ -106,7 +106,7 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
         }
         onClose();
       }
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+      if (isSearchToggleEvent(e)) {
         e.preventDefault();
         onClose();
       }

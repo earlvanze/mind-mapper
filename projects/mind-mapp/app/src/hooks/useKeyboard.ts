@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useMindMapStore } from '../store/useMindMapStore';
 import { isTypingTarget } from '../utils/keyboardTarget';
 import { isHelpToggleEvent } from '../utils/helpToggle';
+import { isSearchToggleEvent } from '../utils/searchToggle';
 
 type Props = {
   onSearch: () => void;
@@ -50,7 +51,7 @@ export function useKeyboard({ onSearch, onFit, onFitSelection, onFitSubtree, onZ
       const typingTarget = isTypingTarget(e.target);
 
       if (suspended) {
-        if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        if (isSearchToggleEvent(e)) {
           e.preventDefault();
           onSearch();
         }
@@ -62,6 +63,11 @@ export function useKeyboard({ onSearch, onFit, onFitSelection, onFitSubtree, onZ
       }
 
       if (editingId) return;
+      if (isSearchToggleEvent(e)) {
+        e.preventDefault();
+        onSearch();
+        return;
+      }
       if (typingTarget) return;
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z' && !e.shiftKey) {
         e.preventDefault();
@@ -73,10 +79,6 @@ export function useKeyboard({ onSearch, onFit, onFitSelection, onFitSubtree, onZ
       ) {
         e.preventDefault();
         onRedo();
-      }
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
-        e.preventDefault();
-        onSearch();
       }
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'a') {
         e.preventDefault();

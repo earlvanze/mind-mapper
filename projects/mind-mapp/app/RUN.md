@@ -60,7 +60,7 @@ npm test
 - ? or Cmd/Ctrl+/: toggle help dialog (opening help closes search)
 - Toolbar Help button: toggle help on/off (aria-pressed)
 - Help dialog: Esc clears filter (or closes when empty), Cmd/Ctrl+F focuses filter input, Cmd/Ctrl+/ toggles help even while typing in dialog inputs (filter matches punctuation-agnostic + symbol/alias terms like "ctrl slash")
-- Global map shortcuts are suspended while typing in inputs/contenteditable fields and while Search/Help dialogs are open
+- Global map shortcuts are suspended while typing in inputs/contenteditable fields and while Search/Help dialogs are open (Cmd/Ctrl+K search toggle remains available outside node edit mode)
 - Cmd/Ctrl+S: export JSON
 - Cmd/Ctrl+Shift+M: export Markdown
 - Cmd/Ctrl+Shift+C: copy selected/focused node text
