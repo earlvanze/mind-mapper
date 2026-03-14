@@ -31,6 +31,12 @@ export default function HelpDialog({ open, onClose }: { open: boolean; onClose: 
         e.preventDefault();
         inputRef.current?.focus();
       }
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setQuery('');
+        inputRef.current?.focus();
+        inputRef.current?.select();
+      }
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'a') {
         const target = e.target as HTMLElement | null;
         if (target?.tagName === 'INPUT') return;
@@ -95,7 +101,7 @@ export default function HelpDialog({ open, onClose }: { open: boolean; onClose: 
           autoFocus
         />
         <div id={summaryId} className="help-meta" aria-live="polite">{filtered.length} / {SHORTCUTS.length} shown</div>
-        <div id={hintId} className="help-hint">Esc: clear filter (or close when empty) • Cmd/Ctrl+F: focus filter</div>
+        <div id={hintId} className="help-hint">Esc: clear filter (or close when empty) • Cmd/Ctrl+Shift+K: clear filter • Cmd/Ctrl+F: focus filter</div>
         {filtered.length ? (
           <ul>
             {filtered.map(s => (

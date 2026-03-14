@@ -44,6 +44,7 @@ Most selection/layout commands are also available in toolbar `Advanced ▾`.
 - Search dialog: Esc clear query (or close when query is empty)
 - Search dialog: Cmd/Ctrl+Shift+K clear query and keep dialog open
 - Help dialog: Esc clear filter (or close when filter is empty)
+- Help dialog: Cmd/Ctrl+Shift+K clear filter and keep dialog open
 - Help dialog: Cmd/Ctrl+F focus filter input
 - Cmd/Ctrl+S: export JSON
 - Cmd/Ctrl+Shift+M: export Markdown

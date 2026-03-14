@@ -18,6 +18,7 @@ export const SHORTCUTS: Shortcut[] = [
   { key: 'Search: Esc', desc: 'clear query (or close dialog when query is empty)' },
   { key: 'Search: Cmd/Ctrl+Shift+K', desc: 'clear query and keep search dialog open' },
   { key: 'Help: Esc', desc: 'clear filter (or close dialog when filter is empty)' },
+  { key: 'Help: Cmd/Ctrl+Shift+K', desc: 'clear filter and keep help dialog open' },
   { key: 'Help: Cmd/Ctrl+F', desc: 'focus help filter input' },
   { key: 'Cmd/Ctrl+S', desc: 'export JSON' },
   { key: 'Cmd/Ctrl+Shift+S', desc: 'export PNG' },
