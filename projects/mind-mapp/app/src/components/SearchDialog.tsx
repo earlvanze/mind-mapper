@@ -203,6 +203,8 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
                 id={`${listboxId}-${r.node.id}`}
                 role="option"
                 aria-selected={i === selected}
+                aria-posinset={i + 1}
+                aria-setsize={results.length}
                 ref={(element) => {
                   resultRefs.current[r.node.id] = element;
                 }}
