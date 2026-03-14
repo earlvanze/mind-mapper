@@ -138,6 +138,7 @@
 - Added Search dialog Cmd/Ctrl+Shift+K shortcut to clear query while keeping dialog open
 - Added aria-keyshortcuts metadata to toolbar root/back/forward/history-start/history-end/reset-history buttons
 - Added aria-keyshortcuts metadata to toolbar undo/redo, fit/center, and focus traversal buttons (parent/child/sibling/leaf jumps)
+- Added aria-keyshortcuts metadata to toolbar export/copy/reset-view buttons (JSON/Markdown/PNG, copy text/tree/path, reset pan+zoom)
 - Improved toolbar import/copy notices with status/alert live-region semantics and explicit dismiss button labels for screen-reader clarity
 - Centralized Search/Help dialog close handlers in App to keep keyboard and overlay close paths consistent
 - Kept Cmd/Ctrl+K search toggle available while typing in non-editing inputs for faster command access

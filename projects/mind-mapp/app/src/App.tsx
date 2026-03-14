@@ -731,13 +731,13 @@ export default function App() {
               }}
             />
           </label>
-          <button title="Export JSON" data-export="json" onClick={exportJson}>Export JSON</button>
-          <button title="Export Markdown" data-export="markdown" onClick={() => exportMarkdownData(nodes)}>Export MD</button>
-          <button title="Copy selected/focused node text (Cmd/Ctrl+Shift+C)" onClick={copySelectionText}>Copy Sel</button>
-          <button title="Copy focused subtree outline (Cmd/Ctrl+Shift+L)" onClick={copySubtreeText}>Copy Tree</button>
-          <button title="Copy focused node path (Alt+Shift+P)" onClick={copyFocusPath}>Copy Path</button>
-          <button title="Export PNG" data-export="png" onClick={exportPngClick}>Export PNG</button>
-          <button title="Reset pan/zoom" onClick={() => (window as any).__mindmappResetView?.()}>Reset View</button>
+          <button title="Export JSON" aria-keyshortcuts="Control+S Meta+S" data-export="json" onClick={exportJson}>Export JSON</button>
+          <button title="Export Markdown" aria-keyshortcuts="Control+Shift+M Meta+Shift+M" data-export="markdown" onClick={() => exportMarkdownData(nodes)}>Export MD</button>
+          <button title="Copy selected/focused node text (Cmd/Ctrl+Shift+C)" aria-keyshortcuts="Control+Shift+C Meta+Shift+C" onClick={copySelectionText}>Copy Sel</button>
+          <button title="Copy focused subtree outline (Cmd/Ctrl+Shift+L)" aria-keyshortcuts="Control+Shift+L Meta+Shift+L" onClick={copySubtreeText}>Copy Tree</button>
+          <button title="Copy focused node path (Alt+Shift+P)" aria-keyshortcuts="Alt+Shift+P" onClick={copyFocusPath}>Copy Path</button>
+          <button title="Export PNG" aria-keyshortcuts="Control+Shift+S Meta+Shift+S" data-export="png" onClick={exportPngClick}>Export PNG</button>
+          <button title="Reset pan/zoom" aria-keyshortcuts="0" onClick={() => (window as any).__mindmappResetView?.()}>Reset View</button>
 
           {showAdvancedActions ? (
             <div id="mindmapp-advanced-actions" role="group" aria-label="Advanced toolbar actions">
