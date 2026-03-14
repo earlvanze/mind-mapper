@@ -44,9 +44,11 @@ Most selection/layout commands are also available in toolbar `Advanced ▾`.
 - Search dialog: Esc clear query (or close when query is empty)
 - Search dialog: Cmd/Ctrl+Shift+K clear query and keep dialog open
 - Search dialog: Cmd/Ctrl+F focus query input
+- Search dialog: Cmd/Ctrl+A select query input text
 - Help dialog: Esc clear filter (or close when filter is empty)
 - Help dialog: Cmd/Ctrl+Shift+K clear filter and keep dialog open
 - Help dialog: Cmd/Ctrl+F focus filter input
+- Help dialog: Cmd/Ctrl+A select filter input text
 - Cmd/Ctrl+S: export JSON
 - Cmd/Ctrl+Shift+M: export Markdown
 - Cmd/Ctrl+Shift+C: copy selected/focused node text

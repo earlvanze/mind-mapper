@@ -246,7 +246,7 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
             );
           })}
           {!results.length && query && <div className="search-empty" role="status">No results</div>}
-          <div id={hintId} className="search-hint">Tab/Shift+Tab: cycle selection • PageUp/PageDown: jump by 5 • Home/End: first/last • Enter/click: jump + close • Shift/Cmd/Ctrl/Alt+Enter/click: jump + keep open • Esc: clear query (or close when empty) • Cmd/Ctrl+Shift+K: clear query • Cmd/Ctrl+F: focus search • Cmd/Ctrl+K: close search</div>
+          <div id={hintId} className="search-hint">Tab/Shift+Tab: cycle selection • PageUp/PageDown: jump by 5 • Home/End: first/last • Enter/click: jump + close • Shift/Cmd/Ctrl/Alt+Enter/click: jump + keep open • Esc: clear query (or close when empty) • Cmd/Ctrl+Shift+K: clear query • Cmd/Ctrl+F: focus search • Cmd/Ctrl+A: select query • Cmd/Ctrl+K: close search</div>
         </div>
       </div>
     </div>

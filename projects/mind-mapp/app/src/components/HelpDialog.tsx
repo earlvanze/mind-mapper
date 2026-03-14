@@ -104,7 +104,7 @@ export default function HelpDialog({ open, onClose }: { open: boolean; onClose: 
           autoFocus
         />
         <div id={summaryId} className="help-meta" aria-live="polite">{filtered.length} / {SHORTCUTS.length} shown</div>
-        <div id={hintId} className="help-hint">Esc: clear filter (or close when empty) • Cmd/Ctrl+Shift+K: clear filter • Cmd/Ctrl+F: focus filter</div>
+        <div id={hintId} className="help-hint">Esc: clear filter (or close when empty) • Cmd/Ctrl+Shift+K: clear filter • Cmd/Ctrl+F: focus filter • Cmd/Ctrl+A: select filter</div>
         {filtered.length ? (
           <ul>
             {filtered.map(s => (

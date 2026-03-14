@@ -15,10 +15,12 @@ describe('shortcuts registry', () => {
     expect(unique.size).toBe(keys.length);
   });
 
-  it('includes dialog clear/focus shortcuts for search and help', () => {
+  it('includes dialog clear/focus/select shortcuts for search and help', () => {
     expect(SHORTCUTS.some(shortcut => shortcut.key === 'Search: Cmd/Ctrl+Shift+K')).toBe(true);
     expect(SHORTCUTS.some(shortcut => shortcut.key === 'Search: Cmd/Ctrl+F')).toBe(true);
+    expect(SHORTCUTS.some(shortcut => shortcut.key === 'Search: Cmd/Ctrl+A')).toBe(true);
     expect(SHORTCUTS.some(shortcut => shortcut.key === 'Help: Cmd/Ctrl+Shift+K')).toBe(true);
     expect(SHORTCUTS.some(shortcut => shortcut.key === 'Help: Cmd/Ctrl+F')).toBe(true);
+    expect(SHORTCUTS.some(shortcut => shortcut.key === 'Help: Cmd/Ctrl+A')).toBe(true);
   });
 });
