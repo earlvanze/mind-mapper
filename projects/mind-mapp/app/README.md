@@ -15,7 +15,7 @@ A lightweight, keyboard‑first mind map app focused on speed and clarity.
 - Leaf-cycle status indicator in toolbar (`leaf i/n`) with disabled leaf-cycle buttons when unavailable
 - Focus history status indicator (`hist i/n`) with context-aware Back/Forward target hints
 - Auto‑layout children (L)
-- Help dialog (? / Cmd/Ctrl+/) toggle with toolbar Help On/Off state, compact Focus Navigation & History section, and live shortcut filter (punctuation-agnostic term matching; Esc clear-then-close + Cmd/Ctrl+F focus; Cmd/Ctrl+/ works even when typing in dialog inputs)
+- Help dialog (? / Cmd/Ctrl+/) toggle with toolbar Help On/Off state, compact Focus Navigation & History section, and live shortcut filter (punctuation-agnostic + symbol/alias term matching; Esc clear-then-close + Cmd/Ctrl+F focus; Cmd/Ctrl+/ works even when typing in dialog inputs)
 - Global map shortcuts pause while typing in text fields/dialog inputs and while Search/Help dialogs are open
 - Collapsible Advanced actions panel in toolbar (Shift+A, state persists)
 - Autosave + JSON import/export (import clears stale trails by resetting focus history)

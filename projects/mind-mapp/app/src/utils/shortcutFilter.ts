@@ -3,6 +3,18 @@ import type { Shortcut } from './shortcuts';
 function normalizeShortcutText(value: string): string {
   return value
     .toLowerCase()
+    .replace(/\bcmd\/ctrl\b/g, 'cmd ctrl')
+    .replace(/\bctrl\/cmd\b/g, 'cmd ctrl')
+    .replace(/\//g, ' slash ')
+    .replace(/\+/g, ' plus ')
+    .replace(/\?/g, ' question ')
+    .replace(/</g, ' less ')
+    .replace(/>/g, ' greater ')
+    .replace(/,/g, ' comma ')
+    .replace(/\./g, ' dot ')
+    .replace(/\bcontrol\b/g, 'ctrl')
+    .replace(/\bcommand\b/g, 'cmd')
+    .replace(/\bescape\b/g, 'esc')
     .replace(/[^a-z0-9]+/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();

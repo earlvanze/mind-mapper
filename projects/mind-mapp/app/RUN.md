@@ -59,7 +59,7 @@ npm test
 - Search dialog: Tab/Shift+Tab cycle result selection, PageUp/PageDown jump by 5, Home/End jump to first/last, Enter/click jumps + closes, Shift/Cmd/Ctrl/Alt+Enter/click jumps + keeps dialog open, Esc clears query (or closes when empty), Cmd/Ctrl+F focuses query input
 - ? or Cmd/Ctrl+/: toggle help dialog (opening help closes search)
 - Toolbar Help button: toggle help on/off (aria-pressed)
-- Help dialog: Esc clears filter (or closes when empty), Cmd/Ctrl+F focuses filter input, Cmd/Ctrl+/ toggles help even while typing in dialog inputs (filter matches punctuation-agnostic terms)
+- Help dialog: Esc clears filter (or closes when empty), Cmd/Ctrl+F focuses filter input, Cmd/Ctrl+/ toggles help even while typing in dialog inputs (filter matches punctuation-agnostic + symbol/alias terms like "ctrl slash")
 - Global map shortcuts are suspended while typing in inputs/contenteditable fields and while Search/Help dialogs are open
 - Cmd/Ctrl+S: export JSON
 - Cmd/Ctrl+Shift+M: export Markdown
