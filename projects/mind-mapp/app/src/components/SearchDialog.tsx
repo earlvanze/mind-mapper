@@ -185,7 +185,18 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
         aria-labelledby={dialogTitleId}
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 id={dialogTitleId} className="search-title">Search</h3>
+        <div className="dialog-header">
+          <h3 id={dialogTitleId} className="search-title">Search</h3>
+          <button
+            type="button"
+            className="dialog-close-btn"
+            title="Close search (Esc or Cmd/Ctrl+K)"
+            aria-label="Close search dialog"
+            onClick={onClose}
+          >
+            ×
+          </button>
+        </div>
         <input
           ref={inputRef}
           autoFocus

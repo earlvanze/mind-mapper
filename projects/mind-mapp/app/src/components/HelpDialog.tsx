@@ -64,7 +64,18 @@ export default function HelpDialog({ open, onClose }: { open: boolean; onClose: 
         aria-labelledby={titleId}
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 id={titleId}>Shortcuts</h3>
+        <div className="dialog-header">
+          <h3 id={titleId}>Shortcuts</h3>
+          <button
+            type="button"
+            className="dialog-close-btn"
+            title="Close shortcuts (Esc, ? or Cmd/Ctrl+/)"
+            aria-label="Close shortcuts dialog"
+            onClick={onClose}
+          >
+            ×
+          </button>
+        </div>
         <div className="help-quick-section" role="region" aria-labelledby={quickSectionId}>
           <h4 id={quickSectionId}>Focus Navigation &amp; History</h4>
           <ul className="help-quick-list">
