@@ -1,5 +1,5 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
-import { HELP_DIALOG_ARIA_KEYSHORTCUTS, HELP_DIALOG_CLOSE_ARIA_KEYSHORTCUTS, filterShortcuts, FOCUS_NAV_HISTORY_SHORTCUT_KEYS, pickShortcutsByKeys, SHORTCUTS } from '../utils';
+import { HELP_DIALOG_ARIA_KEYSHORTCUTS, HELP_DIALOG_CLOSE_ARIA_KEYSHORTCUTS, HELP_INPUT_ARIA_KEYSHORTCUTS, filterShortcuts, FOCUS_NAV_HISTORY_SHORTCUT_KEYS, pickShortcutsByKeys, SHORTCUTS } from '../utils';
 
 export default function HelpDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [query, setQuery] = useState('');
@@ -98,6 +98,7 @@ export default function HelpDialog({ open, onClose }: { open: boolean; onClose: 
           className="help-filter"
           aria-label="Filter shortcuts"
           aria-describedby={`${summaryId} ${hintId}`}
+          aria-keyshortcuts={HELP_INPUT_ARIA_KEYSHORTCUTS}
           placeholder="Filter shortcuts…"
           value={query}
           onChange={(e) => setQuery(e.target.value)}

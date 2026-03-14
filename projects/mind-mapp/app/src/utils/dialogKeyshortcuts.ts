@@ -4,5 +4,8 @@ export const HELP_TOGGLE_ARIA_KEYSHORTCUTS = 'Shift+Slash Control+Slash Meta+Sla
 export const SEARCH_DIALOG_CLOSE_ARIA_KEYSHORTCUTS = `Escape ${SEARCH_TOGGLE_ARIA_KEYSHORTCUTS}`;
 export const HELP_DIALOG_CLOSE_ARIA_KEYSHORTCUTS = `Escape ${HELP_TOGGLE_ARIA_KEYSHORTCUTS}`;
 
-export const SEARCH_DIALOG_ARIA_KEYSHORTCUTS = `${SEARCH_DIALOG_CLOSE_ARIA_KEYSHORTCUTS} Control+F Meta+F Control+A Meta+A Control+Shift+K Meta+Shift+K Enter Tab Shift+Tab PageUp PageDown Home End`;
-export const HELP_DIALOG_ARIA_KEYSHORTCUTS = `${HELP_DIALOG_CLOSE_ARIA_KEYSHORTCUTS} Control+F Meta+F Control+A Meta+A Control+Shift+K Meta+Shift+K`;
+export const SEARCH_INPUT_ARIA_KEYSHORTCUTS = 'Control+F Meta+F Control+A Meta+A Control+Shift+K Meta+Shift+K';
+export const HELP_INPUT_ARIA_KEYSHORTCUTS = 'Control+F Meta+F Control+A Meta+A Control+Shift+K Meta+Shift+K';
+
+export const SEARCH_DIALOG_ARIA_KEYSHORTCUTS = `${SEARCH_DIALOG_CLOSE_ARIA_KEYSHORTCUTS} ${SEARCH_INPUT_ARIA_KEYSHORTCUTS} Enter Tab Shift+Tab PageUp PageDown Home End`;
+export const HELP_DIALOG_ARIA_KEYSHORTCUTS = `${HELP_DIALOG_CLOSE_ARIA_KEYSHORTCUTS} ${HELP_INPUT_ARIA_KEYSHORTCUTS}`;
