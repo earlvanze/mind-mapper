@@ -640,12 +640,12 @@ export default function App() {
           >
             Next Leaf
           </button>
-          <button title="Jump focus to root node (R)" onClick={focusRoot}>Root</button>
-          <button title={canFocusBack ? `Jump back to previous focus (Alt+R): ${historyBackLabel}` : 'No previous focus in history'} onClick={focusPrevious} disabled={!canFocusBack}>Back</button>
-          <button title={canFocusForward ? `Jump forward in focus history (Shift+R): ${historyForwardLabel}` : 'No forward focus history'} onClick={focusForward} disabled={!canFocusForward}>Forward</button>
-          <button title={canFocusHistoryStart ? `Jump to oldest focus in history (Alt+Shift+Home): ${historyStartLabel}` : 'Already at oldest focus history entry'} onClick={focusHistoryStart} disabled={!canFocusHistoryStart}>Hist Start</button>
-          <button title={canFocusHistoryEnd ? `Jump to newest focus in history (Alt+Shift+End): ${historyEndLabel}` : 'Already at newest focus history entry'} onClick={focusHistoryEnd} disabled={!canFocusHistoryEnd}>Hist End</button>
-          <button title={focusHistoryCount > 1 ? 'Reset focus history to current node (Alt+Shift+Q)' : 'Focus history already reset'} onClick={resetFocusHistoryNow} disabled={focusHistoryCount <= 1}>Reset Hist</button>
+          <button title="Jump focus to root node (R)" aria-keyshortcuts="R" onClick={focusRoot}>Root</button>
+          <button title={canFocusBack ? `Jump back to previous focus (Alt+R): ${historyBackLabel}` : 'No previous focus in history'} aria-keyshortcuts="Alt+R" onClick={focusPrevious} disabled={!canFocusBack}>Back</button>
+          <button title={canFocusForward ? `Jump forward in focus history (Shift+R): ${historyForwardLabel}` : 'No forward focus history'} aria-keyshortcuts="Shift+R" onClick={focusForward} disabled={!canFocusForward}>Forward</button>
+          <button title={canFocusHistoryStart ? `Jump to oldest focus in history (Alt+Shift+Home): ${historyStartLabel}` : 'Already at oldest focus history entry'} aria-keyshortcuts="Alt+Shift+Home" onClick={focusHistoryStart} disabled={!canFocusHistoryStart}>Hist Start</button>
+          <button title={canFocusHistoryEnd ? `Jump to newest focus in history (Alt+Shift+End): ${historyEndLabel}` : 'Already at newest focus history entry'} aria-keyshortcuts="Alt+Shift+End" onClick={focusHistoryEnd} disabled={!canFocusHistoryEnd}>Hist End</button>
+          <button title={focusHistoryCount > 1 ? 'Reset focus history to current node (Alt+Shift+Q)' : 'Focus history already reset'} aria-keyshortcuts="Alt+Shift+Q" onClick={resetFocusHistoryNow} disabled={focusHistoryCount <= 1}>Reset Hist</button>
           <button title="Toggle grid overlay (Shift+G)" aria-pressed={showGrid} aria-keyshortcuts="Shift+G" onClick={() => setShowGrid(v => !v)}>{showGrid ? 'Grid On' : 'Grid Off'}</button>
           <button
             title="Toggle mini-map (Shift+M)"
