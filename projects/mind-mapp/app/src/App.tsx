@@ -637,7 +637,8 @@ export default function App() {
           <button title="Show/Hide advanced actions (Shift+A)" onClick={() => setShowAdvancedActions(v => !v)}>
             {showAdvancedActions ? 'Advanced ▴' : 'Advanced ▾'}
           </button>
-          <button title={helpOpen ? 'Hide shortcuts (?)' : 'Show shortcuts (?)'} onClick={toggleHelpDialog}>Help</button>
+          <button title={searchOpen ? 'Hide search (Cmd/Ctrl+K)' : 'Show search (Cmd/Ctrl+K)'} onClick={toggleSearchDialog}>{searchOpen ? 'Search On' : 'Search Off'}</button>
+          <button title={helpOpen ? 'Hide shortcuts (? / Cmd/Ctrl+/)' : 'Show shortcuts (? / Cmd/Ctrl+/)'} onClick={toggleHelpDialog}>Help</button>
           <button
             title="Clear map"
             onClick={() => {
