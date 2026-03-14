@@ -135,6 +135,7 @@
 - Added Search result aria-posinset/aria-setsize metadata for clearer listbox announcements
 - Added toolbar role/labeled group semantics to improve assistive-tech navigation of action controls
 - Added explicit toolbar horizontal orientation and named primary action group id for stronger structural semantics
+- Added Search dialog Cmd/Ctrl+Shift+K shortcut to clear query while keeping dialog open
 - Centralized Search/Help dialog close handlers in App to keep keyboard and overlay close paths consistent
 - Kept Cmd/Ctrl+K search toggle available while typing in non-editing inputs for faster command access
 - Improved Help shortcut filtering with punctuation-agnostic multi-term matching + symbol/alias terms (e.g., ctrl slash, command slash, shift plus pageup)
