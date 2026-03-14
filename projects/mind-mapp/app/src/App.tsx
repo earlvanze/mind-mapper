@@ -519,7 +519,7 @@ export default function App() {
 
   return (
     <div className="app">
-      <div className="toolbar">
+      <div className="toolbar" role="toolbar" aria-label="Mind Mapp actions">
         <strong>Mind Mapp</strong>
         <span style={{ color: '#666' }}>v{APP_VERSION}</span>
         <span style={{ color: '#666' }}>{Object.keys(nodes).length} nodes</span>
@@ -566,7 +566,7 @@ export default function App() {
             </button>
           </span>
         ) : null}
-        <div className="toolbar-actions">
+        <div className="toolbar-actions" role="group" aria-label="Primary actions">
           <button title="Undo (Cmd/Ctrl+Z)" onClick={undo} disabled={!canUndo}>Undo</button>
           <button title="Redo (Cmd/Ctrl+Shift+Z)" onClick={redo} disabled={!canRedo}>Redo</button>
           <button title="Fit to view" onClick={() => fitToView()}>Fit</button>

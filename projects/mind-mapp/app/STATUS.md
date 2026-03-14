@@ -20,6 +20,7 @@
 - Delete selected node(s)
 - Arrow key navigation
 - Search + keyboard navigation (Cmd/Ctrl+K toggle + toolbar Search On/Off button with aria-expanded/aria-controls, centers selected result, supports ID/path multi-term matching + path metadata + normalized term highlighting + quoted/negated terms + whitespace/diacritic/punctuation/camelCase-normalized phrase matching + Tab cycle + PageUp/PageDown + Home/End jumps + Shift/Cmd/Ctrl/Alt+Enter/click jump-without-close + Esc clear-then-close + capped-result match counts, parser unified, cached path ranking, listbox/active-descendant + posinset/setsize a11y semantics; shared normalization helper for match/highlight parity)
+- Toolbar container now exposes role="toolbar" + labeled primary action group semantics
 - Global shortcuts ignore text-input/contenteditable targets and suspend while Search/Help dialogs are open to avoid accidental canvas actions (Cmd/Ctrl+K remains available as global search toggle outside node edit mode)
 - Undo/redo (Cmd/Ctrl+Z, Cmd/Ctrl+Shift+Z/Cmd/Ctrl+Y)
 - Autosave + JSON import/export (validated)
