@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react';
 import type { Node } from '../store/useMindMapStore';
 import { edgeMiniViewportCenter, getMapBounds, mapToMini, miniToWorld, miniViewportPageStep, offsetMiniViewportCenter, worldRectToMini, type MiniRect } from '../utils/minimap';
 
@@ -80,6 +80,61 @@ export default function MiniMap({ nodes, focusId, selectedIds, onFocus, onNaviga
     onNavigate(world.x, world.y);
   };
 
+  const handleMiniMapKeyDown = (e: ReactKeyboardEvent<SVGElement>) => {
+    const step = e.shiftKey ? 24 : 10;
+
+    if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      e.stopPropagation();
+      navigateViewByKeyboard(-step, 0);
+    }
+    if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      e.stopPropagation();
+      navigateViewByKeyboard(step, 0);
+    }
+    if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      e.stopPropagation();
+      navigateViewByKeyboard(0, -step);
+    }
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      e.stopPropagation();
+      navigateViewByKeyboard(0, step);
+    }
+    if (e.key === 'PageUp') {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!viewRect) return;
+      if (e.shiftKey) {
+        navigateViewByKeyboard(-miniViewportPageStep(viewRect, 'x'), 0);
+      } else {
+        navigateViewByKeyboard(0, -miniViewportPageStep(viewRect, 'y'));
+      }
+    }
+    if (e.key === 'PageDown') {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!viewRect) return;
+      if (e.shiftKey) {
+        navigateViewByKeyboard(miniViewportPageStep(viewRect, 'x'), 0);
+      } else {
+        navigateViewByKeyboard(0, miniViewportPageStep(viewRect, 'y'));
+      }
+    }
+    if (e.key === 'Home') {
+      e.preventDefault();
+      e.stopPropagation();
+      navigateViewToEdge('home');
+    }
+    if (e.key === 'End') {
+      e.preventDefault();
+      e.stopPropagation();
+      navigateViewToEdge('end');
+    }
+  };
+
   return (
     <div className="minimap" role="region" aria-label="Mini map navigator">
       <div className="minimap-title">Mini‑map (click/drag viewport)</div>
@@ -93,59 +148,7 @@ export default function MiniMap({ nodes, focusId, selectedIds, onFocus, onNaviga
         onClick={(e) => {
           navigateFromClient(e.clientX, e.clientY);
         }}
-        onKeyDown={(e) => {
-          const step = e.shiftKey ? 24 : 10;
-          if (e.key === 'ArrowLeft') {
-            e.preventDefault();
-            e.stopPropagation();
-            navigateViewByKeyboard(-step, 0);
-          }
-          if (e.key === 'ArrowRight') {
-            e.preventDefault();
-            e.stopPropagation();
-            navigateViewByKeyboard(step, 0);
-          }
-          if (e.key === 'ArrowUp') {
-            e.preventDefault();
-            e.stopPropagation();
-            navigateViewByKeyboard(0, -step);
-          }
-          if (e.key === 'ArrowDown') {
-            e.preventDefault();
-            e.stopPropagation();
-            navigateViewByKeyboard(0, step);
-          }
-          if (e.key === 'PageUp') {
-            e.preventDefault();
-            e.stopPropagation();
-            if (!viewRect) return;
-            if (e.shiftKey) {
-              navigateViewByKeyboard(-miniViewportPageStep(viewRect, 'x'), 0);
-            } else {
-              navigateViewByKeyboard(0, -miniViewportPageStep(viewRect, 'y'));
-            }
-          }
-          if (e.key === 'PageDown') {
-            e.preventDefault();
-            e.stopPropagation();
-            if (!viewRect) return;
-            if (e.shiftKey) {
-              navigateViewByKeyboard(miniViewportPageStep(viewRect, 'x'), 0);
-            } else {
-              navigateViewByKeyboard(0, miniViewportPageStep(viewRect, 'y'));
-            }
-          }
-          if (e.key === 'Home') {
-            e.preventDefault();
-            e.stopPropagation();
-            navigateViewToEdge('home');
-          }
-          if (e.key === 'End') {
-            e.preventDefault();
-            e.stopPropagation();
-            navigateViewToEdge('end');
-          }
-        }}
+        onKeyDown={handleMiniMapKeyDown}
       >
         {entries.flatMap(parent =>
           parent.children
@@ -178,6 +181,10 @@ export default function MiniMap({ nodes, focusId, selectedIds, onFocus, onNaviga
             width={viewRect.width}
             height={viewRect.height}
             rx={4}
+            tabIndex={0}
+            role="button"
+            aria-label="Mini-map viewport handle. Drag to pan, or use Arrow/Page/Home/End keys while focused."
+            onKeyDown={handleMiniMapKeyDown}
             onPointerDown={(e) => {
               e.stopPropagation();
               (e.currentTarget as SVGRectElement).setPointerCapture(e.pointerId);

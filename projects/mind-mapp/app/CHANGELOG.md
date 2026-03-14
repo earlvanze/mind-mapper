@@ -132,6 +132,7 @@
 - Added toolbar Help On/Off label and aria-pressed states for toolbar toggle buttons (Search/Help/Grid/Mini-map/Advanced)
 - Improved Help shortcut filtering with punctuation-agnostic multi-term matching
 - Added mini-map Home/End keyboard edge-jump + PageUp/PageDown vertical and Shift+PageUp/PageDown horizontal large-step navigation when mini-map canvas is focused
+- Made mini-map viewport handle keyboard-focusable with the same Arrow/Page/Home/End navigation support
 - Added toolbar Search toggle button to mirror Cmd/Ctrl+K discoverability
 - Extracted focus-navigation helpers into tested utility functions
 - Moved parent/child focus resolution into shared focusNav helpers

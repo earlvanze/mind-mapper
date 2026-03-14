@@ -167,6 +167,12 @@ body, html, #root {
   cursor: grabbing;
 }
 
+.minimap-view:focus {
+  outline: none;
+  stroke-width: 2;
+  stroke: #3730a3;
+}
+
 .node {
   position: absolute;
   padding: 6px 10px;

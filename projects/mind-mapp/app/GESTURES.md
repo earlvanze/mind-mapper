@@ -58,7 +58,7 @@
 - Drag selected node(s): group move
 - Click mini-map node: focus + center that node
 - Click mini-map background: recenter viewport to that location
-- Mini-map viewport box: shows current visible canvas window; drag it to pan
+- Mini-map viewport box: shows current visible canvas window; drag it to pan (focusable for keyboard pan/page/edge-jump)
 - Focus mini-map canvas (Tab), then Arrow keys to pan viewport (Shift + Arrow = faster)
 - Focus mini-map canvas (Tab), then PageUp/PageDown to pan viewport vertically by large steps
 - Focus mini-map canvas (Tab), then Shift+PageUp/Shift+PageDown to pan viewport horizontally by large steps
