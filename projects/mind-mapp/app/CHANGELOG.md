@@ -137,6 +137,7 @@
 - Added explicit toolbar horizontal orientation and named primary action group id for stronger structural semantics
 - Added Search dialog Cmd/Ctrl+Shift+K shortcut to clear query while keeping dialog open
 - Added aria-keyshortcuts metadata to toolbar root/back/forward/history-start/history-end/reset-history buttons
+- Added aria-keyshortcuts metadata to toolbar undo/redo, fit/center, and focus traversal buttons (parent/child/sibling/leaf jumps)
 - Centralized Search/Help dialog close handlers in App to keep keyboard and overlay close paths consistent
 - Kept Cmd/Ctrl+K search toggle available while typing in non-editing inputs for faster command access
 - Improved Help shortcut filtering with punctuation-agnostic multi-term matching + symbol/alias terms (e.g., ctrl slash, command slash, forward slash, question mark, shift plus pageup)

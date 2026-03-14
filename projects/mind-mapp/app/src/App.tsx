@@ -575,17 +575,18 @@ export default function App() {
           </span>
         ) : null}
         <div id="mindmapp-primary-actions" className="toolbar-actions" role="group" aria-label="Primary actions">
-          <button title="Undo (Cmd/Ctrl+Z)" onClick={undo} disabled={!canUndo}>Undo</button>
-          <button title="Redo (Cmd/Ctrl+Shift+Z)" onClick={redo} disabled={!canRedo}>Redo</button>
+          <button title="Undo (Cmd/Ctrl+Z)" aria-keyshortcuts="Control+Z Meta+Z" onClick={undo} disabled={!canUndo}>Undo</button>
+          <button title="Redo (Cmd/Ctrl+Shift+Z)" aria-keyshortcuts="Control+Shift+Z Meta+Shift+Z" onClick={redo} disabled={!canRedo}>Redo</button>
           <button title="Fit to view" onClick={() => fitToView()}>Fit</button>
-          <button title="Fit selected nodes (Alt+F)" onClick={fitSelection}>Fit Sel</button>
-          <button title="Fit focused subtree (Alt+Shift+F)" onClick={fitFocusedSubtree}>Fit Sub</button>
-          <button title="Center focused node (C)" onClick={() => centerOnNode(focusId)}>Center</button>
-          <button title="Center selected nodes (Alt+Shift+C)" onClick={centerSelection}>Center Sel</button>
-          <button title="Center focused subtree (Alt+Shift+B)" onClick={centerSubtree}>Center Sub</button>
-          <button title="Center root node (Shift+C)" onClick={centerRoot}>Center Root</button>
+          <button title="Fit selected nodes (Alt+F)" aria-keyshortcuts="Alt+F" onClick={fitSelection}>Fit Sel</button>
+          <button title="Fit focused subtree (Alt+Shift+F)" aria-keyshortcuts="Alt+Shift+F" onClick={fitFocusedSubtree}>Fit Sub</button>
+          <button title="Center focused node (C)" aria-keyshortcuts="C" onClick={() => centerOnNode(focusId)}>Center</button>
+          <button title="Center selected nodes (Alt+Shift+C)" aria-keyshortcuts="Alt+Shift+C" onClick={centerSelection}>Center Sel</button>
+          <button title="Center focused subtree (Alt+Shift+B)" aria-keyshortcuts="Alt+Shift+B" onClick={centerSubtree}>Center Sub</button>
+          <button title="Center root node (Shift+C)" aria-keyshortcuts="Shift+C" onClick={centerRoot}>Center Root</button>
           <button
             title={parentFocusId ? 'Jump focus to parent node (Shift+P)' : 'No parent node available'}
+            aria-keyshortcuts="Shift+P"
             onClick={focusParentNode}
             disabled={!parentFocusId}
           >
@@ -593,6 +594,7 @@ export default function App() {
           </button>
           <button
             title={childFocusId ? 'Jump focus to first child node (Shift+N)' : 'No child node available'}
+            aria-keyshortcuts="Shift+N"
             onClick={focusChildNode}
             disabled={!childFocusId}
           >
@@ -600,6 +602,7 @@ export default function App() {
           </button>
           <button
             title={prevSiblingId ? 'Jump focus to previous sibling (Shift+H)' : 'No sibling available'}
+            aria-keyshortcuts="Shift+H"
             onClick={() => focusSibling(-1)}
             disabled={!prevSiblingId}
           >
@@ -607,6 +610,7 @@ export default function App() {
           </button>
           <button
             title={nextSiblingId ? 'Jump focus to next sibling (Shift+J)' : 'No sibling available'}
+            aria-keyshortcuts="Shift+J"
             onClick={() => focusSibling(1)}
             disabled={!nextSiblingId}
           >
@@ -614,6 +618,7 @@ export default function App() {
           </button>
           <button
             title={firstLeafId ? 'Jump focus to first leaf in focused subtree (Shift+L)' : 'No leaf node available'}
+            aria-keyshortcuts="Shift+L"
             onClick={focusSubtreeFirstLeaf}
             disabled={!firstLeafId}
           >
@@ -621,6 +626,7 @@ export default function App() {
           </button>
           <button
             title={lastLeafId ? 'Jump focus to last leaf in focused subtree (Shift+K)' : 'No leaf node available'}
+            aria-keyshortcuts="Shift+K"
             onClick={focusSubtreeLastLeaf}
             disabled={!lastLeafId}
           >
@@ -628,6 +634,7 @@ export default function App() {
           </button>
           <button
             title={leafCycleEnabled ? 'Jump focus to previous leaf in focused subtree (Shift+,)' : 'Leaf cycle unavailable (need multiple leaves in focus chain)'}
+            aria-keyshortcuts="Shift+Comma"
             onClick={() => focusSubtreeLeafCycle(-1)}
             disabled={!leafCycleEnabled}
           >
@@ -635,6 +642,7 @@ export default function App() {
           </button>
           <button
             title={leafCycleEnabled ? 'Jump focus to next leaf in focused subtree (Shift+.)' : 'Leaf cycle unavailable (need multiple leaves in focus chain)'}
+            aria-keyshortcuts="Shift+Period"
             onClick={() => focusSubtreeLeafCycle(1)}
             disabled={!leafCycleEnabled}
           >
