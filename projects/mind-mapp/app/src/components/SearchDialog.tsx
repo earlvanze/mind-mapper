@@ -1,6 +1,6 @@
 import { useDeferredValue, useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useMindMapStore } from '../store/useMindMapStore';
-import { SEARCH_DIALOG_ARIA_KEYSHORTCUTS, SEARCH_DIALOG_CLOSE_ARIA_KEYSHORTCUTS, SEARCH_INPUT_ARIA_KEYSHORTCUTS, canExecuteSearchJump, canNavigateSearchSelection, centerPointInView, clampSearchSelection, computeHighlightRanges, createFocusPathResolver, cycleSearchSelection, edgeSearchSelection, formatSearchSummary, getSearchPendingTooltip, isDialogClearInputEvent, isDialogFocusInputEvent, isDialogSelectInputEvent, isSearchSelectionNavigationKey, isSearchToggleEvent, moveSearchSelection, searchNodesWithTotal, shouldKeepSearchOpen, shouldSkipDialogSelectShortcut, tokenizeSearchQuery } from '../utils';
+import { SEARCH_DIALOG_ARIA_KEYSHORTCUTS, SEARCH_DIALOG_CLOSE_ARIA_KEYSHORTCUTS, SEARCH_INPUT_ARIA_KEYSHORTCUTS, canExecuteSearchJump, canNavigateSearchSelection, centerPointInView, clampSearchSelection, computeHighlightRanges, createFocusPathResolver, formatSearchSummary, getSearchPendingTooltip, isDialogClearInputEvent, isDialogFocusInputEvent, isDialogSelectInputEvent, isSearchSelectionNavigationKey, isSearchToggleEvent, navigateSearchSelectionByKey, searchNodesWithTotal, shouldKeepSearchOpen, shouldSkipDialogSelectShortcut, tokenizeSearchQuery } from '../utils';
 
 export default function SearchDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { nodes, setFocus } = useMindMapStore();
@@ -147,30 +147,10 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
         e.preventDefault();
         if (!canNavigateSelection) return;
 
-        if (e.key === 'ArrowDown') {
-          setSelected(s => moveSearchSelection(s, results.length, 1));
-        }
-        if (e.key === 'ArrowUp') {
-          setSelected(s => moveSearchSelection(s, results.length, -1));
-        }
-        if (e.key === 'PageDown') {
-          setSelected(s => moveSearchSelection(s, results.length, 5));
-        }
-        if (e.key === 'PageUp') {
-          setSelected(s => moveSearchSelection(s, results.length, -5));
-        }
-        if (e.key === 'Home') {
-          setSelected(edgeSearchSelection(results.length, 'start'));
-        }
-        if (e.key === 'End') {
-          setSelected(edgeSearchSelection(results.length, 'end'));
-        }
-        if (e.key === 'Tab') {
-          setSelected(s => {
-            if (e.shiftKey) return cycleSearchSelection(s, results.length, -1);
-            return cycleSearchSelection(s, results.length, 1);
-          });
-        }
+        setSelected((current) => {
+          const next = navigateSearchSelectionByKey(current, results.length, e.key, e.shiftKey);
+          return next ?? current;
+        });
       }
       if (e.key === 'Enter' && results.length) {
         e.preventDefault();

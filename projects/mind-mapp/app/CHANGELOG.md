@@ -163,6 +163,7 @@
 - Added shared canExecuteSearchJump guard and applied it to both Enter + click result jumps during deferred updates
 - Added shared canNavigateSearchSelection guard and applied it to keyboard/hover selection movement during deferred updates
 - Added shared search navigation-key classifier (Arrow/Page/Home/End/Tab) for consistent pending no-op handling
+- Centralized key→selection-index mapping in navigateSearchSelectionByKey helper with regression tests
 - Made pending Search navigation keys explicit no-ops (preventDefault without selection changes) to avoid focus escape and page scroll drift
 - Added pending-result aria-disabled + disabled visual state in Search list while deferred results are catching up
 - Gated Search result hover-selection while deferred updates are pending and exposed listbox-level aria-disabled

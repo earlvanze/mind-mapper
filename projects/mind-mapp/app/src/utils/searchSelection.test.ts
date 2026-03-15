@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { clampSearchSelection, cycleSearchSelection, edgeSearchSelection, moveSearchSelection } from './searchSelection';
+import { clampSearchSelection, cycleSearchSelection, edgeSearchSelection, moveSearchSelection, navigateSearchSelectionByKey } from './searchSelection';
 
 describe('searchSelection', () => {
   it('clamps selection inside bounds', () => {
@@ -31,5 +31,21 @@ describe('searchSelection', () => {
     expect(cycleSearchSelection(4, 5, 1)).toBe(0);
     expect(cycleSearchSelection(2, 5, 1)).toBe(3);
     expect(cycleSearchSelection(2, 5, -1)).toBe(1);
+  });
+
+  it('maps navigation keys to selection moves', () => {
+    expect(navigateSearchSelectionByKey(2, 10, 'ArrowDown')).toBe(3);
+    expect(navigateSearchSelectionByKey(2, 10, 'ArrowUp')).toBe(1);
+    expect(navigateSearchSelectionByKey(2, 10, 'PageDown')).toBe(7);
+    expect(navigateSearchSelectionByKey(6, 10, 'PageUp')).toBe(1);
+    expect(navigateSearchSelectionByKey(6, 10, 'Home')).toBe(0);
+    expect(navigateSearchSelectionByKey(6, 10, 'End')).toBe(9);
+    expect(navigateSearchSelectionByKey(6, 10, 'Tab', false)).toBe(7);
+    expect(navigateSearchSelectionByKey(6, 10, 'Tab', true)).toBe(5);
+  });
+
+  it('returns null for unsupported keys or empty totals', () => {
+    expect(navigateSearchSelectionByKey(1, 10, 'Enter')).toBeNull();
+    expect(navigateSearchSelectionByKey(1, 0, 'ArrowDown')).toBeNull();
   });
 });
