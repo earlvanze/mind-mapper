@@ -134,6 +134,22 @@ function compareNodesByTextThenId(a: Node, b: Node): number {
   return a.text.localeCompare(b.text) || a.id.localeCompare(b.id);
 }
 
+function splitSearchTerms(tokens: SearchToken[]): { positiveTerms: string[]; negativeTerms: string[] } {
+  const positiveTerms: string[] = [];
+  const negativeTerms: string[] = [];
+
+  for (let i = 0; i < tokens.length; i += 1) {
+    const token = tokens[i];
+    if (token.negated) {
+      negativeTerms.push(token.value);
+    } else {
+      positiveTerms.push(token.value);
+    }
+  }
+
+  return { positiveTerms, negativeTerms };
+}
+
 function rankSearchMatches(
   nodes: Record<string, Node>,
   query: SearchQueryInput,
@@ -141,9 +157,8 @@ function rankSearchMatches(
   const tokens = normalizeTokens(query);
   if (!tokens.length) return [];
 
-  const positiveTerms = tokens.filter((token) => !token.negated).map((token) => token.value);
-  const negativeTerms = tokens.filter((token) => token.negated).map((token) => token.value);
-  const phrase = positiveTerms.join(' ');
+  const { positiveTerms, negativeTerms } = splitSearchTerms(tokens);
+  const phrase = positiveTerms.length ? positiveTerms.join(' ') : '';
   const searchIndex = getSearchIndex(nodes);
   const rankBuckets: [Node[], Node[], Node[], Node[], Node[]] = [[], [], [], [], []];
 
@@ -175,7 +190,9 @@ function rankSearchMatches(
   }
 
   for (let i = 0; i < rankBuckets.length; i += 1) {
-    rankBuckets[i].sort(compareNodesByTextThenId);
+    if (rankBuckets[i].length > 1) {
+      rankBuckets[i].sort(compareNodesByTextThenId);
+    }
   }
 
   return rankBuckets.flat();

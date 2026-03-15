@@ -157,6 +157,7 @@
 - Added cached search index layer (WeakMap by nodes object) so repeated query edits avoid rebuilding normalized node/path search text
 - Replaced full-match sort with one-pass bucketed rank assembly for search rank levels (0-4) and direct Node bucket output (no intermediate {node,rank} result objects)
 - Added deterministic per-rank tie-break ordering in search results (node text, then node id) with regression coverage
+- Partitioned normalized search tokens into positive/negative terms in a single pass and skipped unnecessary sort calls for 0/1-item rank buckets
 - Reused tokenized query output between search ranking and highlight-term extraction in Search dialog to remove duplicate parsing work
 - Added normalized search result-cap handling (non-finite → default, negative → zero, decimals truncated) with regression coverage
 - Centralized default search result cap in shared DEFAULT_SEARCH_RESULT_LIMIT constant and reused it in Search dialog/tests

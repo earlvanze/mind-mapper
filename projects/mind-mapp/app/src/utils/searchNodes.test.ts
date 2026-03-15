@@ -69,6 +69,15 @@ describe('searchNodes', () => {
     expect(results.map(node => node.id)).toEqual(['n_review']);
   });
 
+  it('supports pre-tokenized positive and negative terms together', () => {
+    const tokens = [
+      { value: ' Alpha ', negated: false },
+      { value: 'review', negated: true },
+    ];
+    const results = searchNodes(nodes, tokens);
+    expect(results.map(node => node.id)).toEqual(['n_alpha']);
+  });
+
   it('supports negative terms for exclusion', () => {
     const results = searchNodes(nodes, 'alpha -review');
     expect(results.map(node => node.id)).toEqual(['n_alpha']);
