@@ -1,10 +1,26 @@
 import { describe, expect, it } from 'vitest';
-import { formatHelpSummary, getHelpPendingMessage } from './helpStatus';
+import { formatHelpSummary, getHelpEmptyMessage, getHelpPendingMessage } from './helpStatus';
 
 describe('getHelpPendingMessage', () => {
   it('returns pending helper copy only while updating', () => {
     expect(getHelpPendingMessage(true)).toBe('Filtering shortcuts…');
     expect(getHelpPendingMessage(false)).toBeUndefined();
+  });
+});
+
+describe('getHelpEmptyMessage', () => {
+  it('shows filtering copy while pending', () => {
+    expect(getHelpEmptyMessage(0, true)).toBe('Filtering shortcuts…');
+    expect(getHelpEmptyMessage(42, true)).toBe('Filtering shortcuts…');
+  });
+
+  it('shows no-match copy when settled with zero shown', () => {
+    expect(getHelpEmptyMessage(0)).toBe('No shortcuts match your filter.');
+    expect(getHelpEmptyMessage(Number.NaN)).toBe('No shortcuts match your filter.');
+  });
+
+  it('returns undefined when filtered shortcuts exist', () => {
+    expect(getHelpEmptyMessage(1)).toBeUndefined();
   });
 });
 

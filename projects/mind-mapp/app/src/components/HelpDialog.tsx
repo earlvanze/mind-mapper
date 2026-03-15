@@ -1,5 +1,5 @@
 import { useDeferredValue, useEffect, useId, useMemo, useRef, useState } from 'react';
-import { HELP_DIALOG_ARIA_KEYSHORTCUTS, HELP_DIALOG_CLOSE_ARIA_KEYSHORTCUTS, HELP_INPUT_ARIA_KEYSHORTCUTS, filterShortcuts, FOCUS_NAV_HISTORY_SHORTCUT_KEYS, formatHelpSummary, getHelpPendingMessage, isDialogClearInputEvent, isDialogFocusInputEvent, isDialogSelectInputEvent, pickShortcutsByKeys, SHORTCUTS, shouldSkipDialogSelectShortcut } from '../utils';
+import { HELP_DIALOG_ARIA_KEYSHORTCUTS, HELP_DIALOG_CLOSE_ARIA_KEYSHORTCUTS, HELP_INPUT_ARIA_KEYSHORTCUTS, filterShortcuts, FOCUS_NAV_HISTORY_SHORTCUT_KEYS, formatHelpSummary, getHelpEmptyMessage, getHelpPendingMessage, isDialogClearInputEvent, isDialogFocusInputEvent, isDialogSelectInputEvent, pickShortcutsByKeys, SHORTCUTS, shouldSkipDialogSelectShortcut } from '../utils';
 
 export default function HelpDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [query, setQuery] = useState('');
@@ -63,6 +63,10 @@ export default function HelpDialog({ open, onClose }: { open: boolean; onClose: 
     () => formatHelpSummary(filtered.length, SHORTCUTS.length, isFilterPending),
     [filtered.length, isFilterPending],
   );
+  const emptyMessage = useMemo(
+    () => getHelpEmptyMessage(filtered.length, isFilterPending),
+    [filtered.length, isFilterPending],
+  );
 
   if (!open) return null;
 
@@ -121,7 +125,7 @@ export default function HelpDialog({ open, onClose }: { open: boolean; onClose: 
             </ul>
           ) : (
             <div className={`help-empty ${isFilterPending ? 'is-pending' : ''}`} role="status">
-              {pendingMessage ?? 'No shortcuts match your filter.'}
+              {emptyMessage ?? 'No shortcuts match your filter.'}
             </div>
           )}
         </div>
