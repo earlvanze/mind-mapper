@@ -41,8 +41,8 @@ function buildNormalizedSearchTokens(
 }
 
 const EMPTY_SEARCH_TOKENS = markNormalizedSearchTokens([]);
-const SEARCH_NEGATION_PREFIX_RE = /^[-−–]$/;
-const SEARCH_QUERY_TOKEN_PATTERN = /([-−–]?)"([^"]*)"|([-−–]?)(\S+)/g;
+const SEARCH_NEGATION_PREFIX_RE = /^[-−–—]$/;
+const SEARCH_QUERY_TOKEN_PATTERN = /([-−–—]?)"([^"]*)"|([-−–—]?)(\S+)/g;
 
 let lastSearchTokenQuery = '';
 let lastSearchTokenResult: NormalizedSearchTokenArray = EMPTY_SEARCH_TOKENS;

@@ -66,7 +66,15 @@ describe('tokenizeSearchQuery', () => {
       { value: 'beta gamma', negated: true },
     ]);
 
+    expect(tokenizeSearchQuery('—alpha')).toEqual([
+      { value: 'alpha', negated: true },
+    ]);
+
     expect(tokenizeSearchQuery('− "alpha review"')).toEqual([
+      { value: 'alpha review', negated: true },
+    ]);
+
+    expect(tokenizeSearchQuery('— "alpha review"')).toEqual([
       { value: 'alpha review', negated: true },
     ]);
   });
@@ -145,8 +153,11 @@ describe('searchNodes', () => {
   });
 
   it('supports unicode dash negation in search queries', () => {
-    const results = searchNodes(nodes, 'alpha −review');
-    expect(results.map(node => node.id)).toEqual(['n_alpha']);
+    const minusResults = searchNodes(nodes, 'alpha −review');
+    expect(minusResults.map(node => node.id)).toEqual(['n_alpha']);
+
+    const emDashResults = searchNodes(nodes, 'alpha —review');
+    expect(emDashResults.map(node => node.id)).toEqual(['n_alpha']);
   });
 
   it('supports multi-term include and multi-term exclude combinations', () => {

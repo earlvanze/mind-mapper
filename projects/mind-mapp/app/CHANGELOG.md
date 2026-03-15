@@ -170,7 +170,7 @@
 - Reused tokenized query output between search ranking and highlight-term extraction in Search dialog to remove duplicate parsing work
 - Removed redundant full-query lowercasing before search token regex parsing (token normalization already handles casing), with regression coverage for uppercase/quoted/negated input
 - Reused a module-level search-query token regex instance (resetting lastIndex per call) and added sequential-query regression coverage
-- Added support for whitespace-separated negation marker before quoted search phrases (e.g., - "alpha review") and unicode dash negation markers (− / –) with regression coverage
+- Added support for whitespace-separated negation marker before quoted search phrases (e.g., - "alpha review") and unicode dash negation markers (− / – / —) with regression coverage
 - Added last-query token cache reuse in search query tokenization and froze cached token arrays/entries to avoid accidental mutation
 - Tagged normalized search-token arrays to short-circuit re-normalization when tokenized query output is reused directly
 - Centralized pre-tokenized search token normalization into a shared builder helper used by normalizeTokens to reduce internal duplication
