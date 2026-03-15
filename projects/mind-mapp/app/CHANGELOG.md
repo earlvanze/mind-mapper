@@ -155,7 +155,7 @@
 - Centralized Search/Help dialog input key-event parsing in shared dialogInputKeys helper utilities
 - Hardened dialog input select-shortcut guard to skip textarea/contenteditable targets in addition to input fields
 - Added cached search index layer (WeakMap by nodes object) so repeated query edits avoid rebuilding normalized node/path search text
-- Replaced full-match sort with one-pass bucketed rank assembly for search rank levels (0-4) and direct Node bucket output (no intermediate {node,rank} result objects), plus manual term-match helpers to avoid repeated Array.every/some callback overhead
+- Replaced full-match sort with one-pass bucketed rank assembly for search rank levels (0-4) and direct Node bucket output (no intermediate {node,rank} result objects)
 - Reused tokenized query output between search ranking and highlight-term extraction in Search dialog to remove duplicate parsing work
 - Added normalized search result-cap handling (non-finite → default, negative → zero, decimals truncated) with regression coverage
 - Centralized default search result cap in shared DEFAULT_SEARCH_RESULT_LIMIT constant and reused it in Search dialog/tests

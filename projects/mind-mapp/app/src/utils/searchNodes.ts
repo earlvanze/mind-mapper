@@ -110,20 +110,6 @@ function normalizeTokens(input: SearchQueryInput): SearchToken[] {
     .filter((token) => !!token.value);
 }
 
-function includesAllTerms(text: string, terms: string[]): boolean {
-  for (const term of terms) {
-    if (!text.includes(term)) return false;
-  }
-  return true;
-}
-
-function includesAnyTerm(text: string, terms: string[]): boolean {
-  for (const term of terms) {
-    if (text.includes(term)) return true;
-  }
-  return false;
-}
-
 function rankSearchMatches(
   nodes: Record<string, Node>,
   query: SearchQueryInput,
