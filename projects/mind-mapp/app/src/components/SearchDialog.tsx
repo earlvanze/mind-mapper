@@ -1,6 +1,6 @@
 import { useDeferredValue, useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useMindMapStore } from '../store/useMindMapStore';
-import { SEARCH_DIALOG_ARIA_KEYSHORTCUTS, SEARCH_DIALOG_CLOSE_ARIA_KEYSHORTCUTS, SEARCH_INPUT_ARIA_KEYSHORTCUTS, centerPointInView, clampSearchSelection, computeHighlightRanges, cycleSearchSelection, edgeSearchSelection, formatFocusPath, isDialogClearInputEvent, isDialogFocusInputEvent, isDialogSelectInputEvent, isSearchToggleEvent, moveSearchSelection, searchNodesWithTotal, shouldKeepSearchOpen, shouldSkipDialogSelectShortcut, tokenizeSearchQuery } from '../utils';
+import { SEARCH_DIALOG_ARIA_KEYSHORTCUTS, SEARCH_DIALOG_CLOSE_ARIA_KEYSHORTCUTS, SEARCH_INPUT_ARIA_KEYSHORTCUTS, centerPointInView, clampSearchSelection, computeHighlightRanges, cycleSearchSelection, edgeSearchSelection, formatFocusPath, formatSearchSummary, isDialogClearInputEvent, isDialogFocusInputEvent, isDialogSelectInputEvent, isSearchToggleEvent, moveSearchSelection, searchNodesWithTotal, shouldKeepSearchOpen, shouldSkipDialogSelectShortcut, tokenizeSearchQuery } from '../utils';
 
 export default function SearchDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { nodes, setFocus } = useMindMapStore();
@@ -83,6 +83,10 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
   }, [nodes, searchTokens]);
   const selectedNodeId = results[selected]?.node.id;
   const selectedOptionId = selectedNodeId ? `${listboxId}-${selectedNodeId}` : undefined;
+  const summaryText = useMemo(
+    () => formatSearchSummary(results.length, totalMatches, isSearchPending),
+    [isSearchPending, results.length, totalMatches],
+  );
 
   useEffect(() => {
     setSelected((index) => clampSearchSelection(index, results.length));
@@ -220,9 +224,9 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
           onChange={(e) => setQuery(e.target.value)}
         />
         <div id={summaryId} className="search-summary" aria-live="polite">
-          {results.length} shown / {totalMatches} matches{totalMatches > results.length ? ' (refine to narrow)' : ''}{isSearchPending ? ' • updating…' : ''}
+          {summaryText}
         </div>
-        <div id={listboxId} className="search-results" role="listbox" aria-describedby={`${summaryId} ${hintId}`}>
+        <div id={listboxId} className="search-results" role="listbox" aria-describedby={`${summaryId} ${hintId}`} aria-busy={isSearchPending}>
           {results.map((r, i) => {
             const title = r.node.text || '(empty)';
             const meta = `${r.node.id} • ${r.path || '(no path)'}`;

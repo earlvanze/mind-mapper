@@ -16,6 +16,7 @@ export * from './importValidation';
 export * from './sampleMap';
 export * from './searchNodes';
 export * from './searchNormalize';
+export * from './searchStatus';
 export * from './shortcutFilter';
 export * from './searchSelection';
 export * from './searchToggle';
