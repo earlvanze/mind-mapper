@@ -180,14 +180,22 @@ function compareNodesByTextThenId(a: Node, b: Node): number {
 function splitSearchTerms(tokens: readonly SearchToken[]): { positiveTerms: string[]; negativeTerms: string[] } {
   const positiveTerms: string[] = [];
   const negativeTerms: string[] = [];
+  const positiveSeen = new Set<string>();
+  const negativeSeen = new Set<string>();
 
   for (let i = 0; i < tokens.length; i += 1) {
     const token = tokens[i];
+
     if (token.negated) {
+      if (negativeSeen.has(token.value)) continue;
+      negativeSeen.add(token.value);
       negativeTerms.push(token.value);
-    } else {
-      positiveTerms.push(token.value);
+      continue;
     }
+
+    if (positiveSeen.has(token.value)) continue;
+    positiveSeen.add(token.value);
+    positiveTerms.push(token.value);
   }
 
   return { positiveTerms, negativeTerms };

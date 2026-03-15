@@ -109,6 +109,13 @@ describe('searchNodes', () => {
     expect(results.map(node => node.id)).toEqual(['n_alpha']);
   });
 
+  it('deduplicates repeated positive/negative terms during ranking checks', () => {
+    const deduped = searchNodes(nodes, 'alpha -review');
+    const repeated = searchNodes(nodes, 'alpha alpha -review -review');
+
+    expect(repeated).toEqual(deduped);
+  });
+
   it('supports pure negative filtering', () => {
     const results = searchNodes(nodes, '-review');
     expect(results.some(node => node.id === 'n_review')).toBe(false);
