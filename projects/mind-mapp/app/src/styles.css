@@ -333,6 +333,11 @@ body, html, #root {
   color: #777;
 }
 
+.help-empty.is-pending {
+  color: #475467;
+  font-style: italic;
+}
+
 .search-title {
   margin: 0 0 8px;
   font-size: 14px;

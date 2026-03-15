@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { formatHelpSummary } from './helpStatus';
+import { formatHelpSummary, getHelpPendingMessage } from './helpStatus';
+
+describe('getHelpPendingMessage', () => {
+  it('returns pending helper copy only while updating', () => {
+    expect(getHelpPendingMessage(true)).toBe('Filtering shortcuts…');
+    expect(getHelpPendingMessage(false)).toBeUndefined();
+  });
+});
 
 describe('formatHelpSummary', () => {
   it('formats shown/total values', () => {
