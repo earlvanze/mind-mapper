@@ -166,6 +166,7 @@
 - Gated Search Tab/Page/Home/End selection navigation while deferred updates are pending
 - Paused Search combobox aria-activedescendant + active-row highlight while deferred updates are pending
 - Added pending-state tooltip copy on Search result rows while deferred updates are catching up
+- Centralized pending tooltip copy in shared searchStatus utility with regression coverage
 - Added cached focus-path resolver for Search result metadata labels and wired SearchDialog to reuse it across result rows
 - Added Search: Cmd/Ctrl+F entry to shared shortcut registry for Help filter discoverability parity
 - Improved toolbar import/copy notices with status/alert live-region semantics and explicit dismiss button labels for screen-reader clarity

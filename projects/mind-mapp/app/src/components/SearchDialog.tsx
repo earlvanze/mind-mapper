@@ -1,6 +1,6 @@
 import { useDeferredValue, useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useMindMapStore } from '../store/useMindMapStore';
-import { SEARCH_DIALOG_ARIA_KEYSHORTCUTS, SEARCH_DIALOG_CLOSE_ARIA_KEYSHORTCUTS, SEARCH_INPUT_ARIA_KEYSHORTCUTS, canExecuteSearchJump, centerPointInView, clampSearchSelection, computeHighlightRanges, createFocusPathResolver, cycleSearchSelection, edgeSearchSelection, formatSearchSummary, isDialogClearInputEvent, isDialogFocusInputEvent, isDialogSelectInputEvent, isSearchToggleEvent, moveSearchSelection, searchNodesWithTotal, shouldKeepSearchOpen, shouldSkipDialogSelectShortcut, tokenizeSearchQuery } from '../utils';
+import { SEARCH_DIALOG_ARIA_KEYSHORTCUTS, SEARCH_DIALOG_CLOSE_ARIA_KEYSHORTCUTS, SEARCH_INPUT_ARIA_KEYSHORTCUTS, canExecuteSearchJump, centerPointInView, clampSearchSelection, computeHighlightRanges, createFocusPathResolver, cycleSearchSelection, edgeSearchSelection, formatSearchSummary, getSearchPendingTooltip, isDialogClearInputEvent, isDialogFocusInputEvent, isDialogSelectInputEvent, isSearchToggleEvent, moveSearchSelection, searchNodesWithTotal, shouldKeepSearchOpen, shouldSkipDialogSelectShortcut, tokenizeSearchQuery } from '../utils';
 
 export default function SearchDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { nodes, setFocus } = useMindMapStore();
@@ -235,7 +235,7 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
           {results.map((r, i) => {
             const title = r.node.text || '(empty)';
             const meta = `${r.node.id} • ${r.path || '(no path)'}`;
-            const pendingTitle = isSearchPending ? 'Search results are updating…' : undefined;
+            const pendingTitle = getSearchPendingTooltip(isSearchPending);
             return (
               <div
                 key={r.node.id}

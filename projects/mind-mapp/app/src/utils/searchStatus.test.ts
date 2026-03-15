@@ -1,10 +1,17 @@
 import { describe, expect, it } from 'vitest';
-import { canExecuteSearchJump, formatSearchSummary } from './searchStatus';
+import { canExecuteSearchJump, formatSearchSummary, getSearchPendingTooltip } from './searchStatus';
 
 describe('canExecuteSearchJump', () => {
   it('allows jumps only when search is not pending', () => {
     expect(canExecuteSearchJump(false)).toBe(true);
     expect(canExecuteSearchJump(true)).toBe(false);
+  });
+});
+
+describe('getSearchPendingTooltip', () => {
+  it('returns pending tooltip only while updating', () => {
+    expect(getSearchPendingTooltip(true)).toBe('Search results are updating…');
+    expect(getSearchPendingTooltip(false)).toBeUndefined();
   });
 });
 
