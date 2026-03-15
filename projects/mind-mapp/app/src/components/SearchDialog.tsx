@@ -143,32 +143,39 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
         inputRef.current?.focus();
         inputRef.current?.select();
       }
-      if (e.key === 'ArrowDown' && results.length && canNavigateSelection) {
+      if (e.key === 'ArrowDown' && results.length) {
         e.preventDefault();
+        if (!canNavigateSelection) return;
         setSelected(s => moveSearchSelection(s, results.length, 1));
       }
-      if (e.key === 'ArrowUp' && results.length && canNavigateSelection) {
+      if (e.key === 'ArrowUp' && results.length) {
         e.preventDefault();
+        if (!canNavigateSelection) return;
         setSelected(s => moveSearchSelection(s, results.length, -1));
       }
-      if (e.key === 'PageDown' && results.length && canNavigateSelection) {
+      if (e.key === 'PageDown' && results.length) {
         e.preventDefault();
+        if (!canNavigateSelection) return;
         setSelected(s => moveSearchSelection(s, results.length, 5));
       }
-      if (e.key === 'PageUp' && results.length && canNavigateSelection) {
+      if (e.key === 'PageUp' && results.length) {
         e.preventDefault();
+        if (!canNavigateSelection) return;
         setSelected(s => moveSearchSelection(s, results.length, -5));
       }
-      if (e.key === 'Home' && results.length && canNavigateSelection) {
+      if (e.key === 'Home' && results.length) {
         e.preventDefault();
+        if (!canNavigateSelection) return;
         setSelected(edgeSearchSelection(results.length, 'start'));
       }
-      if (e.key === 'End' && results.length && canNavigateSelection) {
+      if (e.key === 'End' && results.length) {
         e.preventDefault();
+        if (!canNavigateSelection) return;
         setSelected(edgeSearchSelection(results.length, 'end'));
       }
-      if (e.key === 'Tab' && results.length && canNavigateSelection) {
+      if (e.key === 'Tab' && results.length) {
         e.preventDefault();
+        if (!canNavigateSelection) return;
         setSelected(s => {
           if (e.shiftKey) return cycleSearchSelection(s, results.length, -1);
           return cycleSearchSelection(s, results.length, 1);
@@ -242,7 +249,7 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
                 key={r.node.id}
                 id={`${listboxId}-${r.node.id}`}
                 role="option"
-                aria-selected={i === selected}
+                aria-selected={canNavigateSelection && i === selected}
                 aria-disabled={!canJumpToResult}
                 aria-posinset={i + 1}
                 aria-setsize={results.length}
