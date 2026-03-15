@@ -166,6 +166,7 @@
 - Replaced rank bucket `Array.flat()` output with pre-sized manual flattening to avoid intermediate flatten allocation
 - Centralized per-entry search term skip gating into shared helper to keep include/exclude logic in one branchable path
 - Added 1-term/2-term fast paths for search include/exclude term checks (all/any) with combined include+exclude regression coverage
+- Added branch fast paths for entry skip gating when only include terms or only exclude terms are present
 - Converted pre-tokenized search-token normalization/filtering to a loop-based pass to avoid intermediate map/filter allocations
 - Reused tokenized query output between search ranking and highlight-term extraction in Search dialog to remove duplicate parsing work
 - Removed redundant full-query lowercasing before search token regex parsing (token normalization already handles casing), with regression coverage for uppercase/quoted/negated input

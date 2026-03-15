@@ -239,10 +239,16 @@ function shouldSkipEntryByTerms(
   positiveTerms: readonly string[],
   negativeTerms: readonly string[],
 ): boolean {
-  return (
-    (positiveTerms.length > 0 && !includesAllTerms(searchable, positiveTerms))
-    || includesAnyTerm(searchable, negativeTerms)
-  );
+  if (positiveTerms.length === 0) {
+    return includesAnyTerm(searchable, negativeTerms);
+  }
+
+  if (negativeTerms.length === 0) {
+    return !includesAllTerms(searchable, positiveTerms);
+  }
+
+  return !includesAllTerms(searchable, positiveTerms)
+    || includesAnyTerm(searchable, negativeTerms);
 }
 
 function compareNodesByTextThenId(a: Node, b: Node): number {

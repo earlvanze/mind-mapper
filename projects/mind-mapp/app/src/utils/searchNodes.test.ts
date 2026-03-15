@@ -165,6 +165,11 @@ describe('searchNodes', () => {
     expect(results.map(node => node.id)).toEqual(['n_alpha']);
   });
 
+  it('supports multi-term include queries without excludes', () => {
+    const results = searchNodes(nodes, 'alpha root');
+    expect(results.map(node => node.id)).toEqual(['n_alpha', 'n_review']);
+  });
+
   it('deduplicates repeated positive/negative terms during ranking checks', () => {
     const deduped = searchNodes(nodes, 'alpha -review');
     const repeated = searchNodes(nodes, 'alpha alpha -review -review');
