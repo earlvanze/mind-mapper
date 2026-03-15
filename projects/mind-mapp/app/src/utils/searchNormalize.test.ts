@@ -9,6 +9,13 @@ describe('searchNormalize', () => {
     expect(shouldInsertSearchBoundary('A', 'B')).toBe(false);
   });
 
+  it('returns false for empty and non-alnum transitions', () => {
+    expect(shouldInsertSearchBoundary('', 'A')).toBe(false);
+    expect(shouldInsertSearchBoundary('a', '')).toBe(false);
+    expect(shouldInsertSearchBoundary('-', 'A')).toBe(false);
+    expect(shouldInsertSearchBoundary('A', '-')).toBe(false);
+  });
+
   it('folds characters with diacritics and punctuation', () => {
     expect(foldSearchCharacter('é')).toBe('e');
     expect(foldSearchCharacter('-')).toBe(' ');

@@ -1,14 +1,33 @@
 const DIACRITIC_RE = /[\u0300-\u036f]/g;
 
+function isAsciiLower(char: string): boolean {
+  const code = char.charCodeAt(0);
+  return code >= 97 && code <= 122;
+}
+
+function isAsciiUpper(char: string): boolean {
+  const code = char.charCodeAt(0);
+  return code >= 65 && code <= 90;
+}
+
+function isAsciiDigit(char: string): boolean {
+  const code = char.charCodeAt(0);
+  return code >= 48 && code <= 57;
+}
+
+function isAsciiLetter(char: string): boolean {
+  return isAsciiLower(char) || isAsciiUpper(char);
+}
+
 export function shouldInsertSearchBoundary(previous: string, current: string): boolean {
   if (!previous || !current) return false;
 
-  const prevIsLower = /[a-z]/.test(previous);
-  const prevIsLetter = /[A-Za-z]/.test(previous);
-  const prevIsDigit = /\d/.test(previous);
-  const currentIsUpper = /[A-Z]/.test(current);
-  const currentIsLetter = /[A-Za-z]/.test(current);
-  const currentIsDigit = /\d/.test(current);
+  const prevIsLower = isAsciiLower(previous);
+  const prevIsLetter = isAsciiLetter(previous);
+  const prevIsDigit = isAsciiDigit(previous);
+  const currentIsUpper = isAsciiUpper(current);
+  const currentIsLetter = isAsciiLetter(current);
+  const currentIsDigit = isAsciiDigit(current);
 
   return (
     (prevIsLower && currentIsUpper)

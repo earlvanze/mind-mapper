@@ -202,6 +202,7 @@
 - Hardened shortcut-query token cache by returning frozen token arrays to prevent accidental external mutation of cached query terms
 - Fixed Help shortcut alias normalization so forward slash/question mark queries avoid Cmd/Ctrl+F false positives while still matching Cmd/Ctrl+/
 - Unified search normalization logic in shared helper to keep search matching and highlighting behavior in lockstep
+- Optimized search boundary classification checks to use ASCII char-code helpers (regex-free hot path) with added guard-case regression coverage
 - Marked current breadcrumb segment as aria-current/disabled to prevent redundant refocus clicks
 - Added mini-map Home/End keyboard edge-jump + PageUp/PageDown vertical and Shift+PageUp/PageDown horizontal large-step navigation when mini-map canvas is focused
 - Made mini-map viewport handle keyboard-focusable with the same Arrow/Page/Home/End navigation support
