@@ -185,6 +185,7 @@
 - Added Help results wrapper aria-disabled + pending tooltip semantics during deferred filter updates
 - Added shared getHelpPendingMessage helper and "Filtering shortcuts…" pending empty-state copy to avoid premature no-results messaging while filter updates are in flight
 - Added shared getHelpEmptyMessage helper and wired Help dialog empty-state rendering to shared pending/no-match copy
+- Centralized Help count normalization in shared helper reused by help empty-state and summary formatting
 - Added WeakMap-backed resolver caching in selectionText so repeated createFocusPathResolver calls for the same nodes object reuse the same memoized resolver
 - Added Search: Cmd/Ctrl+F entry to shared shortcut registry for Help filter discoverability parity
 - Improved toolbar import/copy notices with status/alert live-region semantics and explicit dismiss button labels for screen-reader clarity

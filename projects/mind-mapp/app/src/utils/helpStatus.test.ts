@@ -22,6 +22,11 @@ describe('getHelpEmptyMessage', () => {
   it('returns undefined when filtered shortcuts exist', () => {
     expect(getHelpEmptyMessage(1)).toBeUndefined();
   });
+
+  it('normalizes invalid and decimal shown counts', () => {
+    expect(getHelpEmptyMessage(-2.8)).toBe('No shortcuts match your filter.');
+    expect(getHelpEmptyMessage(1.9)).toBeUndefined();
+  });
 });
 
 describe('formatHelpSummary', () => {
