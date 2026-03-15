@@ -144,7 +144,7 @@ function buildSearchIndex(nodes: Record<string, Node>): SearchIndexEntry[] {
       label,
       id,
       path,
-      searchable: `${label} ${id} ${path}`,
+      searchable: `${id} ${path}`,
     };
   });
 }
