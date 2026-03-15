@@ -41,6 +41,7 @@ function buildNormalizedSearchTokens(
 }
 
 const EMPTY_SEARCH_TOKENS = markNormalizedSearchTokens([]);
+const SEARCH_QUERY_TOKEN_PATTERN = /(-?)"([^"]*)"|(-?)(\S+)/g;
 
 let lastSearchTokenQuery = '';
 let lastSearchTokenResult: NormalizedSearchTokenArray = EMPTY_SEARCH_TOKENS;
@@ -58,7 +59,8 @@ export function tokenizeSearchQuery(query: string): readonly SearchToken[] {
   }
 
   const tokens: SearchToken[] = [];
-  const pattern = /(-?)"([^"]*)"|(-?)(\S+)/g;
+  const pattern = SEARCH_QUERY_TOKEN_PATTERN;
+  pattern.lastIndex = 0;
   let match: RegExpExecArray | null;
   let pendingNegation = false;
 

@@ -59,6 +59,18 @@ describe('tokenizeSearchQuery', () => {
       { value: 'beta', negated: false },
     ]);
   });
+
+  it('tokenizes distinct sequential queries correctly', () => {
+    expect(tokenizeSearchQuery('alpha beta')).toEqual([
+      { value: 'alpha', negated: false },
+      { value: 'beta', negated: false },
+    ]);
+
+    expect(tokenizeSearchQuery('"gamma delta" -beta')).toEqual([
+      { value: 'gamma delta', negated: false },
+      { value: 'beta', negated: true },
+    ]);
+  });
 });
 
 describe('searchNodes', () => {
