@@ -32,8 +32,8 @@ export function shouldDisplaySearchEmptyState(
   query: string,
   hasTokens: boolean,
 ): boolean {
-  if (!NON_WHITESPACE_RE.test(query)) return false;
-  return hasTokens;
+  if (!hasTokens) return false;
+  return NON_WHITESPACE_RE.test(query);
 }
 
 export function getSearchEmptyMessage(shown: number, total: number, pending = false): string | undefined {

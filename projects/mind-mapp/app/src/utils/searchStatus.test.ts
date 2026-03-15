@@ -42,8 +42,9 @@ describe('shouldDisplaySearchEmptyState', () => {
     expect(shouldDisplaySearchEmptyState('\n\t', false)).toBe(false);
   });
 
-  it('returns false for tokenless non-empty queries', () => {
+  it('returns false when normalized tokens are absent', () => {
     expect(shouldDisplaySearchEmptyState('?', false)).toBe(false);
+    expect(shouldDisplaySearchEmptyState('alpha', false)).toBe(false);
   });
 
   it('returns true when query has normalized tokens', () => {
