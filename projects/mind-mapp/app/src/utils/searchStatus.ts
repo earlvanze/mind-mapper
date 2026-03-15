@@ -35,21 +35,25 @@ export function shouldDisplaySearchEmptyState(
   return hasTokens;
 }
 
+function normalizeSearchCount(value: number): number {
+  return Number.isFinite(value) ? Math.max(0, Math.trunc(value)) : 0;
+}
+
 export function getSearchEmptyMessage(shown: number, total: number, pending = false): string | undefined {
   if (pending) return 'Searching nodes…';
 
-  const safeShown = Number.isFinite(shown) ? Math.max(0, Math.trunc(shown)) : 0;
+  const safeShown = normalizeSearchCount(shown);
   if (safeShown > 0) return undefined;
 
-  const safeTotal = Number.isFinite(total) ? Math.max(0, Math.trunc(total)) : 0;
+  const safeTotal = normalizeSearchCount(total);
   if (safeTotal > 0) return 'Matches exist, refine your query to reveal them.';
 
   return 'No nodes match your query.';
 }
 
 export function formatSearchSummary(shown: number, total: number, pending = false): string {
-  const safeShown = Number.isFinite(shown) ? Math.max(0, Math.trunc(shown)) : 0;
-  const safeTotal = Number.isFinite(total) ? Math.max(0, Math.trunc(total)) : 0;
+  const safeShown = normalizeSearchCount(shown);
+  const safeTotal = normalizeSearchCount(total);
 
   let summary = `${safeShown} shown / ${safeTotal} matches`;
   if (safeTotal > safeShown) {

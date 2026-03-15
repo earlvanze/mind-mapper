@@ -179,6 +179,7 @@
 - Added shared search empty-state messaging helper to distinguish pending "Searching nodes…" from settled no-results copy
 - Expanded search empty-state helper to account for shown vs total matches (including hidden-results refine copy) and wired Search dialog to the new signature
 - Added shared shouldDisplaySearchEmptyState helper so Search empty-state copy stays hidden for blank/whitespace-only and tokenless (punctuation-only) settled input while remaining visible during pending updates
+- Centralized search count normalization in shared helper reused by both search summary and empty-state copy formatting
 - Added cached focus-path resolver for Search result metadata labels and wired SearchDialog to reuse it across result rows
 - Added deferred Help filter evaluation with shared help summary formatter and aria-busy pending-state semantics
 - Added Help results wrapper aria-disabled + pending tooltip semantics during deferred filter updates

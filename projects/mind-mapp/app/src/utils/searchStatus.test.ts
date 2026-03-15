@@ -74,6 +74,11 @@ describe('getSearchEmptyMessage', () => {
   it('shows refine-copy when total matches exist but none are currently shown', () => {
     expect(getSearchEmptyMessage(0, 5)).toBe('Matches exist, refine your query to reveal them.');
   });
+
+  it('normalizes invalid/decimal counts before deciding copy', () => {
+    expect(getSearchEmptyMessage(-2.7, 3.9)).toBe('Matches exist, refine your query to reveal them.');
+    expect(getSearchEmptyMessage(Number.NaN, Number.NaN)).toBe('No nodes match your query.');
+  });
 });
 
 describe('formatSearchSummary', () => {
