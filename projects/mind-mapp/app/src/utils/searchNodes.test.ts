@@ -136,7 +136,10 @@ describe('searchNodes', () => {
 
   it('short-circuits contradictory include/exclude terms', () => {
     expect(searchNodes(nodes, 'alpha -alpha')).toEqual([]);
+    expect(searchNodes(nodes, 'alpha alpha -alpha -alpha')).toEqual([]);
     expect(searchNodes(nodes, [
+      { value: 'alpha', negated: false },
+      { value: 'alpha', negated: true },
       { value: 'alpha', negated: false },
       { value: 'alpha', negated: true },
     ])).toEqual([]);

@@ -204,44 +204,37 @@ function compareNodesByTextThenId(a: Node, b: Node): number {
   return a.text.localeCompare(b.text) || a.id.localeCompare(b.id);
 }
 
-function splitSearchTerms(tokens: readonly SearchToken[]): { positiveTerms: string[]; negativeTerms: string[] } {
+function splitSearchTerms(tokens: readonly SearchToken[]): { positiveTerms: string[]; negativeTerms: string[]; hasOverlap: boolean } {
   const positiveTerms: string[] = [];
   const negativeTerms: string[] = [];
   const positiveSeen = new Set<string>();
   const negativeSeen = new Set<string>();
+  let hasOverlap = false;
 
   for (let i = 0; i < tokens.length; i += 1) {
     const token = tokens[i];
 
     if (token.negated) {
+      if (positiveSeen.has(token.value)) {
+        hasOverlap = true;
+      }
       if (negativeSeen.has(token.value)) continue;
+
       negativeSeen.add(token.value);
       negativeTerms.push(token.value);
       continue;
     }
 
+    if (negativeSeen.has(token.value)) {
+      hasOverlap = true;
+    }
     if (positiveSeen.has(token.value)) continue;
+
     positiveSeen.add(token.value);
     positiveTerms.push(token.value);
   }
 
-  return { positiveTerms, negativeTerms };
-}
-
-function hasTermOverlap(positiveTerms: readonly string[], negativeTerms: readonly string[]): boolean {
-  if (!positiveTerms.length || !negativeTerms.length) return false;
-
-  const smaller = positiveTerms.length <= negativeTerms.length ? positiveTerms : negativeTerms;
-  const larger = smaller === positiveTerms ? negativeTerms : positiveTerms;
-  const largerSet = new Set(larger);
-
-  for (let i = 0; i < smaller.length; i += 1) {
-    if (largerSet.has(smaller[i])) {
-      return true;
-    }
-  }
-
-  return false;
+  return { positiveTerms, negativeTerms, hasOverlap };
 }
 
 function rankSearchMatches(
@@ -251,8 +244,8 @@ function rankSearchMatches(
   const tokens = normalizeTokens(query);
   if (!tokens.length) return [];
 
-  const { positiveTerms, negativeTerms } = splitSearchTerms(tokens);
-  if (hasTermOverlap(positiveTerms, negativeTerms)) return [];
+  const { positiveTerms, negativeTerms, hasOverlap } = splitSearchTerms(tokens);
+  if (hasOverlap) return [];
 
   const phrase = positiveTerms.length ? positiveTerms.join(' ') : '';
   const searchIndex = getSearchIndex(nodes);
