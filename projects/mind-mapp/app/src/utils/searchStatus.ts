@@ -24,6 +24,10 @@ export function getSearchPendingTooltip(pending: boolean): string | undefined {
   return pending ? 'Search results are updating…' : undefined;
 }
 
+export function shouldDisplaySearchEmptyState(query: string): boolean {
+  return query.trim().length > 0;
+}
+
 export function getSearchEmptyMessage(total: number, pending = false): string | undefined {
   if (pending) return 'Searching nodes…';
 

@@ -177,6 +177,7 @@
 - Reused shared pending tooltip + empty-state helper directly in Search dialog list rendering to keep pending/no-results copy consistent and avoid per-row helper recomputation
 - Centralized pending tooltip copy in shared searchStatus utility with regression coverage
 - Added shared search empty-state messaging helper to distinguish pending "Searching nodes…" from settled no-results copy
+- Added shared shouldDisplaySearchEmptyState helper so Search empty-state copy stays hidden for blank/whitespace-only input
 - Added cached focus-path resolver for Search result metadata labels and wired SearchDialog to reuse it across result rows
 - Added deferred Help filter evaluation with shared help summary formatter and aria-busy pending-state semantics
 - Added Help results wrapper aria-disabled + pending tooltip semantics during deferred filter updates

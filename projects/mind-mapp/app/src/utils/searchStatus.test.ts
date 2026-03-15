@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { canExecuteSearchJump, canNavigateSearchSelection, formatSearchSummary, getSearchEmptyMessage, getSearchPendingTooltip, isSearchSelectionNavigationKey } from './searchStatus';
+import { canExecuteSearchJump, canNavigateSearchSelection, formatSearchSummary, getSearchEmptyMessage, getSearchPendingTooltip, isSearchSelectionNavigationKey, shouldDisplaySearchEmptyState } from './searchStatus';
 
 describe('canExecuteSearchJump', () => {
   it('allows jumps only when search is not pending', () => {
@@ -32,6 +32,18 @@ describe('getSearchPendingTooltip', () => {
   it('returns pending tooltip only while updating', () => {
     expect(getSearchPendingTooltip(true)).toBe('Search results are updating…');
     expect(getSearchPendingTooltip(false)).toBeUndefined();
+  });
+});
+
+describe('shouldDisplaySearchEmptyState', () => {
+  it('returns false for blank and whitespace-only queries', () => {
+    expect(shouldDisplaySearchEmptyState('')).toBe(false);
+    expect(shouldDisplaySearchEmptyState('   ')).toBe(false);
+  });
+
+  it('returns true for non-empty queries', () => {
+    expect(shouldDisplaySearchEmptyState('a')).toBe(true);
+    expect(shouldDisplaySearchEmptyState('  alpha  ')).toBe(true);
   });
 });
 
