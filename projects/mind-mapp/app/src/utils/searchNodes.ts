@@ -41,14 +41,15 @@ function buildNormalizedSearchTokens(
 }
 
 const EMPTY_SEARCH_TOKENS = markNormalizedSearchTokens([]);
-const SEARCH_NEGATION_PREFIX_RE = /^[-−–—]$/;
 const SEARCH_QUERY_TOKEN_PATTERN = /([-−–—]?)"([^"]*)"|([-−–—]?)(\S+)/g;
 
 let lastSearchTokenQuery = '';
 let lastSearchTokenResult: NormalizedSearchTokenArray = EMPTY_SEARCH_TOKENS;
 
 function isSearchNegationPrefix(value: string): boolean {
-  return SEARCH_NEGATION_PREFIX_RE.test(value);
+  if (value.length !== 1) return false;
+
+  return value === '-' || value === '−' || value === '–' || value === '—';
 }
 
 export function tokenizeSearchQuery(query: string): readonly SearchToken[] {
