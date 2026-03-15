@@ -159,6 +159,7 @@
 - Added normalized search result-cap handling (non-finite → default, negative → zero, decimals truncated) with regression coverage
 - Added deferred query evaluation in Search dialog with inline "updating…" status to keep typing responsive on larger maps
 - Added shared search summary formatter + listbox aria-busy wiring while deferred results are catching up
+- Gated Enter-to-jump while Search deferred results are still updating to prevent stale-result jumps
 - Added cached focus-path resolver for Search result metadata labels and wired SearchDialog to reuse it across result rows
 - Added Search: Cmd/Ctrl+F entry to shared shortcut registry for Help filter discoverability parity
 - Improved toolbar import/copy notices with status/alert live-region semantics and explicit dismiss button labels for screen-reader clarity

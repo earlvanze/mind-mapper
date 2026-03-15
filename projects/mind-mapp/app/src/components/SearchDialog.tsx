@@ -173,6 +173,7 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
       }
       if (e.key === 'Enter' && results.length) {
         e.preventDefault();
+        if (isSearchPending) return;
         const item = results[selected]?.node;
         if (item) {
           const closeAfter = !shouldKeepSearchOpen(e);
@@ -182,7 +183,7 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [open, onClose, query, results, selected, setFocus]);
+  }, [isSearchPending, onClose, open, query, results, selected, setFocus]);
 
   if (!open) return null;
 
@@ -258,7 +259,7 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
             );
           })}
           {!results.length && query && <div className="search-empty" role="status">No results</div>}
-          <div id={hintId} className="search-hint">Tab/Shift+Tab: cycle selection • PageUp/PageDown: jump by 5 • Home/End: first/last • Enter/click: jump + close • Shift/Cmd/Ctrl/Alt+Enter/click: jump + keep open • Esc: clear query (or close when empty) • Cmd/Ctrl+Shift+K: clear query • Cmd/Ctrl+F: focus search • Cmd/Ctrl+A: select query • Cmd/Ctrl+K: close search</div>
+          <div id={hintId} className="search-hint">Tab/Shift+Tab: cycle selection • PageUp/PageDown: jump by 5 • Home/End: first/last • Enter/click: jump + close (when not updating) • Shift/Cmd/Ctrl/Alt+Enter/click: jump + keep open • Esc: clear query (or close when empty) • Cmd/Ctrl+Shift+K: clear query • Cmd/Ctrl+F: focus search • Cmd/Ctrl+A: select query • Cmd/Ctrl+K: close search</div>
         </div>
       </div>
     </div>
