@@ -170,7 +170,7 @@ function includesAllTerms(haystack: string, terms: string[]): boolean {
   return true;
 }
 
-function includesAnyTerm(haystack: string, terms: string[]): boolean {
+function includesAnyTerm(haystack: string, terms: readonly string[]): boolean {
   for (let i = 0; i < terms.length; i += 1) {
     if (haystack.includes(terms[i])) {
       return true;
@@ -178,6 +178,17 @@ function includesAnyTerm(haystack: string, terms: string[]): boolean {
   }
 
   return false;
+}
+
+function shouldSkipEntryByTerms(
+  searchable: string,
+  positiveTerms: readonly string[],
+  negativeTerms: readonly string[],
+): boolean {
+  return (
+    (positiveTerms.length > 0 && !includesAllTerms(searchable, positiveTerms))
+    || includesAnyTerm(searchable, negativeTerms)
+  );
 }
 
 function compareNodesByTextThenId(a: Node, b: Node): number {
@@ -241,11 +252,7 @@ function rankSearchMatches(
   for (let i = 0; i < searchIndex.length; i += 1) {
     const { node, label, id, path, searchable } = searchIndex[i];
 
-    if (positiveTerms.length > 0 && !includesAllTerms(searchable, positiveTerms)) {
-      continue;
-    }
-
-    if (includesAnyTerm(searchable, negativeTerms)) {
+    if (shouldSkipEntryByTerms(searchable, positiveTerms, negativeTerms)) {
       continue;
     }
 
