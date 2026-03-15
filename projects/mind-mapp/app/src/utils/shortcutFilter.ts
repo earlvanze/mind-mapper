@@ -80,7 +80,15 @@ export function tokenizeShortcutQuery(query: string): readonly string[] {
   return lastShortcutQueryTerms;
 }
 
-function includesAllShortcutTerms(haystack: string, terms: readonly string[]): boolean {
+function matchesShortcutTerms(haystack: string, terms: readonly string[]): boolean {
+  if (terms.length === 1) {
+    return haystack.includes(terms[0]);
+  }
+
+  if (terms.length === 2) {
+    return haystack.includes(terms[0]) && haystack.includes(terms[1]);
+  }
+
   for (let i = 0; i < terms.length; i += 1) {
     if (!haystack.includes(terms[i])) {
       return false;
@@ -96,6 +104,6 @@ export function filterShortcuts(shortcuts: Shortcut[], query: string): Shortcut[
 
   return shortcuts.filter((shortcut) => {
     const haystack = getShortcutHaystack(shortcut);
-    return includesAllShortcutTerms(haystack, terms);
+    return matchesShortcutTerms(haystack, terms);
   });
 }

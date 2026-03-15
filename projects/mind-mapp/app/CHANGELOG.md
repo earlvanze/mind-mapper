@@ -210,6 +210,7 @@
 - Deduplicated repeated normalized Help filter terms to avoid redundant per-term includes checks during shortcut matching
 - Added last-query token cache reuse in shortcut query tokenization to reduce repeated normalization/split work while typing the same Help filter value
 - Hardened shortcut-query token cache by returning frozen token arrays to prevent accidental external mutation of cached query terms
+- Added 1-term/2-term fast paths in Help shortcut term matching to reduce loop overhead in common filter cases
 - Fixed Help shortcut alias normalization so forward slash/question mark queries avoid Cmd/Ctrl+F false positives while still matching Cmd/Ctrl+/
 - Unified search normalization logic in shared helper to keep search matching and highlighting behavior in lockstep
 - Optimized search boundary classification checks to use ASCII char-code helpers (regex-free hot path) with added guard-case regression coverage

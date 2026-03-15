@@ -48,6 +48,11 @@ describe('filterShortcuts', () => {
     expect(result.map(shortcut => shortcut.key)).toEqual(['Cmd/Ctrl+F']);
   });
 
+  it('matches single-term shortcut queries', () => {
+    const result = filterShortcuts(SAMPLE, 'mini');
+    expect(result.map(shortcut => shortcut.key)).toEqual(['Shift+PageUp']);
+  });
+
   it('matches multi-term queries across key + description', () => {
     const result = filterShortcuts(SAMPLE, 'mini map pageup');
     expect(result.map(shortcut => shortcut.key)).toEqual(['Shift+PageUp']);
