@@ -41,18 +41,13 @@ describe('shouldDisplaySearchEmptyState', () => {
     expect(shouldDisplaySearchEmptyState('   ', false)).toBe(false);
   });
 
-  it('returns true while pending for non-empty queries', () => {
-    expect(shouldDisplaySearchEmptyState('?', false, true)).toBe(true);
-    expect(shouldDisplaySearchEmptyState('alpha', true, true)).toBe(true);
+  it('returns false for tokenless non-empty queries', () => {
+    expect(shouldDisplaySearchEmptyState('?', false)).toBe(false);
   });
 
-  it('returns false when settled query has no normalized tokens', () => {
-    expect(shouldDisplaySearchEmptyState('?', false, false)).toBe(false);
-  });
-
-  it('returns true when settled query has normalized tokens', () => {
-    expect(shouldDisplaySearchEmptyState('alpha', true, false)).toBe(true);
-    expect(shouldDisplaySearchEmptyState('  alpha  ', true, false)).toBe(true);
+  it('returns true when query has normalized tokens', () => {
+    expect(shouldDisplaySearchEmptyState('alpha', true)).toBe(true);
+    expect(shouldDisplaySearchEmptyState('  alpha  ', true)).toBe(true);
   });
 });
 

@@ -29,11 +29,8 @@ export function getSearchPendingTooltip(pending: boolean): string | undefined {
 export function shouldDisplaySearchEmptyState(
   query: string,
   hasTokens: boolean,
-  pending = false,
 ): boolean {
   if (query.trim().length === 0) return false;
-  if (pending) return true;
-
   return hasTokens;
 }
 

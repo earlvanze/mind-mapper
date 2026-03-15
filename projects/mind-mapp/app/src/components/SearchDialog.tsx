@@ -98,8 +98,8 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
     [isSearchPending, results.length, totalMatches],
   );
   const shouldShowEmptyState = useMemo(
-    () => shouldDisplaySearchEmptyState(query, searchTokens.length > 0, isSearchPending),
-    [isSearchPending, query, searchTokens.length],
+    () => shouldDisplaySearchEmptyState(query, searchTokens.length > 0),
+    [query, searchTokens.length],
   );
 
   useEffect(() => {
