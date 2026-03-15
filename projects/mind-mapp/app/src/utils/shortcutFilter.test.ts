@@ -36,7 +36,14 @@ describe('tokenizeShortcutQuery', () => {
 
 describe('filterShortcuts', () => {
   it('returns all shortcuts for empty query', () => {
-    expect(filterShortcuts(SAMPLE, '   ')).toEqual(SAMPLE);
+    const result = filterShortcuts(SAMPLE, '   ');
+    expect(result).toEqual(SAMPLE);
+    expect(result).toBe(SAMPLE);
+  });
+
+  it('returns a filtered array instance for non-empty queries', () => {
+    const result = filterShortcuts(SAMPLE, 'cmd');
+    expect(result).not.toBe(SAMPLE);
   });
 
   it('treats repeated punctuation-only query as repeated normalized terms', () => {

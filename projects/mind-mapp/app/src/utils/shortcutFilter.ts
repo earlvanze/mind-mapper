@@ -102,8 +102,15 @@ export function filterShortcuts(shortcuts: Shortcut[], query: string): Shortcut[
   const terms = tokenizeShortcutQuery(query);
   if (!terms.length) return shortcuts;
 
-  return shortcuts.filter((shortcut) => {
+  const filtered: Shortcut[] = [];
+
+  for (let i = 0; i < shortcuts.length; i += 1) {
+    const shortcut = shortcuts[i];
     const haystack = getShortcutHaystack(shortcut);
-    return matchesShortcutTerms(haystack, terms);
-  });
+    if (matchesShortcutTerms(haystack, terms)) {
+      filtered.push(shortcut);
+    }
+  }
+
+  return filtered;
 }
