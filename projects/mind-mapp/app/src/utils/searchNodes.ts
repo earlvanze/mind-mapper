@@ -10,13 +10,13 @@ export type SearchQueryInput = string | SearchToken[];
 
 export function tokenizeSearchQuery(query: string): SearchToken[] {
   const tokens: SearchToken[] = [];
-  const normalized = query.trim().toLowerCase();
-  if (!normalized) return tokens;
+  const trimmedQuery = query.trim();
+  if (!trimmedQuery) return tokens;
 
   const pattern = /(-?)"([^"]*)"|(-?)(\S+)/g;
   let match: RegExpExecArray | null;
 
-  while ((match = pattern.exec(normalized)) !== null) {
+  while ((match = pattern.exec(trimmedQuery)) !== null) {
     const prefix = match[1] || match[3] || '';
     const raw = normalizeSearchText(match[2] || match[4] || '');
     if (!raw) continue;

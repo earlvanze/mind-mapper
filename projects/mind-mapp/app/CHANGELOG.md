@@ -159,6 +159,7 @@
 - Added deterministic per-rank tie-break ordering in search results (node text, then node id) with regression coverage
 - Partitioned normalized search tokens into positive/negative terms in a single pass and skipped unnecessary sort calls for 0/1-item rank buckets
 - Reused tokenized query output between search ranking and highlight-term extraction in Search dialog to remove duplicate parsing work
+- Removed redundant full-query lowercasing before search token regex parsing (token normalization already handles casing), with regression coverage for uppercase/quoted/negated input
 - Added normalized search result-cap handling (non-finite → default, negative → zero, decimals truncated) with regression coverage
 - Centralized default search result cap in shared DEFAULT_SEARCH_RESULT_LIMIT constant and reused it in Search dialog/tests
 - Added deferred query evaluation in Search dialog with inline "updating…" status to keep typing responsive on larger maps

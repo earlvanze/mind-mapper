@@ -36,6 +36,13 @@ describe('tokenizeSearchQuery', () => {
       { value: 'resume cafe', negated: false },
     ]);
   });
+
+  it('normalizes uppercase tokens without pre-lowercasing the full query', () => {
+    expect(tokenizeSearchQuery('"Alpha REVIEW" -BETA')).toEqual([
+      { value: 'alpha review', negated: false },
+      { value: 'beta', negated: true },
+    ]);
+  });
 });
 
 describe('searchNodes', () => {
