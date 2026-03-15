@@ -156,6 +156,7 @@
 - Hardened dialog input select-shortcut guard to skip textarea/contenteditable targets in addition to input fields
 - Added cached search index layer (WeakMap by nodes object) so repeated query edits avoid rebuilding normalized node/path search text
 - Reused tokenized query output between search ranking and highlight-term extraction in Search dialog to remove duplicate parsing work
+- Added normalized search result-cap handling (non-finite → default, negative → zero, decimals truncated) with regression coverage
 - Added deferred query evaluation in Search dialog with inline "updating…" status to keep typing responsive on larger maps
 - Added shared search summary formatter + listbox aria-busy wiring while deferred results are catching up
 - Added cached focus-path resolver for Search result metadata labels and wired SearchDialog to reuse it across result rows

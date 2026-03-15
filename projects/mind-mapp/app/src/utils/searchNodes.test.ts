@@ -90,6 +90,17 @@ describe('searchNodes', () => {
     expect(results).toHaveLength(2);
   });
 
+  it('normalizes non-integer/negative result limits', () => {
+    expect(searchNodes(nodes, 'a', 2.9)).toHaveLength(2);
+    expect(searchNodes(nodes, 'a', -5)).toHaveLength(0);
+  });
+
+  it('defaults non-finite result limits to 20', () => {
+    const finiteLimited = searchNodes(nodes, 'a', Number.NaN);
+    const defaultLimited = searchNodes(nodes, 'a', 20);
+    expect(finiteLimited).toEqual(defaultLimited);
+  });
+
   it('reports total matches separately from capped results', () => {
     const { results, total } = searchNodesWithTotal(nodes, 'a', 2);
     expect(results).toHaveLength(2);

@@ -147,14 +147,20 @@ function rankSearchMatches(
   return scored.sort((a, b) => a.rank - b.rank || a.node.text.localeCompare(b.node.text) || a.node.id.localeCompare(b.node.id));
 }
 
+function normalizeSearchLimit(limit: number): number {
+  if (!Number.isFinite(limit)) return 20;
+  return Math.max(0, Math.trunc(limit));
+}
+
 export function searchNodesWithTotal(
   nodes: Record<string, Node>,
   query: SearchQueryInput,
   limit = 20,
 ): { results: Node[]; total: number } {
+  const normalizedLimit = normalizeSearchLimit(limit);
   const scored = rankSearchMatches(nodes, query);
   return {
-    results: scored.slice(0, limit).map(item => item.node),
+    results: scored.slice(0, normalizedLimit).map(item => item.node),
     total: scored.length,
   };
 }
