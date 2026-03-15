@@ -6,23 +6,33 @@ export type SearchToken = {
   negated: boolean;
 };
 
-export type SearchQueryInput = string | SearchToken[];
+export type SearchQueryInput = string | readonly SearchToken[];
 
-const EMPTY_SEARCH_TOKENS: readonly SearchToken[] = Object.freeze([] as SearchToken[]);
+const NORMALIZED_SEARCH_TOKEN_ARRAY = Symbol('mindmapp.normalizedSearchTokenArray');
+type NormalizedSearchTokenArray = readonly SearchToken[] & { [NORMALIZED_SEARCH_TOKEN_ARRAY]: true };
+
+function markNormalizedSearchTokens(tokens: SearchToken[]): NormalizedSearchTokenArray {
+  Object.defineProperty(tokens, NORMALIZED_SEARCH_TOKEN_ARRAY, {
+    value: true,
+  });
+  return Object.freeze(tokens) as NormalizedSearchTokenArray;
+}
+
+const EMPTY_SEARCH_TOKENS = markNormalizedSearchTokens([]);
 
 let lastSearchTokenQuery = '';
-let lastSearchTokenResult: readonly SearchToken[] = EMPTY_SEARCH_TOKENS;
+let lastSearchTokenResult: NormalizedSearchTokenArray = EMPTY_SEARCH_TOKENS;
 
-export function tokenizeSearchQuery(query: string): SearchToken[] {
+export function tokenizeSearchQuery(query: string): readonly SearchToken[] {
   const trimmedQuery = query.trim();
   if (trimmedQuery === lastSearchTokenQuery) {
-    return lastSearchTokenResult as SearchToken[];
+    return lastSearchTokenResult;
   }
 
   if (!trimmedQuery) {
     lastSearchTokenQuery = trimmedQuery;
     lastSearchTokenResult = EMPTY_SEARCH_TOKENS;
-    return lastSearchTokenResult as SearchToken[];
+    return lastSearchTokenResult;
   }
 
   const tokens: SearchToken[] = [];
@@ -42,10 +52,10 @@ export function tokenizeSearchQuery(query: string): SearchToken[] {
 
   lastSearchTokenQuery = trimmedQuery;
   lastSearchTokenResult = tokens.length
-    ? Object.freeze(tokens)
+    ? markNormalizedSearchTokens(tokens)
     : EMPTY_SEARCH_TOKENS;
 
-  return lastSearchTokenResult as SearchToken[];
+  return lastSearchTokenResult;
 }
 
 function buildSearchPathCache(nodes: Record<string, Node>): Record<string, string> {
@@ -117,8 +127,13 @@ function getSearchIndex(nodes: Record<string, Node>): SearchIndexEntry[] {
   return index;
 }
 
-function normalizeTokens(input: SearchQueryInput): SearchToken[] {
+function normalizeTokens(input: SearchQueryInput): readonly SearchToken[] {
   if (!Array.isArray(input)) return tokenizeSearchQuery(input);
+
+  const maybeNormalizedTokens = input as readonly SearchToken[] & { [NORMALIZED_SEARCH_TOKEN_ARRAY]?: true };
+  if (maybeNormalizedTokens[NORMALIZED_SEARCH_TOKEN_ARRAY] === true) {
+    return input;
+  }
 
   const normalizedTokens: SearchToken[] = [];
 
@@ -127,13 +142,15 @@ function normalizeTokens(input: SearchQueryInput): SearchToken[] {
     const value = normalizeSearchText(token.value);
     if (!value) continue;
 
-    normalizedTokens.push({
+    normalizedTokens.push(Object.freeze({
       value,
       negated: !!token.negated,
-    });
+    }));
   }
 
-  return normalizedTokens;
+  return normalizedTokens.length
+    ? markNormalizedSearchTokens(normalizedTokens)
+    : EMPTY_SEARCH_TOKENS;
 }
 
 function includesAllTerms(haystack: string, terms: string[]): boolean {
@@ -160,7 +177,7 @@ function compareNodesByTextThenId(a: Node, b: Node): number {
   return a.text.localeCompare(b.text) || a.id.localeCompare(b.id);
 }
 
-function splitSearchTerms(tokens: SearchToken[]): { positiveTerms: string[]; negativeTerms: string[] } {
+function splitSearchTerms(tokens: readonly SearchToken[]): { positiveTerms: string[]; negativeTerms: string[] } {
   const positiveTerms: string[] = [];
   const negativeTerms: string[] = [];
 
