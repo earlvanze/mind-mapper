@@ -162,6 +162,7 @@
 - Added contradictory include/exclude term short-circuit in search ranking to avoid unnecessary index scans when queries cannot match
 - Folded overlap detection into the positive/negative term partition pass to remove an extra overlap-scan phase
 - Added WeakMap cache for partitioned search terms (positive/negative/phrase/overlap) keyed by normalized token arrays for repeated-query reuse
+- Optimized positive-phrase assembly to skip `join` allocation for single-term and empty-term search partitions
 - Centralized per-entry search term skip gating into shared helper to keep include/exclude logic in one branchable path
 - Converted pre-tokenized search-token normalization/filtering to a loop-based pass to avoid intermediate map/filter allocations
 - Reused tokenized query output between search ranking and highlight-term extraction in Search dialog to remove duplicate parsing work

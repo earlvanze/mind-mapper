@@ -140,6 +140,13 @@ type PartitionedSearchTerms = {
 
 const searchTermPartitionCache = new WeakMap<readonly SearchToken[], PartitionedSearchTerms>();
 
+function getPositiveTermsPhrase(positiveTerms: readonly string[]): string {
+  if (positiveTerms.length === 0) return '';
+  if (positiveTerms.length === 1) return positiveTerms[0];
+
+  return positiveTerms.join(' ');
+}
+
 function buildSearchIndex(nodes: Record<string, Node>): SearchIndexEntry[] {
   const pathCache = buildSearchPathCache(nodes);
 
@@ -250,7 +257,7 @@ function splitSearchTerms(tokens: readonly SearchToken[]): PartitionedSearchTerm
     positiveTerms,
     negativeTerms,
     hasOverlap,
-    phrase: positiveTerms.length ? positiveTerms.join(' ') : '',
+    phrase: getPositiveTermsPhrase(positiveTerms),
   };
   searchTermPartitionCache.set(tokens, partitioned);
 
