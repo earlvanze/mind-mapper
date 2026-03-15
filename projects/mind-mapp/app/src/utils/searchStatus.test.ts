@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { formatSearchSummary } from './searchStatus';
+import { canExecuteSearchJump, formatSearchSummary } from './searchStatus';
+
+describe('canExecuteSearchJump', () => {
+  it('allows jumps only when search is not pending', () => {
+    expect(canExecuteSearchJump(false)).toBe(true);
+    expect(canExecuteSearchJump(true)).toBe(false);
+  });
+});
 
 describe('formatSearchSummary', () => {
   it('formats shown/total counts', () => {

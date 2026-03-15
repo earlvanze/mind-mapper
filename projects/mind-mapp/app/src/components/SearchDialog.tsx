@@ -1,6 +1,6 @@
 import { useDeferredValue, useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useMindMapStore } from '../store/useMindMapStore';
-import { SEARCH_DIALOG_ARIA_KEYSHORTCUTS, SEARCH_DIALOG_CLOSE_ARIA_KEYSHORTCUTS, SEARCH_INPUT_ARIA_KEYSHORTCUTS, centerPointInView, clampSearchSelection, computeHighlightRanges, createFocusPathResolver, cycleSearchSelection, edgeSearchSelection, formatSearchSummary, isDialogClearInputEvent, isDialogFocusInputEvent, isDialogSelectInputEvent, isSearchToggleEvent, moveSearchSelection, searchNodesWithTotal, shouldKeepSearchOpen, shouldSkipDialogSelectShortcut, tokenizeSearchQuery } from '../utils';
+import { SEARCH_DIALOG_ARIA_KEYSHORTCUTS, SEARCH_DIALOG_CLOSE_ARIA_KEYSHORTCUTS, SEARCH_INPUT_ARIA_KEYSHORTCUTS, canExecuteSearchJump, centerPointInView, clampSearchSelection, computeHighlightRanges, createFocusPathResolver, cycleSearchSelection, edgeSearchSelection, formatSearchSummary, isDialogClearInputEvent, isDialogFocusInputEvent, isDialogSelectInputEvent, isSearchToggleEvent, moveSearchSelection, searchNodesWithTotal, shouldKeepSearchOpen, shouldSkipDialogSelectShortcut, tokenizeSearchQuery } from '../utils';
 
 export default function SearchDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { nodes, setFocus } = useMindMapStore();
@@ -173,7 +173,7 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
       }
       if (e.key === 'Enter' && results.length) {
         e.preventDefault();
-        if (isSearchPending) return;
+        if (!canExecuteSearchJump(isSearchPending)) return;
         const item = results[selected]?.node;
         if (item) {
           const closeAfter = !shouldKeepSearchOpen(e);
@@ -247,6 +247,7 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
                 className={`search-item ${i === selected ? 'active' : ''}`}
                 onMouseEnter={() => setSelected(i)}
                 onClick={(event) => {
+                  if (!canExecuteSearchJump(isSearchPending)) return;
                   const closeAfter = !shouldKeepSearchOpen(event);
                   jumpToNode(r.node.id, closeAfter);
                 }}
