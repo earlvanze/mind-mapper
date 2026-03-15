@@ -131,6 +131,15 @@ type SearchIndexEntry = {
 
 const searchIndexCache = new WeakMap<Record<string, Node>, SearchIndexEntry[]>();
 
+type PartitionedSearchTerms = {
+  positiveTerms: string[];
+  negativeTerms: string[];
+  hasOverlap: boolean;
+  phrase: string;
+};
+
+const searchTermPartitionCache = new WeakMap<readonly SearchToken[], PartitionedSearchTerms>();
+
 function buildSearchIndex(nodes: Record<string, Node>): SearchIndexEntry[] {
   const pathCache = buildSearchPathCache(nodes);
 
@@ -204,7 +213,10 @@ function compareNodesByTextThenId(a: Node, b: Node): number {
   return a.text.localeCompare(b.text) || a.id.localeCompare(b.id);
 }
 
-function splitSearchTerms(tokens: readonly SearchToken[]): { positiveTerms: string[]; negativeTerms: string[]; hasOverlap: boolean } {
+function splitSearchTerms(tokens: readonly SearchToken[]): PartitionedSearchTerms {
+  const cached = searchTermPartitionCache.get(tokens);
+  if (cached) return cached;
+
   const positiveTerms: string[] = [];
   const negativeTerms: string[] = [];
   const positiveSeen = new Set<string>();
@@ -234,7 +246,15 @@ function splitSearchTerms(tokens: readonly SearchToken[]): { positiveTerms: stri
     positiveTerms.push(token.value);
   }
 
-  return { positiveTerms, negativeTerms, hasOverlap };
+  const partitioned: PartitionedSearchTerms = {
+    positiveTerms,
+    negativeTerms,
+    hasOverlap,
+    phrase: positiveTerms.length ? positiveTerms.join(' ') : '',
+  };
+  searchTermPartitionCache.set(tokens, partitioned);
+
+  return partitioned;
 }
 
 function rankSearchMatches(
@@ -244,10 +264,8 @@ function rankSearchMatches(
   const tokens = normalizeTokens(query);
   if (!tokens.length) return [];
 
-  const { positiveTerms, negativeTerms, hasOverlap } = splitSearchTerms(tokens);
+  const { positiveTerms, negativeTerms, hasOverlap, phrase } = splitSearchTerms(tokens);
   if (hasOverlap) return [];
-
-  const phrase = positiveTerms.length ? positiveTerms.join(' ') : '';
   const searchIndex = getSearchIndex(nodes);
   const rankBuckets: [Node[], Node[], Node[], Node[], Node[]] = [[], [], [], [], []];
 
