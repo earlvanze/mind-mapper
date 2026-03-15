@@ -63,6 +63,12 @@ describe('searchNodes', () => {
     expect(results.map(node => node.id)).toEqual(['n_review']);
   });
 
+  it('accepts pre-tokenized query input', () => {
+    const tokens = tokenizeSearchQuery('alpha review');
+    const results = searchNodes(nodes, tokens);
+    expect(results.map(node => node.id)).toEqual(['n_review']);
+  });
+
   it('supports negative terms for exclusion', () => {
     const results = searchNodes(nodes, 'alpha -review');
     expect(results.map(node => node.id)).toEqual(['n_alpha']);

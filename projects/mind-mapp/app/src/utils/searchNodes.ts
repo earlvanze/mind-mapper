@@ -6,6 +6,8 @@ export type SearchToken = {
   negated: boolean;
 };
 
+export type SearchQueryInput = string | SearchToken[];
+
 export function tokenizeSearchQuery(query: string): SearchToken[] {
   const tokens: SearchToken[] = [];
   const normalized = query.trim().toLowerCase();
@@ -97,11 +99,22 @@ function getSearchIndex(nodes: Record<string, Node>): SearchIndexEntry[] {
   return index;
 }
 
+function normalizeTokens(input: SearchQueryInput): SearchToken[] {
+  if (!Array.isArray(input)) return tokenizeSearchQuery(input);
+
+  return input
+    .map((token) => ({
+      value: normalizeSearchText(token.value),
+      negated: !!token.negated,
+    }))
+    .filter((token) => !!token.value);
+}
+
 function rankSearchMatches(
   nodes: Record<string, Node>,
-  query: string,
+  query: SearchQueryInput,
 ): Array<{ node: Node; rank: number }> {
-  const tokens = tokenizeSearchQuery(query);
+  const tokens = normalizeTokens(query);
   if (!tokens.length) return [];
 
   const positiveTerms = tokens.filter(token => !token.negated).map(token => token.value);
@@ -136,7 +149,7 @@ function rankSearchMatches(
 
 export function searchNodesWithTotal(
   nodes: Record<string, Node>,
-  query: string,
+  query: SearchQueryInput,
   limit = 20,
 ): { results: Node[]; total: number } {
   const scored = rankSearchMatches(nodes, query);
@@ -148,7 +161,7 @@ export function searchNodesWithTotal(
 
 export function searchNodes(
   nodes: Record<string, Node>,
-  query: string,
+  query: SearchQueryInput,
   limit = 20,
 ): Node[] {
   return searchNodesWithTotal(nodes, query, limit).results;

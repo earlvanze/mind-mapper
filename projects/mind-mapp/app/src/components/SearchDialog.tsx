@@ -36,9 +36,13 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
   const summaryId = useId();
   const listboxId = useId();
   const hintId = useId();
-  const terms = useMemo(
-    () => tokenizeSearchQuery(query).filter(token => !token.negated).map(token => token.value),
+  const searchTokens = useMemo(
+    () => tokenizeSearchQuery(query),
     [query],
+  );
+  const terms = useMemo(
+    () => searchTokens.filter(token => !token.negated).map(token => token.value),
+    [searchTokens],
   );
 
   const highlight = (text: string): ReactNode => {
@@ -69,12 +73,12 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
   }, [open]);
 
   const { results, totalMatches } = useMemo(() => {
-    const { results, total } = searchNodesWithTotal(nodes, query, 20);
+    const { results, total } = searchNodesWithTotal(nodes, searchTokens, 20);
     return {
       totalMatches: total,
       results: results.map(node => ({ node, path: formatFocusPath(nodes, node.id) })),
     };
-  }, [nodes, query]);
+  }, [nodes, searchTokens]);
   const selectedNodeId = results[selected]?.node.id;
   const selectedOptionId = selectedNodeId ? `${listboxId}-${selectedNodeId}` : undefined;
 
