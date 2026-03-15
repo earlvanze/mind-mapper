@@ -110,6 +110,26 @@ function normalizeTokens(input: SearchQueryInput): SearchToken[] {
     .filter((token) => !!token.value);
 }
 
+function includesAllTerms(haystack: string, terms: string[]): boolean {
+  for (let i = 0; i < terms.length; i += 1) {
+    if (!haystack.includes(terms[i])) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function includesAnyTerm(haystack: string, terms: string[]): boolean {
+  for (let i = 0; i < terms.length; i += 1) {
+    if (haystack.includes(terms[i])) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 function rankSearchMatches(
   nodes: Record<string, Node>,
   query: SearchQueryInput,
@@ -117,34 +137,46 @@ function rankSearchMatches(
   const tokens = normalizeTokens(query);
   if (!tokens.length) return [];
 
-  const positiveTerms = tokens.filter(token => !token.negated).map(token => token.value);
-  const negativeTerms = tokens.filter(token => token.negated).map(token => token.value);
+  const positiveTerms = tokens.filter((token) => !token.negated).map((token) => token.value);
+  const negativeTerms = tokens.filter((token) => token.negated).map((token) => token.value);
   const phrase = positiveTerms.join(' ');
   const searchIndex = getSearchIndex(nodes);
+  const rankBuckets: [Node[], Node[], Node[], Node[], Node[]] = [[], [], [], [], []];
 
-  const scored = searchIndex
-    .map(({ node, label, id, path, searchable }) => {
-      if (positiveTerms.length && !positiveTerms.every(term => searchable.includes(term))) {
-        return null;
-      }
+  for (let i = 0; i < searchIndex.length; i += 1) {
+    const { node, label, id, path, searchable } = searchIndex[i];
 
-      if (negativeTerms.some(term => searchable.includes(term))) {
-        return null;
-      }
+    if (positiveTerms.length > 0 && !includesAllTerms(searchable, positiveTerms)) {
+      continue;
+    }
 
-      const rank =
-        positiveTerms.length === 0 ? 4
-          : phrase && label.startsWith(phrase) ? 0
-            : positiveTerms.every(term => label.includes(term)) ? 1
-              : positiveTerms.every(term => id.includes(term)) ? 2
-                : positiveTerms.every(term => path.includes(term)) ? 3
-                  : 4;
+    if (includesAnyTerm(searchable, negativeTerms)) {
+      continue;
+    }
 
-      return { node, rank };
-    })
-    .filter(Boolean) as Array<{ node: Node; rank: number }>;
+    const rank =
+      positiveTerms.length === 0
+        ? 4
+        : phrase && label.startsWith(phrase)
+          ? 0
+          : includesAllTerms(label, positiveTerms)
+            ? 1
+            : includesAllTerms(id, positiveTerms)
+              ? 2
+              : includesAllTerms(path, positiveTerms)
+                ? 3
+                : 4;
 
-  return scored.sort((a, b) => a.rank - b.rank || a.node.text.localeCompare(b.node.text) || a.node.id.localeCompare(b.node.id));
+    rankBuckets[rank].push(node);
+  }
+
+  for (let i = 0; i < rankBuckets.length; i += 1) {
+    rankBuckets[i].sort(
+      (a, b) => a.text.localeCompare(b.text) || a.id.localeCompare(b.id),
+    );
+  }
+
+  return rankBuckets.flat();
 }
 
 export const DEFAULT_SEARCH_RESULT_LIMIT = 20;

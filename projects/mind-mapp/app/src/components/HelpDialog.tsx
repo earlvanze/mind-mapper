@@ -112,7 +112,7 @@ export default function HelpDialog({ open, onClose }: { open: boolean; onClose: 
         />
         <div id={summaryId} className="help-meta" aria-live="polite">{summaryText}</div>
         <div id={hintId} className="help-hint">Esc: clear filter (or close when empty) • Cmd/Ctrl+Shift+K: clear filter • Cmd/Ctrl+F: focus filter • Cmd/Ctrl+A: select filter</div>
-        <div className={`help-results ${isFilterPending ? 'is-pending' : ''}`} aria-busy={isFilterPending}>
+        <div className={`help-results ${isFilterPending ? 'is-pending' : ''}`} aria-busy={isFilterPending} aria-disabled={isFilterPending} title={pendingMessage}>
           {filtered.length ? (
             <ul>
               {filtered.map(s => (

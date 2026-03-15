@@ -176,6 +176,7 @@
 - Added shared search empty-state messaging helper to distinguish pending "Searching nodes…" from settled no-results copy
 - Added cached focus-path resolver for Search result metadata labels and wired SearchDialog to reuse it across result rows
 - Added deferred Help filter evaluation with shared help summary formatter and aria-busy pending-state semantics
+- Added Help results wrapper aria-disabled + pending tooltip semantics during deferred filter updates
 - Added shared getHelpPendingMessage helper and "Filtering shortcuts…" pending empty-state copy to avoid premature no-results messaging while filter updates are in flight
 - Added WeakMap-backed resolver caching in selectionText so repeated createFocusPathResolver calls for the same nodes object reuse the same memoized resolver
 - Added Search: Cmd/Ctrl+F entry to shared shortcut registry for Help filter discoverability parity
