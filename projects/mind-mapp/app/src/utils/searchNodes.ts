@@ -19,6 +19,27 @@ function markNormalizedSearchTokens(tokens: SearchToken[]): NormalizedSearchToke
   return Object.freeze(tokens) as NormalizedSearchTokenArray;
 }
 
+function buildNormalizedSearchTokens(
+  input: readonly SearchToken[],
+): NormalizedSearchTokenArray {
+  const normalizedTokens: SearchToken[] = [];
+
+  for (let i = 0; i < input.length; i += 1) {
+    const token = input[i];
+    const value = normalizeSearchText(token.value);
+    if (!value) continue;
+
+    normalizedTokens.push(Object.freeze({
+      value,
+      negated: !!token.negated,
+    }));
+  }
+
+  return normalizedTokens.length
+    ? markNormalizedSearchTokens(normalizedTokens)
+    : EMPTY_SEARCH_TOKENS;
+}
+
 const EMPTY_SEARCH_TOKENS = markNormalizedSearchTokens([]);
 
 let lastSearchTokenQuery = '';
@@ -136,22 +157,7 @@ function normalizeTokens(input: SearchQueryInput): readonly SearchToken[] {
     return input;
   }
 
-  const normalizedTokens: SearchToken[] = [];
-
-  for (let i = 0; i < input.length; i += 1) {
-    const token = input[i];
-    const value = normalizeSearchText(token.value);
-    if (!value) continue;
-
-    normalizedTokens.push(Object.freeze({
-      value,
-      negated: !!token.negated,
-    }));
-  }
-
-  return normalizedTokens.length
-    ? markNormalizedSearchTokens(normalizedTokens)
-    : EMPTY_SEARCH_TOKENS;
+  return buildNormalizedSearchTokens(input);
 }
 
 function includesAllTerms(haystack: string, terms: string[]): boolean {
