@@ -37,13 +37,22 @@ describe('getSearchPendingTooltip', () => {
 
 describe('shouldDisplaySearchEmptyState', () => {
   it('returns false for blank and whitespace-only queries', () => {
-    expect(shouldDisplaySearchEmptyState('')).toBe(false);
-    expect(shouldDisplaySearchEmptyState('   ')).toBe(false);
+    expect(shouldDisplaySearchEmptyState('', false)).toBe(false);
+    expect(shouldDisplaySearchEmptyState('   ', false)).toBe(false);
   });
 
-  it('returns true for non-empty queries', () => {
-    expect(shouldDisplaySearchEmptyState('a')).toBe(true);
-    expect(shouldDisplaySearchEmptyState('  alpha  ')).toBe(true);
+  it('returns true while pending for non-empty queries', () => {
+    expect(shouldDisplaySearchEmptyState('?', false, true)).toBe(true);
+    expect(shouldDisplaySearchEmptyState('alpha', true, true)).toBe(true);
+  });
+
+  it('returns false when settled query has no normalized tokens', () => {
+    expect(shouldDisplaySearchEmptyState('?', false, false)).toBe(false);
+  });
+
+  it('returns true when settled query has normalized tokens', () => {
+    expect(shouldDisplaySearchEmptyState('alpha', true, false)).toBe(true);
+    expect(shouldDisplaySearchEmptyState('  alpha  ', true, false)).toBe(true);
   });
 });
 

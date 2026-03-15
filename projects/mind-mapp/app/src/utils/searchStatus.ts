@@ -24,8 +24,15 @@ export function getSearchPendingTooltip(pending: boolean): string | undefined {
   return pending ? 'Search results are updating…' : undefined;
 }
 
-export function shouldDisplaySearchEmptyState(query: string): boolean {
-  return query.trim().length > 0;
+export function shouldDisplaySearchEmptyState(
+  query: string,
+  hasTokens: boolean,
+  pending = false,
+): boolean {
+  if (query.trim().length === 0) return false;
+  if (pending) return true;
+
+  return hasTokens;
 }
 
 export function getSearchEmptyMessage(shown: number, total: number, pending = false): string | undefined {
