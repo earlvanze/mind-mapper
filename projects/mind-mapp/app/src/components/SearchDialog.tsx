@@ -234,6 +234,7 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
           {results.map((r, i) => {
             const title = r.node.text || '(empty)';
             const meta = `${r.node.id} • ${r.path || '(no path)'}`;
+            const pendingTitle = isSearchPending ? 'Search results are updating…' : undefined;
             return (
               <div
                 key={r.node.id}
@@ -247,6 +248,7 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
                   resultRefs.current[r.node.id] = element;
                 }}
                 className={`search-item ${i === selected ? 'active' : ''} ${canJumpToResult ? '' : 'is-disabled'}`}
+                title={pendingTitle}
                 onMouseEnter={() => {
                   if (!canJumpToResult) return;
                   setSelected(i);
