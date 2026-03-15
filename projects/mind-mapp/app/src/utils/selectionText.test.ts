@@ -70,6 +70,13 @@ describe('createFocusPathResolver', () => {
 
     expect(resolvePath('c')).toBe('(untitled)');
   });
+
+  it('reuses resolver function for the same nodes object', () => {
+    const first = createFocusPathResolver(nodes);
+    const second = createFocusPathResolver(nodes);
+
+    expect(second).toBe(first);
+  });
 });
 
 describe('formatFocusPath', () => {

@@ -168,6 +168,7 @@
 - Added pending-state tooltip copy on Search result rows while deferred updates are catching up
 - Centralized pending tooltip copy in shared searchStatus utility with regression coverage
 - Added cached focus-path resolver for Search result metadata labels and wired SearchDialog to reuse it across result rows
+- Added WeakMap-backed resolver caching in selectionText so repeated createFocusPathResolver calls for the same nodes object reuse the same memoized resolver
 - Added Search: Cmd/Ctrl+F entry to shared shortcut registry for Help filter discoverability parity
 - Improved toolbar import/copy notices with status/alert live-region semantics and explicit dismiss button labels for screen-reader clarity
 - Centralized Search/Help dialog close handlers in App to keep keyboard and overlay close paths consistent

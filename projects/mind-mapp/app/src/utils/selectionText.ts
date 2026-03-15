@@ -76,7 +76,12 @@ export function getFocusPathSegments(nodes: Record<string, Node>, focusId?: stri
   return chain.reverse();
 }
 
+const focusPathResolverCache = new WeakMap<Record<string, Node>, (focusId?: string) => string>();
+
 export function createFocusPathResolver(nodes: Record<string, Node>): (focusId?: string) => string {
+  const cachedResolver = focusPathResolverCache.get(nodes);
+  if (cachedResolver) return cachedResolver;
+
   const cache: Record<string, string> = {};
   const visiting = new Set<string>();
 
@@ -99,6 +104,7 @@ export function createFocusPathResolver(nodes: Record<string, Node>): (focusId?:
     return cache[focusId];
   };
 
+  focusPathResolverCache.set(nodes, resolve);
   return resolve;
 }
 
