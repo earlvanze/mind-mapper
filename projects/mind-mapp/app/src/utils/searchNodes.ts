@@ -378,6 +378,13 @@ export function searchNodesWithTotal(
 ): { results: Node[]; total: number } {
   const normalizedLimit = normalizeSearchLimit(limit);
   const rankedNodes = rankSearchMatches(nodes, query);
+  if (normalizedLimit === 0) {
+    return {
+      results: [],
+      total: rankedNodes.length,
+    };
+  }
+
   return {
     results: rankedNodes.slice(0, normalizedLimit),
     total: rankedNodes.length,

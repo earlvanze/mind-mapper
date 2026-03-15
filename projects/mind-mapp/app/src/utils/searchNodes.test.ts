@@ -227,6 +227,12 @@ describe('searchNodes', () => {
     expect(total).toBeGreaterThan(results.length);
   });
 
+  it('reports total matches even when normalized limit is zero', () => {
+    const { results, total } = searchNodesWithTotal(nodes, 'a', 0);
+    expect(results).toEqual([]);
+    expect(total).toBeGreaterThan(0);
+  });
+
   it('handles cyclic parent chains without hanging', () => {
     const cyclic: Record<string, Node> = {
       a: { id: 'a', text: 'Alpha', x: 0, y: 0, parentId: 'b', children: [] },
