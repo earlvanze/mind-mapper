@@ -164,6 +164,7 @@
 - Added WeakMap cache for partitioned search terms (positive/negative/phrase/overlap) keyed by normalized token arrays for repeated-query reuse
 - Optimized positive-phrase assembly to skip `join` allocation for single-term and empty-term search partitions
 - Centralized per-entry search term skip gating into shared helper to keep include/exclude logic in one branchable path
+- Added 1-term/2-term fast paths for search include/exclude term checks (all/any) with combined include+exclude regression coverage
 - Converted pre-tokenized search-token normalization/filtering to a loop-based pass to avoid intermediate map/filter allocations
 - Reused tokenized query output between search ranking and highlight-term extraction in Search dialog to remove duplicate parsing work
 - Removed redundant full-query lowercasing before search token regex parsing (token normalization already handles casing), with regression coverage for uppercase/quoted/negated input

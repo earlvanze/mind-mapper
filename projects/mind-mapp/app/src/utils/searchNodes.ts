@@ -187,7 +187,15 @@ function normalizeTokens(input: SearchQueryInput): readonly SearchToken[] {
   return buildNormalizedSearchTokens(input);
 }
 
-function includesAllTerms(haystack: string, terms: string[]): boolean {
+function includesAllTerms(haystack: string, terms: readonly string[]): boolean {
+  if (terms.length === 1) {
+    return haystack.includes(terms[0]);
+  }
+
+  if (terms.length === 2) {
+    return haystack.includes(terms[0]) && haystack.includes(terms[1]);
+  }
+
   for (let i = 0; i < terms.length; i += 1) {
     if (!haystack.includes(terms[i])) {
       return false;
@@ -198,6 +206,14 @@ function includesAllTerms(haystack: string, terms: string[]): boolean {
 }
 
 function includesAnyTerm(haystack: string, terms: readonly string[]): boolean {
+  if (terms.length === 1) {
+    return haystack.includes(terms[0]);
+  }
+
+  if (terms.length === 2) {
+    return haystack.includes(terms[0]) || haystack.includes(terms[1]);
+  }
+
   for (let i = 0; i < terms.length; i += 1) {
     if (haystack.includes(terms[i])) {
       return true;

@@ -133,6 +133,11 @@ describe('searchNodes', () => {
     expect(results.map(node => node.id)).toEqual(['n_alpha']);
   });
 
+  it('supports multi-term include and multi-term exclude combinations', () => {
+    const results = searchNodes(nodes, 'alpha root -review -beta');
+    expect(results.map(node => node.id)).toEqual(['n_alpha']);
+  });
+
   it('deduplicates repeated positive/negative terms during ranking checks', () => {
     const deduped = searchNodes(nodes, 'alpha -review');
     const repeated = searchNodes(nodes, 'alpha alpha -review -review');
