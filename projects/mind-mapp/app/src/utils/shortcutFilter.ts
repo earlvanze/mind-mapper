@@ -7,6 +7,7 @@ type ShortcutHaystackCacheEntry = {
 
 const shortcutHaystackCache = new WeakMap<Shortcut, ShortcutHaystackCacheEntry>();
 
+const SHORTCUT_NON_WHITESPACE_RE = /\S/;
 const EMPTY_SHORTCUT_QUERY_TERMS: readonly string[] = Object.freeze([] as string[]);
 
 let lastShortcutQuery = '';
@@ -75,6 +76,12 @@ function getShortcutHaystack(shortcut: Shortcut): string {
 }
 
 export function tokenizeShortcutQuery(query: string): readonly string[] {
+  if (!SHORTCUT_NON_WHITESPACE_RE.test(query)) {
+    lastShortcutQuery = '';
+    lastShortcutQueryTerms = EMPTY_SHORTCUT_QUERY_TERMS;
+    return lastShortcutQueryTerms;
+  }
+
   const normalizedQuery = normalizeShortcutText(query);
   if (normalizedQuery === lastShortcutQuery) {
     return lastShortcutQueryTerms;
@@ -112,6 +119,8 @@ function matchesShortcutTerms(haystack: string, terms: readonly string[]): boole
 }
 
 export function filterShortcuts(shortcuts: Shortcut[], query: string): Shortcut[] {
+  if (!shortcuts.length) return shortcuts;
+
   const terms = tokenizeShortcutQuery(query);
   if (!terms.length) return shortcuts;
 

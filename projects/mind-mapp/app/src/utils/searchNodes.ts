@@ -390,6 +390,8 @@ export function searchNodes(
   limit = DEFAULT_SEARCH_RESULT_LIMIT,
 ): Node[] {
   const normalizedLimit = normalizeSearchLimit(limit);
+  if (normalizedLimit === 0) return [];
+
   const rankedNodes = rankSearchMatches(nodes, query);
   return rankedNodes.slice(0, normalizedLimit);
 }

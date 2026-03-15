@@ -209,6 +209,10 @@ describe('searchNodes', () => {
     expect(searchNodes(nodes, 'a', -5)).toHaveLength(0);
   });
 
+  it('returns no results immediately when normalized limit is zero', () => {
+    expect(searchNodes(nodes, 'alpha', 0)).toEqual([]);
+  });
+
   it('defaults non-finite result limits to 20', () => {
     const defaultLimited = searchNodes(nodes, 'a', DEFAULT_SEARCH_RESULT_LIMIT);
 

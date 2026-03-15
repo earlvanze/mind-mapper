@@ -217,6 +217,7 @@
 - Added shared shortcut-query tokenizer utility + regression coverage for Help shortcut query normalization behavior
 - Deduplicated repeated normalized Help filter terms to avoid redundant per-term includes checks during shortcut matching
 - Added specialized 2-term shortcut-query dedupe path to avoid Set allocation for the most common repeated-term case
+- Added non-whitespace precheck fast path in shortcut query tokenization to skip normalization work for blank input
 - Added last-query token cache reuse in shortcut query tokenization to reduce repeated normalization/split work while typing the same Help filter value
 - Hardened shortcut-query token cache by returning frozen token arrays to prevent accidental external mutation of cached query terms
 - Added 1-term/2-term fast paths in Help shortcut term matching to reduce loop overhead in common filter cases

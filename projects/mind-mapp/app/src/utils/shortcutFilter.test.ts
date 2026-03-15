@@ -16,6 +16,14 @@ describe('filterShortcuts', () => {
     expect(result).toBe(SAMPLE);
   });
 
+  it('returns same empty shortcut array for empty shortcut sets', () => {
+    const empty: Shortcut[] = [];
+    const result = filterShortcuts(empty, 'cmd');
+
+    expect(result).toEqual([]);
+    expect(result).toBe(empty);
+  });
+
   it('returns a filtered array instance for non-empty queries', () => {
     const result = filterShortcuts(SAMPLE, 'cmd');
     expect(result).not.toBe(SAMPLE);
@@ -77,6 +85,7 @@ describe('filterShortcuts', () => {
 describe('tokenizeShortcutQuery', () => {
   it('returns empty terms for blank input', () => {
     expect(tokenizeShortcutQuery('   ')).toEqual([]);
+    expect(tokenizeShortcutQuery('\n\t')).toEqual([]);
   });
 
   it('normalizes symbol/alias words into searchable terms', () => {
