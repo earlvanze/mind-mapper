@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { canExecuteSearchJump, canNavigateSearchSelection, formatSearchSummary, getSearchPendingTooltip, isSearchSelectionNavigationKey } from './searchStatus';
+import { canExecuteSearchJump, canNavigateSearchSelection, formatSearchSummary, getSearchEmptyMessage, getSearchPendingTooltip, isSearchSelectionNavigationKey } from './searchStatus';
 
 describe('canExecuteSearchJump', () => {
   it('allows jumps only when search is not pending', () => {
@@ -32,6 +32,22 @@ describe('getSearchPendingTooltip', () => {
   it('returns pending tooltip only while updating', () => {
     expect(getSearchPendingTooltip(true)).toBe('Search results are updating…');
     expect(getSearchPendingTooltip(false)).toBeUndefined();
+  });
+});
+
+describe('getSearchEmptyMessage', () => {
+  it('shows searching copy while pending', () => {
+    expect(getSearchEmptyMessage(0, true)).toBe('Searching nodes…');
+    expect(getSearchEmptyMessage(100, true)).toBe('Searching nodes…');
+  });
+
+  it('shows no-results copy when settled with zero matches', () => {
+    expect(getSearchEmptyMessage(0)).toBe('No nodes match your query.');
+    expect(getSearchEmptyMessage(Number.NaN)).toBe('No nodes match your query.');
+  });
+
+  it('returns undefined when matches exist', () => {
+    expect(getSearchEmptyMessage(1)).toBeUndefined();
   });
 });
 

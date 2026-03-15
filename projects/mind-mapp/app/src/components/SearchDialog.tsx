@@ -1,6 +1,6 @@
 import { useDeferredValue, useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useMindMapStore } from '../store/useMindMapStore';
-import { SEARCH_DIALOG_ARIA_KEYSHORTCUTS, SEARCH_DIALOG_CLOSE_ARIA_KEYSHORTCUTS, SEARCH_INPUT_ARIA_KEYSHORTCUTS, canExecuteSearchJump, canNavigateSearchSelection, centerPointInView, clampSearchSelection, computeHighlightRanges, createFocusPathResolver, formatSearchSummary, getSearchPendingTooltip, isDialogClearInputEvent, isDialogFocusInputEvent, isDialogSelectInputEvent, isSearchSelectionNavigationKey, isSearchToggleEvent, navigateSearchSelectionByKey, searchNodesWithTotal, shouldKeepSearchOpen, shouldSkipDialogSelectShortcut, tokenizeSearchQuery } from '../utils';
+import { SEARCH_DIALOG_ARIA_KEYSHORTCUTS, SEARCH_DIALOG_CLOSE_ARIA_KEYSHORTCUTS, SEARCH_INPUT_ARIA_KEYSHORTCUTS, canExecuteSearchJump, canNavigateSearchSelection, centerPointInView, clampSearchSelection, computeHighlightRanges, createFocusPathResolver, formatSearchSummary, getSearchEmptyMessage, getSearchPendingTooltip, isDialogClearInputEvent, isDialogFocusInputEvent, isDialogSelectInputEvent, isSearchSelectionNavigationKey, isSearchToggleEvent, navigateSearchSelectionByKey, searchNodesWithTotal, shouldKeepSearchOpen, shouldSkipDialogSelectShortcut, tokenizeSearchQuery } from '../utils';
 
 export default function SearchDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { nodes, setFocus } = useMindMapStore();
@@ -91,6 +91,10 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
   const summaryText = useMemo(
     () => formatSearchSummary(results.length, totalMatches, isSearchPending),
     [isSearchPending, results.length, totalMatches],
+  );
+  const emptyMessage = useMemo(
+    () => getSearchEmptyMessage(totalMatches, isSearchPending),
+    [isSearchPending, totalMatches],
   );
 
   useEffect(() => {

@@ -171,6 +171,7 @@
 - Paused Search combobox aria-activedescendant + active-row highlight while deferred updates are pending
 - Added pending-state tooltip copy on Search result rows while deferred updates are catching up
 - Centralized pending tooltip copy in shared searchStatus utility with regression coverage
+- Added shared search empty-state messaging helper to distinguish pending "Searching nodes…" from settled no-results copy
 - Added cached focus-path resolver for Search result metadata labels and wired SearchDialog to reuse it across result rows
 - Added deferred Help filter evaluation with shared help summary formatter and aria-busy pending-state semantics
 - Added shared getHelpPendingMessage helper and "Filtering shortcuts…" pending empty-state copy to avoid premature no-results messaging while filter updates are in flight
