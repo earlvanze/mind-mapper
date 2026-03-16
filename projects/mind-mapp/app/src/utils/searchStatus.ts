@@ -52,13 +52,20 @@ export function formatSearchSummary(shown: number, total: number, pending = fals
   const safeShown = normalizeNonNegativeInt(shown);
   const safeTotal = normalizeNonNegativeInt(total);
 
-  let summary = `${safeShown} shown / ${safeTotal} matches`;
-  if (safeTotal > safeShown) {
-    summary += ' (refine to narrow)';
-  }
-  if (pending) {
-    summary += ' • updating…';
+  const base = `${safeShown} shown / ${safeTotal} matches`;
+  const needsRefineHint = safeTotal > safeShown;
+
+  if (needsRefineHint && pending) {
+    return `${base} (refine to narrow) • updating…`;
   }
 
-  return summary;
+  if (needsRefineHint) {
+    return `${base} (refine to narrow)`;
+  }
+
+  if (pending) {
+    return `${base} • updating…`;
+  }
+
+  return base;
 }

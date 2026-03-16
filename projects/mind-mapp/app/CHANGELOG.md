@@ -200,6 +200,7 @@
 - Added shared shouldDisplaySearchEmptyState helper so Search empty-state copy stays hidden for blank/whitespace-only and tokenless (punctuation-only) input
 - Optimized search empty-state whitespace detection to reuse a non-whitespace regex check (avoids per-call trim allocation)
 - Added token-presence fast path in search empty-state visibility helper to skip regex checks when no normalized terms exist
+- Simplified search summary string assembly with explicit branch returns to avoid repeated string concatenation mutations
 - Centralized search count normalization in shared helper reused by both search summary and empty-state copy formatting
 - Added cached focus-path resolver for Search result metadata labels and wired SearchDialog to reuse it across result rows
 - Added deferred Help filter evaluation with shared help summary formatter and aria-busy pending-state semantics
