@@ -8,6 +8,23 @@ type ShortcutHaystackCacheEntry = {
 const shortcutHaystackCache = new WeakMap<Shortcut, ShortcutHaystackCacheEntry>();
 
 const SHORTCUT_NON_WHITESPACE_RE = /\S/;
+const SHORTCUT_FORWARD_SLASH_RE = /\bforward\s+slash\b/g;
+const SHORTCUT_QUESTION_MARK_RE = /\bquestion\s+mark\b/g;
+const SHORTCUT_CMD_CTRL_RE = /\bcmd\/ctrl\b/g;
+const SHORTCUT_CTRL_CMD_RE = /\bctrl\/cmd\b/g;
+const SHORTCUT_SLASH_RE = /\//g;
+const SHORTCUT_PLUS_RE = /\+/g;
+const SHORTCUT_QUESTION_RE = /\?/g;
+const SHORTCUT_LESS_RE = /</g;
+const SHORTCUT_GREATER_RE = />/g;
+const SHORTCUT_COMMA_RE = /,/g;
+const SHORTCUT_DOT_RE = /\./g;
+const SHORTCUT_CONTROL_RE = /\bcontrol\b/g;
+const SHORTCUT_COMMAND_RE = /\bcommand\b/g;
+const SHORTCUT_ESCAPE_RE = /\bescape\b/g;
+const SHORTCUT_NON_ALNUM_RE = /[^a-z0-9]+/g;
+const SHORTCUT_MULTI_SPACE_RE = /\s+/g;
+
 const EMPTY_SHORTCUT_QUERY_TERMS: readonly string[] = Object.freeze([] as string[]);
 
 let lastShortcutQuery = '';
@@ -44,22 +61,22 @@ function normalizeShortcutText(value: string): string {
 
   return value
     .toLowerCase()
-    .replace(/\bforward\s+slash\b/g, 'slash')
-    .replace(/\bquestion\s+mark\b/g, 'slash')
-    .replace(/\bcmd\/ctrl\b/g, 'cmd ctrl')
-    .replace(/\bctrl\/cmd\b/g, 'cmd ctrl')
-    .replace(/\//g, ' slash ')
-    .replace(/\+/g, ' plus ')
-    .replace(/\?/g, ' question ')
-    .replace(/</g, ' less ')
-    .replace(/>/g, ' greater ')
-    .replace(/,/g, ' comma ')
-    .replace(/\./g, ' dot ')
-    .replace(/\bcontrol\b/g, 'ctrl')
-    .replace(/\bcommand\b/g, 'cmd')
-    .replace(/\bescape\b/g, 'esc')
-    .replace(/[^a-z0-9]+/g, ' ')
-    .replace(/\s+/g, ' ')
+    .replace(SHORTCUT_FORWARD_SLASH_RE, 'slash')
+    .replace(SHORTCUT_QUESTION_MARK_RE, 'slash')
+    .replace(SHORTCUT_CMD_CTRL_RE, 'cmd ctrl')
+    .replace(SHORTCUT_CTRL_CMD_RE, 'cmd ctrl')
+    .replace(SHORTCUT_SLASH_RE, ' slash ')
+    .replace(SHORTCUT_PLUS_RE, ' plus ')
+    .replace(SHORTCUT_QUESTION_RE, ' question ')
+    .replace(SHORTCUT_LESS_RE, ' less ')
+    .replace(SHORTCUT_GREATER_RE, ' greater ')
+    .replace(SHORTCUT_COMMA_RE, ' comma ')
+    .replace(SHORTCUT_DOT_RE, ' dot ')
+    .replace(SHORTCUT_CONTROL_RE, 'ctrl')
+    .replace(SHORTCUT_COMMAND_RE, 'cmd')
+    .replace(SHORTCUT_ESCAPE_RE, 'esc')
+    .replace(SHORTCUT_NON_ALNUM_RE, ' ')
+    .replace(SHORTCUT_MULTI_SPACE_RE, ' ')
     .trim();
 }
 
