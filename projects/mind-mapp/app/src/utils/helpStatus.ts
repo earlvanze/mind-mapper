@@ -16,11 +16,11 @@ export function getHelpEmptyMessage(shown: number, pending = false): string | un
 export function formatHelpSummary(shown: number, total: number, pending = false): string {
   const safeShown = normalizeNonNegativeInt(shown);
   const safeTotal = normalizeNonNegativeInt(total);
+  const base = `${safeShown} / ${safeTotal} shown`;
 
-  let summary = `${safeShown} / ${safeTotal} shown`;
   if (pending) {
-    summary += ' • updating…';
+    return `${base} • updating…`;
   }
 
-  return summary;
+  return base;
 }
