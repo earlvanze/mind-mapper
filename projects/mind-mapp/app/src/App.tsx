@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { useMindMapStore, saveState } from './store/useMindMapStore';
+import { loadTheme, saveTheme, applyTheme, toggleTheme, type Theme } from './utils/theme';
 import Node from './components/Node';
 import Edges from './components/Edges';
 import { useKeyboard } from './hooks/useKeyboard';
@@ -18,6 +19,11 @@ export default function App() {
   const [showGrid, setShowGrid] = useState(false);
   const [showMiniMap, setShowMiniMap] = useState(true);
   const [showAdvancedActions, setShowAdvancedActions] = useState(false);
+  const [theme, setTheme] = useState<Theme>(() => {
+    const t = loadTheme();
+    applyTheme(t);
+    return t;
+  });
   const [viewScale, setViewScale] = useState(1);
   const [importNotice, setImportNotice] = useState<{ text: string; kind: 'success' | 'error' } | null>(null);
   const focusHistoryRef = useRef(createFocusHistory(focusId));
@@ -327,6 +333,15 @@ export default function App() {
     });
   };
 
+  const handleToggleTheme = () => {
+    setTheme(prev => {
+      const next = toggleTheme(prev);
+      saveTheme(next);
+      applyTheme(next);
+      return next;
+    });
+  };
+
   const closeSearchDialog = () => {
     setSearchOpen(false);
   };
@@ -379,6 +394,7 @@ export default function App() {
     onToggleGrid: () => setShowGrid(v => !v),
     onToggleMiniMap: () => setShowMiniMap(v => !v),
     onToggleAdvanced: () => setShowAdvancedActions(v => !v),
+    onToggleTheme: handleToggleTheme,
     onHelp: () => toggleHelpDialog(),
     onUndo: () => undo(),
     onRedo: () => redo(),
@@ -740,6 +756,7 @@ export default function App() {
           <button title="Copy focused node path (Alt+Shift+P)" aria-keyshortcuts="Alt+Shift+P" onClick={copyFocusPath}>Copy Path</button>
           <button title="Export PNG" aria-keyshortcuts="Control+Shift+S Meta+Shift+S" data-export="png" onClick={exportPngClick}>Export PNG</button>
           <button title="Reset pan/zoom" aria-keyshortcuts="0" onClick={() => (window as any).__mindmappResetView?.()}>Reset View</button>
+          <button title="Toggle theme (Shift+T)" aria-pressed={theme === 'dark'} aria-keyshortcuts="Shift+T" onClick={handleToggleTheme}>{theme === 'dark' ? '🌙 Dark' : '☀️ Light'}</button>
 
           {showAdvancedActions ? (
             <div id="mindmapp-advanced-actions" role="group" aria-label="Advanced toolbar actions">

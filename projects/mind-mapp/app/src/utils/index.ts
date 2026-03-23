@@ -31,3 +31,4 @@ export * from './storage';
 export * from './uiPrefs';
 export * from './version';
 export * from './viewMath';
+export * from './theme';
