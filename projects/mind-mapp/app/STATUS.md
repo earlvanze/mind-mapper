@@ -2,7 +2,7 @@
 
 ## Build
 - Framework: Vite + React + TypeScript
-- Current version: 0.1.2
+- Current version: 0.3.0
 - Last build output in `dist/`
 - Test runner: Vitest (`npm test`) — import, store history, minimap, fit math, edge/path, and pan/zoom math covered
 - CI: GitHub Actions workflow runs `npm test` + `npm run build` on app changes
@@ -40,3 +40,16 @@
 ## Next Priorities
 - Canvas renderer for larger maps
 - Virtualization for very large maps
+
+## Performance (v0.3.0) ✅ Complete
+- Canvas-based edge rendering for better performance
+- Full canvas renderer option for maps with 1000+ nodes
+- Viewport-based virtualization (automatic for >500 nodes)
+- Component optimization with React.memo
+- Renderer toggle in toolbar (SVG ↔ Canvas)
+- Smooth performance with 1000+ nodes
+
+## Next Priorities (v0.4)
+- Node styling (colors, shapes, icons)
+- Style toolbar for quick formatting
+- Style presets and custom styles
