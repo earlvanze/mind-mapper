@@ -1,16 +1,6 @@
 import { create } from 'zustand';
 import { loadFromStorage, saveToStorage, uid } from '../utils';
 
-export type NodeStyle = {
-  backgroundColor?: string;  // hex or preset name
-  textColor?: string;        // hex or preset name
-  borderColor?: string;      // hex or preset name
-  borderWidth?: number;      // 1-5px
-  shape?: 'rectangle' | 'rounded' | 'ellipse' | 'diamond';
-  icon?: string;             // emoji or icon name
-  fontSize?: 'small' | 'medium' | 'large';
-};
-
 export type Node = {
   id: string;
   text: string;
@@ -18,7 +8,6 @@ export type Node = {
   y: number;
   parentId: string | null;
   children: string[];
-  style?: NodeStyle;  // NEW: optional styling
 };
 
 type Snapshot = {
@@ -74,8 +63,6 @@ type MindMapState = {
   autoLayoutChildren: (parentId: string) => void;
   undo: () => void;
   redo: () => void;
-  setNodeStyle: (id: string, style: Partial<NodeStyle> | undefined) => void;
-  setSelectedStyle: (style: Partial<NodeStyle> | undefined) => void;
 };
 
 const rootId = 'n_root';
@@ -83,7 +70,7 @@ const MAX_HISTORY = 100;
 
 function cloneNodes(nodes: Record<string, Node>) {
   return Object.fromEntries(
-    Object.entries(nodes).map(([id, node]) => [id, { ...node, children: [...node.children], ...(node.style ? { style: { ...node.style } } : {}) }])
+    Object.entries(nodes).map(([id, node]) => [id, { ...node, children: [...node.children] }])
   ) as Record<string, Node>;
 }
 
@@ -858,7 +845,6 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
           y: source.y + 40,
           parentId: isSeedRoot ? source.parentId : mappedParentId ?? null,
           children: source.children.map(cid => idMap[cid]).filter(Boolean),
-          ...(source.style ? { style: { ...source.style } } : {}),
         };
       }
 
@@ -961,58 +947,6 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
         future,
         canUndo: past.length > 0,
         canRedo: future.length > 0,
-      };
-    }),
-  setNodeStyle: (id, style) =>
-    set(state => {
-      const node = state.nodes[id];
-      if (!node) return {};
-      
-      // If style is undefined, remove styling
-      if (style === undefined) {
-        const { style: _, ...rest } = node;
-        return {
-          ...withHistory(state),
-          nodes: { ...state.nodes, [id]: rest as Node },
-        };
-      }
-      
-      // Merge with existing style
-      const newStyle = node.style ? { ...node.style, ...style } : style;
-      
-      return {
-        ...withHistory(state),
-        nodes: { ...state.nodes, [id]: { ...node, style: newStyle } },
-      };
-    }),
-    
-  setSelectedStyle: (style) =>
-    set(state => {
-      const selected = state.selectedIds.filter(id => !!state.nodes[id]);
-      if (!selected.length) return {};
-      
-      const nextNodes = { ...state.nodes };
-      let changed = false;
-      
-      for (const id of selected) {
-        const node = nextNodes[id];
-        if (!node) continue;
-        
-        if (style === undefined) {
-          const { style: _, ...rest } = node;
-          nextNodes[id] = rest as Node;
-          changed = true;
-        } else {
-          const newStyle = node.style ? { ...node.style, ...style } : style;
-          nextNodes[id] = { ...node, style: newStyle };
-          changed = true;
-        }
-      }
-      
-      if (!changed) return {};
-      return {
-        ...withHistory(state),
-        nodes: nextNodes,
       };
     }),
 }));
