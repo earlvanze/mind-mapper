@@ -8,7 +8,7 @@ import { useKeyboard } from './hooks/useKeyboard';
 import { useVirtualization } from './hooks/useVirtualization';
 import { usePanZoom } from './hooks/usePanZoom';
 import { useAutosave } from './hooks/useAutosave';
-import { exportPng, exportJsonData, exportMarkdownData, fitToView, computeFitView, computeSelectionBounds, formatSelectionText, formatSubtreeOutline, getFocusPathSegments, getParentFocusId, getFirstChildId, getWrappedSiblingId, getFirstLeafId, getLastLeafId, getCycledLeafId, getLeafCycleRootId, getLeafIdsInSubtree, createFocusHistory, recordFocus, resetFocusHistory, findStepFocus, findEdgeFocus, pruneFocusHistory, centerPointInView, confirmAction, parseImportPayload, sampleMap, loadFocusHistory, saveFocusHistory, loadUiPrefs, saveUiPrefs, APP_VERSION, HELP_TOGGLE_ARIA_KEYSHORTCUTS, SEARCH_TOGGLE_ARIA_KEYSHORTCUTS, encodeShareLink, loadSharedMap, clearShareLink } from './utils';
+import { exportPng, exportJsonData, exportMarkdownData, exportSvg, exportFreemindData, exportPdf, fitToView, computeFitView, computeSelectionBounds, formatSelectionText, formatSubtreeOutline, getFocusPathSegments, getParentFocusId, getFirstChildId, getWrappedSiblingId, getFirstLeafId, getLastLeafId, getCycledLeafId, getLeafCycleRootId, getLeafIdsInSubtree, createFocusHistory, recordFocus, resetFocusHistory, findStepFocus, findEdgeFocus, pruneFocusHistory, centerPointInView, confirmAction, parseImportPayload, sampleMap, loadFocusHistory, saveFocusHistory, loadUiPrefs, saveUiPrefs, APP_VERSION, HELP_TOGGLE_ARIA_KEYSHORTCUTS, SEARCH_TOGGLE_ARIA_KEYSHORTCUTS, encodeShareLink, loadSharedMap, clearShareLink } from './utils';
 import MiniMap from './components/MiniMap';
 import StyleToolbar from './components/StyleToolbar';
 
@@ -24,6 +24,7 @@ export default function App() {
   const [showGrid, setShowGrid] = useState(false);
   const [showMiniMap, setShowMiniMap] = useState(true);
   const [showAdvancedActions, setShowAdvancedActions] = useState(false);
+  const [pdfLayout, setPdfLayout] = useState<'a4-portrait' | 'a4-landscape' | 'letter-portrait' | 'letter-landscape' | 'fit'>('a4-portrait');
   const [theme, setTheme] = useState<Theme>(() => {
     const t = loadTheme();
     applyTheme(t);
@@ -479,6 +480,17 @@ export default function App() {
     if (!el) return;
     await exportPng(el);
   };
+  const exportSvgClick = async () => {
+    const el = document.querySelector('.canvas') as HTMLElement | null;
+    if (!el) return;
+    await exportSvg(el);
+  };
+  const exportPdfClick = async () => {
+    const el = document.querySelector('.canvas') as HTMLElement | null;
+    if (!el) return;
+    await exportPdf(el, nodes, pdfLayout);
+  };
+  const exportFreemindClick = () => exportFreemindData(nodes);
 
   const writeClipboard = async (text: string) => {
     if (navigator.clipboard?.writeText) {
@@ -786,6 +798,16 @@ export default function App() {
           <button title="Copy focused subtree outline (Cmd/Ctrl+Shift+L)" aria-keyshortcuts="Control+Shift+L Meta+Shift+L" onClick={copySubtreeText}>Copy Tree</button>
           <button title="Copy focused node path (Alt+Shift+P)" aria-keyshortcuts="Alt+Shift+P" onClick={copyFocusPath}>Copy Path</button>
           <button title="Export PNG" aria-keyshortcuts="Control+Shift+S Meta+Shift+S" data-export="png" onClick={exportPngClick}>Export PNG</button>
+          <button title="Export SVG (vector)" onClick={exportSvgClick}>Export SVG</button>
+          <button title="Export FreeMind (.mm)" onClick={exportFreemindClick}>Export FreeMind</button>
+          <select title="PDF page layout" value={pdfLayout} onChange={e => setPdfLayout(e.target.value as typeof pdfLayout)} style={{ height: "28px", fontSize: "12px" }}>
+            <option value="a4-portrait">A4 Portrait</option>
+            <option value="a4-landscape">A4 Landscape</option>
+            <option value="letter-portrait">Letter Portrait</option>
+            <option value="letter-landscape">Letter Landscape</option>
+            <option value="fit">Fit to Content</option>
+          </select>
+          <button title="Export PDF" onClick={exportPdfClick}>Export PDF</button>
           <button title="Reset pan/zoom" aria-keyshortcuts="0" onClick={() => (window as any).__mindmappResetView?.()}>Reset View</button>
           <button title="Toggle theme (Shift+T)" aria-pressed={theme === 'dark'} aria-keyshortcuts="Shift+T" onClick={handleToggleTheme}>{theme === 'dark' ? '🌙 Dark' : '☀️ Light'}</button>
 

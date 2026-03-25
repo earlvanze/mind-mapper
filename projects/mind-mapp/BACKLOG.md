@@ -52,10 +52,10 @@
 - [x] Theme-aware color palettes
 - [x] Export with styling preserved
 
-## v0.5 Enhanced Exports
-- [ ] PDF export with page layout options
-- [ ] SVG export (vector format)
-- [ ] FreeMind XML export (interoperability)
+## v0.5 Enhanced Exports ✅ Complete
+- [x] PDF export with page layout options (A4/Letter, portrait/landscape, fit-to-content)
+- [x] SVG export (vector format via html-to-image)
+- [x] FreeMind XML export (interoperability — .mm format with styles/colors/icons)
 
 ## Future Enhancements
 - [ ] Collaborative editing (conflict-free replicated data types)
