@@ -5,6 +5,7 @@ import Node from './components/Node';
 import Edges from './components/Edges';
 import CanvasEdges from './components/CanvasEdges';
 import { useKeyboard } from './hooks/useKeyboard';
+import { useVirtualization } from './hooks/useVirtualization';
 import { usePanZoom } from './hooks/usePanZoom';
 import { useAutosave } from './hooks/useAutosave';
 import { exportPng, exportJsonData, exportMarkdownData, fitToView, computeFitView, computeSelectionBounds, formatSelectionText, formatSubtreeOutline, getFocusPathSegments, getParentFocusId, getFirstChildId, getWrappedSiblingId, getFirstLeafId, getLastLeafId, getCycledLeafId, getLeafCycleRootId, getLeafIdsInSubtree, createFocusHistory, recordFocus, resetFocusHistory, findStepFocus, findEdgeFocus, pruneFocusHistory, centerPointInView, confirmAction, parseImportPayload, sampleMap, loadFocusHistory, saveFocusHistory, loadUiPrefs, saveUiPrefs, APP_VERSION, HELP_TOGGLE_ARIA_KEYSHORTCUTS, SEARCH_TOGGLE_ARIA_KEYSHORTCUTS, encodeShareLink, loadSharedMap, clearShareLink } from './utils';
@@ -15,6 +16,7 @@ const HelpDialog = lazy(() => import('./components/HelpDialog'));
 
 export default function App() {
   const { nodes, focusId, selectedIds, editingId, setFocus, selectAll, invertSelection, selectSiblings, selectChildren, selectLeaves, selectAncestors, selectTopLevel, selectGeneration, clearSelectionSet, expandSelectionToNeighbors, selectSubtree, selectParent, alignSelection, distributeSelection, layoutSelection, stackSelection, snapSelectionToGrid, mirrorSelection, duplicateSelected, importState, resetMap, undo, redo, canUndo, canRedo } = useMindMapStore();
+  const { visibleNodeIds, shouldVirtualize } = useVirtualization(nodes, useCanvasRenderer);
   const [searchOpen, setSearchOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [showGrid, setShowGrid] = useState(false);
@@ -817,7 +819,7 @@ export default function App() {
       </div>
       <div className={`canvas ${showGrid ? 'grid-on' : ''}`}>
         {useCanvasRenderer ? <CanvasEdges nodes={nodes} /> : <Edges nodes={nodes} />}
-        {Object.values(nodes).map(n => (
+        {Object.values(nodes).filter(n => !shouldVirtualize || visibleNodeIds.has(n.id)).map(n => (
           <Node key={n.id} node={n} isFocused={focusId === n.id} isSelected={selectedIds.includes(n.id)} isEditing={editingId === n.id} />
         ))}
         {showMiniMap ? (
