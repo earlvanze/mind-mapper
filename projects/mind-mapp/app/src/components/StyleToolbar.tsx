@@ -246,33 +246,6 @@ export default function StyleToolbar({ theme }: Props) {
         )}
       </div>
 
-      {/* Bold */}
-      <button
-        className="style-toolbar-btn"
-        title="Bold (Cmd+B)"
-        onClick={() => {
-          if (!hasSelection) return;
-          setSelectedStyle({ bold: !(currentStyle?.bold ?? false) });
-        }}
-        disabled={!hasSelection}
-        style={currentStyle?.bold ? { fontWeight: 'bold', opacity: 1 } : {}}
-      >
-        <span aria-hidden="true">𝐁</span> Bold
-      </button>
-
-      {/* Italic */}
-      <button
-        className="style-toolbar-btn"
-        title="Italic (Cmd+I)"
-        onClick={() => {
-          if (!hasSelection) return;
-          setSelectedStyle({ italic: !(currentStyle?.italic ?? false) });
-        }}
-        disabled={!hasSelection}
-        style={currentStyle?.italic ? { fontStyle: 'italic', opacity: 1 } : {}}
-      >
-        <span aria-hidden="true">𝐼</span> Italic
-      </button>
 
       {/* Reset */}
       <button

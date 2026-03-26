@@ -1,4 +1,4 @@
-import { useEffect, useRef, memo, useState, useCallback } from 'react';
+import { useEffect, useRef, memo } from 'react';
 import { Node as NodeType, useMindMapStore } from '../store/useMindMapStore';
 import { resolveStyle } from '../utils/nodeStyles';
 import { loadTheme } from '../utils/theme';
@@ -18,89 +18,68 @@ function Node({ node, isFocused, isSelected, isEditing }: Props) {
     toggleSelection,
     startEditing,
     setText,
-    setSelectedStyle,
     moveNode,
     moveNodes,
   } = useMindMapStore();
-  const ref = useRef<HTMLDivElement>(null);
-  const [editingBold, setEditingBold] = useState(false);
-  const [editingItalic, setEditingItalic] = useState(false);
+  const textRef = useRef<HTMLSpanElement>(null);
 
-  // Sync editingBold/Italic with node style when editing starts
+  // Sync editing state: enable contentEditable and select all text when editing
   useEffect(() => {
+    if (!textRef.current) return;
     if (isEditing) {
-      setEditingBold(node.style?.bold ?? false);
-      setEditingItalic(node.style?.italic ?? false);
-      ref.current?.focus();
+      textRef.current.contentEditable = 'true';
+      textRef.current.focus();
       const range = document.createRange();
-      const selection = window.getSelection();
-      range.selectNodeContents(ref.current as Node);
+      const sel = window.getSelection();
+      range.selectNodeContents(textRef.current as Node);
       range.collapse(false);
-      selection?.removeAllRanges();
-      selection?.addRange(range);
+      sel?.removeAllRanges();
+      sel?.addRange(range);
+    } else {
+      textRef.current.contentEditable = 'false';
     }
-  }, [isEditing, node.style]);
+  }, [isEditing]);
 
-  const applyBold = useCallback(() => {
-    const next = !editingBold;
-    setEditingBold(next);
-    setSelectedStyle({ bold: next });
-  }, [editingBold, setSelectedStyle]);
-
-  const applyItalic = useCallback(() => {
-    const next = !editingItalic;
-    setEditingItalic(next);
-    setSelectedStyle({ italic: next });
-  }, [editingItalic, setSelectedStyle]);
+  const applyFormat = (command: string) => {
+    document.execCommand(command, false);
+    textRef.current?.focus();
+  };
 
   const onDragStart = (e: React.MouseEvent) => {
     const startX = e.clientX;
     const startY = e.clientY;
-
     const dragIds = selectedIds.includes(node.id) && selectedIds.length ? selectedIds : [node.id];
-    if (!selectedIds.includes(node.id)) {
-      setFocus(node.id);
-    }
+    if (!selectedIds.includes(node.id)) setFocus(node.id);
 
     const startPositions = Object.fromEntries(
-      dragIds
-        .map(id => {
-          const target = nodes[id];
-          return target ? [id, { x: target.x, y: target.y }] : null;
-        })
-        .filter(Boolean) as [string, { x: number; y: number }][]
+      dragIds.map(id => {
+        const target = nodes[id];
+        return target ? [id, { x: target.x, y: target.y }] : null;
+      }).filter(Boolean) as [string, { x: number; y: number }][]
     );
 
     let lastUpdates = startPositions;
-
     const onMove = (ev: MouseEvent) => {
       const dx = ev.clientX - startX;
       const dy = ev.clientY - startY;
       lastUpdates = Object.fromEntries(
         Object.entries(startPositions).map(([id, pos]) => [id, { x: pos.x + dx, y: pos.y + dy }])
       );
-
       if (dragIds.length === 1) {
-        const single = dragIds[0];
-        const p = lastUpdates[single];
-        moveNode(single, p.x, p.y);
+        moveNode(dragIds[0], lastUpdates[dragIds[0]].x, lastUpdates[dragIds[0]].y);
       } else {
         moveNodes(lastUpdates);
       }
     };
-
     const onUp = () => {
       if (dragIds.length === 1) {
-        const single = dragIds[0];
-        const p = lastUpdates[single];
-        moveNode(single, p.x, p.y, true);
+        moveNode(dragIds[0], lastUpdates[dragIds[0]].x, lastUpdates[dragIds[0]].y, true);
       } else {
         moveNodes(lastUpdates, true);
       }
       window.removeEventListener('mousemove', onMove);
       window.removeEventListener('mouseup', onUp);
     };
-
     window.addEventListener('mousemove', onMove);
     window.addEventListener('mouseup', onUp);
   };
@@ -109,11 +88,8 @@ function Node({ node, isFocused, isSelected, isEditing }: Props) {
   const resolved = resolveStyle(node.style, theme);
   const focusColor = getComputedStyle(document.documentElement).getPropertyValue('--color-accent').trim() || '#4f46e5';
 
-  // When editing, use live editingBold/Italic state for display
-  const displayBold = isEditing ? editingBold : resolved.bold;
-  const displayItalic = isEditing ? editingItalic : resolved.italic;
-
   const nodeStyle: React.CSSProperties = {
+    position: 'absolute',
     left: node.x,
     top: node.y,
     minWidth: 60,
@@ -129,15 +105,12 @@ function Node({ node, isFocused, isSelected, isEditing }: Props) {
     borderStyle: 'solid',
     transform: resolved.shape === 'diamond' ? 'rotate(45deg)' : undefined,
     transformOrigin: 'center center',
-    display: 'flex',
+    display: 'inline-flex',
     alignItems: 'center',
     gap: resolved.icon ? '4px' : undefined,
-    fontWeight: displayBold ? 'bold' : undefined,
-    fontStyle: displayItalic ? 'italic' : undefined,
-  };
-
-  const textStyle: React.CSSProperties = {
-    transform: resolved.shape === 'diamond' ? 'rotate(-45deg)' : undefined,
+    cursor: isEditing ? 'text' : 'grab',
+    userSelect: 'none',
+    padding: '4px 8px',
   };
 
   return (
@@ -155,15 +128,15 @@ function Node({ node, isFocused, isSelected, isEditing }: Props) {
             border: `1px solid ${resolved.border}`,
             borderRadius: 4,
             padding: '2px 4px',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+            boxShadow: '0 0 4px rgba(0,0,0,0.15)',
           }}
           onMouseDown={(e) => e.stopPropagation()}
         >
           <button
             title="Bold (Cmd+B)"
-            onClick={applyBold}
+            onMouseDown={(e) => { e.preventDefault(); applyFormat('bold'); }}
             style={{
-              background: editingBold ? resolved.bg : 'transparent',
+              background: 'transparent',
               border: 'none',
               cursor: 'pointer',
               fontWeight: 'bold',
@@ -172,14 +145,12 @@ function Node({ node, isFocused, isSelected, isEditing }: Props) {
               borderRadius: 3,
               color: resolved.text,
             }}
-          >
-            B
-          </button>
+          >B</button>
           <button
             title="Italic (Cmd+I)"
-            onClick={applyItalic}
+            onMouseDown={(e) => { e.preventDefault(); applyFormat('italic'); }}
             style={{
-              background: editingItalic ? resolved.bg : 'transparent',
+              background: 'transparent',
               border: 'none',
               cursor: 'pointer',
               fontStyle: 'italic',
@@ -188,56 +159,62 @@ function Node({ node, isFocused, isSelected, isEditing }: Props) {
               borderRadius: 3,
               color: resolved.text,
             }}
-          >
-            I
-          </button>
+          >I</button>
         </div>
       )}
       <div
-        ref={ref}
         className={`node ${isFocused ? 'focused' : ''} ${isSelected ? 'selected' : ''}`}
         style={nodeStyle}
         onMouseDown={(e) => {
-          if (e.shiftKey) return;
-          if (e.metaKey || e.ctrlKey) return;
+          if (e.shiftKey || e.metaKey || e.ctrlKey) return;
           if (isEditing) return;
           onDragStart(e);
         }}
         onClick={(e) => {
-          if (e.metaKey || e.ctrlKey) {
-            toggleSelection(node.id);
-            return;
-          }
+          if (e.metaKey || e.ctrlKey) { toggleSelection(node.id); return; }
           setFocus(node.id);
         }}
         onDoubleClick={() => startEditing(node.id)}
-        contentEditable={isEditing}
-        suppressContentEditableWarning
-        onKeyDown={(e) => {
-          // Rich text shortcuts during editing
-          if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'b') {
-            e.preventDefault();
-            applyBold();
-            return;
-          }
-          if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'i') {
-            e.preventDefault();
-            applyItalic();
-            return;
-          }
-          if (e.key === 'Enter') {
-            e.preventDefault();
-            (e.currentTarget as HTMLElement).blur();
-          }
-        }}
-        onBlur={(e) => {
-          const text = (e.currentTarget.textContent || '').trim();
-          setText(node.id, text || 'New');
-          (e.currentTarget as HTMLElement).contentEditable = 'false';
-        }}
       >
         {resolved.icon ? <span style={{ fontSize: '1em', lineHeight: 1 }}>{resolved.icon}</span> : null}
-        <span style={textStyle}>{node.text}</span>
+        <span
+          ref={textRef}
+          style={{
+            outline: 'none',
+            minWidth: 8,
+            display: 'inline-block',
+            whiteSpace: 'pre-wrap',
+            wordBreak: 'break-word',
+            transform: resolved.shape === 'diamond' ? 'rotate(-45deg)' : undefined,
+            pointerEvents: 'none',
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              (e.currentTarget as HTMLElement).blur();
+            }
+            if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'b') {
+              e.preventDefault();
+              applyFormat('bold');
+            }
+            if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'i') {
+              e.preventDefault();
+              applyFormat('italic');
+            }
+          }}
+          onBlur={(e) => {
+            const el = e.currentTarget;
+            // Store HTML to preserve b/i formatting
+            const html = el.innerHTML || '';
+            const temp = document.createElement('div');
+            temp.innerHTML = html;
+            const text = (temp.textContent || '').trim();
+            // Use innerHTML to preserve bold/italic markup
+            setText(node.id, html.trim() || 'New');
+            el.contentEditable = 'false';
+          }}
+          dangerouslySetInnerHTML={{ __html: node.text || '' }}
+        />
       </div>
     </>
   );
@@ -254,8 +231,6 @@ export default memo(Node, (prev, next) => {
     prev.isFocused === next.isFocused &&
     prev.isSelected === next.isSelected &&
     prev.isEditing === next.isEditing &&
-    (prev.node.style?.bold ?? false) === (next.node.style?.bold ?? false) &&
-    (prev.node.style?.italic ?? false) === (next.node.style?.italic ?? false) &&
     prev.node.style?.backgroundColor === next.node.style?.backgroundColor &&
     prev.node.style?.textColor === next.node.style?.textColor &&
     prev.node.style?.borderColor === next.node.style?.borderColor &&

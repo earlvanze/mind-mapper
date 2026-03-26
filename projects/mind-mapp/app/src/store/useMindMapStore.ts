@@ -10,8 +10,6 @@ export type NodeStyle = {
   shape?: 'rectangle' | 'rounded' | 'ellipse' | 'diamond';
   icon?: string;             // emoji or icon name
   fontSize?: 'small' | 'medium' | 'large';
-  bold?: boolean;            // rich text bold
-  italic?: boolean;           // rich text italic
 };
 
 export type Node = {
