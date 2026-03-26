@@ -43,6 +43,7 @@ type Props = {
   onCopySubtree: () => void;
   onCopyPath: () => void;
   onCenterRoot: () => void;
+  onVersionHistory: () => void;
   suspended?: boolean;
 };
 
@@ -116,6 +117,7 @@ export function useKeyboard({ onSearch, onFit, onFitSelection, onFitSubtree, onZ
       if (e.altKey && e.shiftKey && e.key.toLowerCase() === 'p' && !e.metaKey && !e.ctrlKey) { e.preventDefault(); onCopyPath(); return; }
       if (e.altKey && !e.shiftKey && e.key.toLowerCase() === 'p' && !e.metaKey && !e.ctrlKey) { e.preventDefault(); selectParent(); return; }
       if (e.altKey && !e.shiftKey && e.key.toLowerCase() === 'r' && !e.metaKey && !e.ctrlKey) { e.preventDefault(); onFocusPrevious(); return; }
+      if (e.altKey && e.key.toLowerCase() === 'v' && !e.metaKey && !e.ctrlKey && !e.shiftKey) { e.preventDefault(); onVersionHistory(); return; }
       if (e.altKey && e.shiftKey && e.key === 'Home' && !e.metaKey && !e.ctrlKey) { e.preventDefault(); onFocusHistoryStart(); return; }
       if (e.altKey && e.shiftKey && e.key === 'End' && !e.metaKey && !e.ctrlKey) { e.preventDefault(); onFocusHistoryEnd(); return; }
       if (e.altKey && e.shiftKey && e.key.toLowerCase() === 'q' && !e.metaKey && !e.ctrlKey) { e.preventDefault(); onResetFocusHistory(); return; }
@@ -188,6 +190,7 @@ export function useKeyboard({ onSearch, onFit, onFitSelection, onFitSubtree, onZ
     onFocusHistoryStart, onFocusHistoryEnd, onResetFocusHistory,
     onToggleGrid, onToggleMiniMap, onToggleAdvanced, onToggleTheme, onHelp,
     onUndo, onRedo, onExportMarkdown, onCopySelection, onCopySubtree, onCopyPath, onCenterRoot,
+    onVersionHistory,
     suspended,
   ]);
 }

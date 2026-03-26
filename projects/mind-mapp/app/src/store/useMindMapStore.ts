@@ -84,6 +84,7 @@ type MindMapState = {
   redo: () => void;
   setNodeStyle: (id: string, style: Partial<NodeStyle> | undefined) => void;
   setSelectedStyle: (style: Partial<NodeStyle> | undefined) => void;
+  restoreSnapshot: (nodes: Record<string, Node>, focusId: string) => void;
 };
 
 const rootId = 'n_root';
@@ -1012,6 +1013,14 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
         canRedo: future.length > 0,
       };
     }),
+  restoreSnapshot: (nodes: Record<string, Node>, focusId: string) =>
+    set(state => ({
+      ...withHistory(state),
+      nodes,
+      focusId,
+      selectedIds: [focusId],
+      editingId: undefined,
+    })),
   setNodeStyle: (id, style) =>
     set(state => {
       const node = state.nodes[id];

@@ -1,6 +1,8 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { useMindMapStore, saveState } from './store/useMindMapStore';
 import { loadTheme, saveTheme, applyTheme, toggleTheme, type Theme } from './utils/theme';
+import VersionHistoryDialog from './components/VersionHistoryDialog';
+import { createSnapshot, saveSnapshot, type NamedSnapshot } from './store/versionHistory';
 import Node from './components/Node';
 import Edges from './components/Edges';
 import CanvasEdges from './components/CanvasEdges';
@@ -14,6 +16,7 @@ import StyleToolbar from './components/StyleToolbar';
 
 const SearchDialog = lazy(() => import('./components/SearchDialog'));
 const HelpDialog = lazy(() => import('./components/HelpDialog'));
+const VersionHistoryDialogLazy = lazy(() => import('./components/VersionHistoryDialog'));
 
 export default function App() {
   const [useCanvasRenderer, setUseCanvasRenderer] = useState(false);
@@ -21,6 +24,7 @@ export default function App() {
   const { visibleNodeIds, shouldVirtualize } = useVirtualization(nodes, useCanvasRenderer);
   const [searchOpen, setSearchOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
+  const [versionHistoryOpen, setVersionHistoryOpen] = useState(false);
   const [showGrid, setShowGrid] = useState(false);
   const [showMiniMap, setShowMiniMap] = useState(true);
   const [showAdvancedActions, setShowAdvancedActions] = useState(false);
@@ -384,6 +388,20 @@ export default function App() {
     });
   };
 
+  const toggleVersionHistory = () => {
+    setVersionHistoryOpen(v => !v);
+  };
+
+  const handleSaveSnapshot = (name: string) => {
+    const snap = createSnapshot(nodes, focusId, name);
+    return saveSnapshot(snap);
+  };
+
+  const handleLoadSnapshot = (snap: NamedSnapshot) => {
+    importState(snap.nodes);
+    resetFocusHistoryTo(snap.focusId, `Loaded snapshot "${snap.name}".`);
+  };
+
   useKeyboard({
     onSearch: () => toggleSearchDialog(),
     onFit: () => fitToView(),
@@ -414,6 +432,7 @@ export default function App() {
     onToggleAdvanced: () => setShowAdvancedActions(v => !v),
     onToggleTheme: handleToggleTheme,
     onHelp: () => toggleHelpDialog(),
+    onVersionHistory: () => toggleVersionHistory(),
     onUndo: () => undo(),
     onRedo: () => redo(),
     onExportMarkdown: () => exportMarkdownData(nodes),
@@ -760,6 +779,17 @@ export default function App() {
           >
             {helpOpen ? 'Help On' : 'Help Off'}
           </button>
+          <button
+            title={versionHistoryOpen ? 'Hide version history (Alt+V)' : 'Version history (Alt+V)'}
+            aria-pressed={versionHistoryOpen}
+            aria-expanded={versionHistoryOpen}
+            aria-controls="mindmapp-version-history"
+            aria-haspopup="dialog"
+            aria-keyshortcuts="Alt+V"
+            onClick={toggleVersionHistory}
+          >
+            {versionHistoryOpen ? 'Versions On' : 'Versions'}
+          </button>
           <StyleToolbar theme={theme} />
           <button
             title="Clear map"
@@ -862,6 +892,12 @@ export default function App() {
       <Suspense fallback={null}>
         <SearchDialog open={searchOpen} onClose={closeSearchDialog} />
         <HelpDialog open={helpOpen} onClose={closeHelpDialog} />
+        <VersionHistoryDialogLazy
+          open={versionHistoryOpen}
+          onClose={() => setVersionHistoryOpen(false)}
+          onSaveSnapshot={handleSaveSnapshot}
+          onLoadSnapshot={handleLoadSnapshot}
+        />
       </Suspense>
     </div>
   );
