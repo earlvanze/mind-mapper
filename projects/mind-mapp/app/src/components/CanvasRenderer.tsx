@@ -279,8 +279,12 @@ function drawNodes(
 
     const textWidth = Math.max(...lines.map(l => measureTextWidth(ctx, l, fontSize, resolved.bold, resolved.italic)));
     const padding = 20;
-    const width = Math.max(60, textWidth + padding);
-    const height = Math.max(32, lines.length * lineHeight + 8);
+    // For nodes with images, width is constrained by image max-width (160) + padding
+    const imageWidth = node.style?.imageUrl ? Math.min(160, 144) : 0;
+    const width = Math.max(60, Math.max(textWidth + padding, imageWidth + padding));
+    // Add image height (112 max) + gap if image present
+    const imageHeight = node.style?.imageUrl ? 116 : 0;
+    const height = Math.max(32, lines.length * lineHeight + 8 + imageHeight);
 
     hitMap.set(node.id, { x: node.x, y: node.y, width, height });
 
@@ -296,6 +300,22 @@ function drawNodes(
     drawShape(ctx, resolved.shape, node.x, node.y, width, height);
     ctx.fill();
 
+    // Draw image if present
+    if (node.style?.imageUrl) {
+      const img = new Image();
+      img.src = node.style.imageUrl;
+      const imgMaxW = Math.min(160, width - padding);
+      const imgMaxH = 112;
+      // Draw image centered at top of node
+      const imgX = node.x + (width - imgMaxW) / 2;
+      const imgY = node.y + 4;
+      try {
+        ctx.drawImage(img, imgX, imgY, imgMaxW, imgMaxH);
+      } catch (e) {
+        // Image draw failure is non-fatal
+      }
+    }
+
     // Border
     ctx.strokeStyle = borderColor;
     ctx.lineWidth = borderWidth;
@@ -305,7 +325,8 @@ function drawNodes(
     // Multi-line text rendering
     ctx.fillStyle = resolved.text;
     const textX = node.x + 10;
-    const textY = node.y + (height - lines.length * lineHeight) / 2;
+    // Account for image height in text positioning
+    const textY = node.y + imageHeight + (height - imageHeight - lines.length * lineHeight) / 2;
     lines.forEach((line, i) => {
       ctx.fillText(line, textX, textY + i * lineHeight);
     });

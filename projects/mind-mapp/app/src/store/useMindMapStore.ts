@@ -12,6 +12,7 @@ export type NodeStyle = {
   fontSize?: 'small' | 'medium' | 'large';
   bold?: boolean;            // bold text
   italic?: boolean;          // italic text
+  imageUrl?: string;       // embedded image data URL
 };
 
 export type Node = {

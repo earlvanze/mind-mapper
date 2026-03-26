@@ -106,11 +106,12 @@ function Node({ node, isFocused, isSelected, isEditing }: Props) {
     transform: resolved.shape === 'diamond' ? 'rotate(45deg)' : undefined,
     transformOrigin: 'center center',
     display: 'inline-flex',
+    flexDirection: node.style?.imageUrl ? 'column' : 'row',
     alignItems: 'center',
     gap: resolved.icon ? '4px' : undefined,
     cursor: isEditing ? 'text' : 'grab',
     userSelect: 'none',
-    padding: '4px 8px',
+    padding: node.style?.imageUrl ? '8px 8px 4px' : '4px 8px',
   };
 
   return (
@@ -204,6 +205,29 @@ function Node({ node, isFocused, isSelected, isEditing }: Props) {
         }}
         onDoubleClick={() => startEditing(node.id)}
       >
+        {node.style?.imageUrl && (
+          <div style={{
+            maxWidth: 160,
+            maxHeight: 120,
+            overflow: 'hidden',
+            borderRadius: 4,
+            marginBottom: node.style?.imageUrl ? 4 : 0,
+            lineHeight: 0,
+          }}>
+            <img
+              src={node.style.imageUrl}
+              alt=""
+              style={{
+                maxWidth: '100%',
+                maxHeight: 112,
+                objectFit: 'contain',
+                display: 'block',
+                borderRadius: 4,
+              }}
+              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+            />
+          </div>
+        )}
         {resolved.icon ? <span style={{ fontSize: '1em', lineHeight: 1 }}>{resolved.icon}</span> : null}
         <span
           ref={textRef}
@@ -274,6 +298,7 @@ export default memo(Node, (prev, next) => {
     prev.node.style?.borderWidth === next.node.style?.borderWidth &&
     prev.node.style?.shape === next.node.style?.shape &&
     prev.node.style?.icon === next.node.style?.icon &&
-    prev.node.style?.fontSize === next.node.style?.fontSize
+    prev.node.style?.fontSize === next.node.style?.fontSize &&
+    prev.node.style?.imageUrl === next.node.style?.imageUrl
   );
 });

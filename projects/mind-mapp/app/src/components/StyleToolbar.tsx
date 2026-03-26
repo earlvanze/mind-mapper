@@ -21,7 +21,7 @@ const SHORTCUT_LABELS = ['1','2','3','4','5','6','7'] as const;
 
 export default function StyleToolbar({ theme }: Props) {
   const { selectedIds, setSelectedStyle, nodes } = useMindMapStore();
-  const [openPicker, setOpenPicker] = useState<'color' | 'shape' | 'icon' | null>(null);
+  const [openPicker, setOpenPicker] = useState<'color' | 'shape' | 'icon' | 'image' | null>(null);
   const pickerRef = useRef<HTMLDivElement>(null);
 
   const hasSelection = selectedIds.length > 0;
@@ -64,6 +64,18 @@ export default function StyleToolbar({ theme }: Props) {
   const applyIcon = (icon: string) => {
     if (!hasSelection) return;
     setSelectedStyle({ icon });
+    setOpenPicker(null);
+  };
+
+  const applyImage = (imageUrl: string) => {
+    if (!hasSelection) return;
+    setSelectedStyle({ imageUrl });
+    setOpenPicker(null);
+  };
+
+  const removeImage = () => {
+    if (!hasSelection) return;
+    setSelectedStyle({ imageUrl: undefined });
     setOpenPicker(null);
   };
 
@@ -161,6 +173,80 @@ export default function StyleToolbar({ theme }: Props) {
     </div>
   );
 
+  const renderImagePicker = () => (
+    <div className="style-picker-content">
+      <div className="style-picker-section">
+        <span className="style-picker-label">Embed Image</span>
+        <p style={{ fontSize: 12, color: 'inherit', opacity: 0.7, margin: '4px 0 8px' }}>
+          Paste an image URL or upload from your device.
+        </p>
+      </div>
+      <div className="style-picker-section">
+        <span className="style-picker-label">URL</span>
+        <input
+          type="url"
+          className="style-text-input"
+          placeholder="https://..."
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              const val = (e.target as HTMLInputElement).value;
+              if (val) applyImage(val);
+            }
+          }}
+          aria-label="Image URL"
+        />
+        <button
+          className="style-action-btn"
+          style={{ marginTop: 6 }}
+          onClick={(e) => {
+            const picker = (e.currentTarget as HTMLElement).closest('.style-picker-content');
+            const input = picker?.querySelector('input[type=url]') as HTMLInputElement | null;
+            if (input?.value) applyImage(input.value);
+          }}
+        >
+          Apply URL
+        </button>
+      </div>
+      <div className="style-picker-section">
+        <span className="style-picker-label">Upload</span>
+        <input
+          type="file"
+          accept="image/*"
+          className="style-file-input"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+              const dataUrl = ev.target?.result as string;
+              if (dataUrl) applyImage(dataUrl);
+            };
+            reader.readAsDataURL(file);
+          }}
+          aria-label="Upload image"
+        />
+      </div>
+      {currentStyle?.imageUrl && (
+        <div className="style-picker-section">
+          <span className="style-picker-label">Current</span>
+          <img
+            src={currentStyle.imageUrl}
+            alt="Current"
+            style={{ maxWidth: '100%', maxHeight: 80, borderRadius: 4 }}
+            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+          />
+          <button
+            className="style-action-btn"
+            style={{ marginTop: 6, background: '#ef4444', color: '#fff' }}
+            onClick={removeImage}
+          >
+            Remove Image
+          </button>
+        </div>
+      )}
+    </div>
+  );
+
   const EMOJI_OPTIONS = ['🔥','⭐','💡','✅','❌','⚠️','📌','📝','🎯','🚀','💰','🏠','📊','🔧','🌟','💬','📈','🛠️','🎨','✨'];
 
   const renderIconPicker = () => (
@@ -242,6 +328,25 @@ export default function StyleToolbar({ theme }: Props) {
         {openPicker === 'icon' && (
           <div className="style-picker" role="dialog" aria-label="Icon picker">
             {renderIconPicker()}
+          </div>
+        )}
+      </div>
+
+      {/* Image */}
+      <div className="style-toolbar-group">
+        <button
+          className={`style-toolbar-btn ${openPicker === 'image' ? 'active' : ''}`}
+          title="Embed image"
+          aria-haspopup="true"
+          aria-expanded={openPicker === 'image'}
+          onClick={() => setOpenPicker(o => o === 'image' ? null : 'image')}
+          disabled={!hasSelection}
+        >
+          <span aria-hidden="true">🖼️</span> Image
+        </button>
+        {openPicker === 'image' && (
+          <div className="style-picker" role="dialog" aria-label="Image picker">
+            {renderImagePicker()}
           </div>
         )}
       </div>
