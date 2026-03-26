@@ -64,6 +64,6 @@
 ## v1.0 (Full Release)
 - [ ] Mobile app (React Native)
 - [ ] Plugin system for custom visualizations
-- [ ] Embedded images/attachments
+- [x] Embedded images (data URL / file upload)
 - [ ] Accessibility audit (WCAG 2.1 AA)
 - [ ] Public release and documentation site
