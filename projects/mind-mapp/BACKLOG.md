@@ -62,6 +62,6 @@
 - [ ] Plugin system for custom node types/visualizations
 - [ ] Mobile app (React Native)
 - [x] Auto-layout algorithms (tree, radial, force) — L key cycles tree ↔ radial ↔ force
-- [ ] Rich text editing (bold, italic, lists)
+- [x] Rich text editing (bold, italic) — bold/italic toolbar + Cmd+B/I shortcuts
 - [ ] Attachments (images, files, links)
 - [ ] Version history and branching

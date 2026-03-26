@@ -10,8 +10,6 @@ export type NodeStyle = {
   shape?: 'rectangle' | 'rounded' | 'ellipse' | 'diamond';
   icon?: string;             // emoji or icon name
   fontSize?: 'small' | 'medium' | 'large';
-  bold?: boolean;            // bold text
-  italic?: boolean;          // italic text
 };
 
 export type Node = {
@@ -137,31 +135,9 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
     set(state => {
       const current = state.nodes[id];
       if (!current || current.text === text) return {};
-
-      // Parse HTML for bold/italic tags and sync style booleans
-      const hasBold = /<b[^>]*>/i.test(text) || /<strong[^>]*>/i.test(text);
-      const hasItalic = /<i[^>]*>/i.test(text) || /<em[^>]*>/i.test(text);
-
-      // Only update style booleans if they differ from current
-      const styleUpdate: Partial<NodeStyle> = {};
-      if (current.style?.bold !== hasBold) styleUpdate.bold = hasBold;
-      if (current.style?.italic !== hasItalic) styleUpdate.italic = hasItalic;
-
-      const needsStyleUpdate = Object.keys(styleUpdate).length > 0;
-      const newStyle = needsStyleUpdate
-        ? (current.style ? { ...current.style, ...styleUpdate } : styleUpdate)
-        : current.style;
-
       return {
         ...withHistory(state),
-        nodes: {
-          ...state.nodes,
-          [id]: {
-            ...current,
-            text,
-            ...(newStyle ? { style: newStyle } : {}),
-          },
-        },
+        nodes: { ...state.nodes, [id]: { ...current, text } },
       };
     }),
   setFocus: id => set({ focusId: id, selectedIds: [id], editingId: undefined }),
