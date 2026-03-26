@@ -192,6 +192,9 @@ function Node({ node, isFocused, isSelected, isEditing }: Props) {
         </div>
       )}
       <div
+        role="treeitem"
+        aria-selected={isSelected}
+        tabIndex={isFocused ? 0 : -1}
         className={`node ${isFocused ? 'focused' : ''} ${isSelected ? 'selected' : ''}`}
         style={nodeStyle}
         onMouseDown={(e) => {
@@ -202,6 +205,14 @@ function Node({ node, isFocused, isSelected, isEditing }: Props) {
         onClick={(e) => {
           if (e.metaKey || e.ctrlKey) { toggleSelection(node.id); return; }
           setFocus(node.id);
+        }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            if (!isEditing) {
+              e.preventDefault();
+              startEditing(node.id);
+            }
+          }
         }}
         onDoubleClick={() => startEditing(node.id)}
       >
