@@ -602,6 +602,7 @@ export default function App() {
 
   return (
     <div className="app">
+      <a href="#mindmap-canvas" className="skip-link">Skip to canvas</a>
       <div className="toolbar" role="toolbar" aria-label="Mind Mapp actions" aria-orientation="horizontal">
         <strong>Mind Mapp</strong>
         <span style={{ color: '#666' }}>v{APP_VERSION}</span>
@@ -638,12 +639,15 @@ export default function App() {
           </span>
         ) : null}
         <span style={{ color: '#666' }}>Press ? for shortcuts</span>
+        {/* Screen-reader live region for dynamic status announcements */}
+        <div id="mindmapp-status" aria-live="polite" aria-atomic="true" className="sr-only" style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0,0,0,0)', whiteSpace: 'nowrap' }} />
         {importNotice ? (
           <span
             className={`toolbar-notice ${importNotice.kind === 'error' ? 'is-error' : 'is-success'}`}
             role={importNotice.kind === 'error' ? 'alert' : 'status'}
             aria-live={importNotice.kind === 'error' ? 'assertive' : 'polite'}
             aria-atomic="true"
+            aria-describedby="mindmapp-status"
           >
             {importNotice.text}
             <button
@@ -793,6 +797,7 @@ export default function App() {
           <StyleToolbar theme={theme} />
           <button
             title="Clear map"
+            aria-label="Clear the entire mind map"
             onClick={() => {
               if (!confirmAction('Clear the entire map?')) return;
               resetMap();
@@ -803,6 +808,7 @@ export default function App() {
           </button>
           <button
             title="Load sample map"
+            aria-label="Load sample mind map"
             onClick={() => {
               importState(sampleMap());
               resetFocusHistoryTo('n_root', 'Loaded sample map and reset focus history.');
@@ -828,17 +834,17 @@ export default function App() {
           <button title="Copy focused subtree outline (Cmd/Ctrl+Shift+L)" aria-keyshortcuts="Control+Shift+L Meta+Shift+L" onClick={copySubtreeText}>Copy Tree</button>
           <button title="Copy focused node path (Alt+Shift+P)" aria-keyshortcuts="Alt+Shift+P" onClick={copyFocusPath}>Copy Path</button>
           <button title="Export PNG" aria-keyshortcuts="Control+Shift+S Meta+Shift+S" data-export="png" onClick={exportPngClick}>Export PNG</button>
-          <button title="Export SVG (vector)" onClick={exportSvgClick}>Export SVG</button>
-          <button title="Export FreeMind (.mm)" onClick={exportFreemindClick}>Export FreeMind</button>
-          <select title="PDF page layout" value={pdfLayout} onChange={e => setPdfLayout(e.target.value as typeof pdfLayout)} style={{ height: "28px", fontSize: "12px" }}>
+          <button title="Export SVG (vector)" aria-label="Export as SVG vector file" onClick={exportSvgClick}>Export SVG</button>
+          <button title="Export FreeMind (.mm)" aria-label="Export as FreeMind XML file" onClick={exportFreemindClick}>Export FreeMind</button>
+          <select title="PDF page layout" aria-label="PDF page layout" value={pdfLayout} onChange={e => setPdfLayout(e.target.value as typeof pdfLayout)} style={{ height: "28px", fontSize: "12px" }}>
             <option value="a4-portrait">A4 Portrait</option>
             <option value="a4-landscape">A4 Landscape</option>
             <option value="letter-portrait">Letter Portrait</option>
             <option value="letter-landscape">Letter Landscape</option>
             <option value="fit">Fit to Content</option>
           </select>
-          <button title="Export PDF" onClick={exportPdfClick}>Export PDF</button>
-          <button title="Reset pan/zoom" aria-keyshortcuts="0" onClick={() => (window as any).__mindmappResetView?.()}>Reset View</button>
+          <button title="Export PDF" aria-label="Export as PDF document" onClick={exportPdfClick}>Export PDF</button>
+          <button title="Reset pan/zoom" aria-label="Reset pan and zoom to default view" aria-keyshortcuts="0" onClick={() => (window as any).__mindmappResetView?.()}>Reset View</button>
           <button title="Toggle theme (Shift+T)" aria-pressed={theme === 'dark'} aria-keyshortcuts="Shift+T" onClick={handleToggleTheme}>{theme === 'dark' ? '🌙 Dark' : '☀️ Light'}</button>
 
           {showAdvancedActions ? (
@@ -871,7 +877,7 @@ export default function App() {
           ) : null}
         </div>
       </div>
-      <div className={`canvas ${showGrid ? 'grid-on' : ''}`}>
+      <div id="mindmap-canvas" className={`canvas ${showGrid ? 'grid-on' : ''}`} role="application" aria-label="Mind map canvas. Use arrow keys to navigate nodes, Enter to edit, Tab to add child, Delete to remove." tabIndex={-1}>
         {useCanvasRenderer ? <CanvasEdges nodes={nodes} /> : <Edges nodes={nodes} />}
         {Object.values(nodes).filter(n => !shouldVirtualize || visibleNodeIds.has(n.id)).map(n => (
           <Node key={n.id} node={n} isFocused={focusId === n.id} isSelected={selectedIds.includes(n.id)} isEditing={editingId === n.id} />

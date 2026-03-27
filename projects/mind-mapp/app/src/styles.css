@@ -37,6 +37,33 @@
   --color-help-heading: #334155;
   color: var(--color-text);
   background: var(--color-bg);
+  /* Reduce motion: honor user preference for less animation */
+  --motion-duration: 0ms;
+}
+
+/* Skip navigation link — visually hidden until focused */
+.skip-link {
+  position: fixed;
+  top: -100px;
+  left: 8px;
+  z-index: 10000;
+  padding: 8px 16px;
+  background: var(--color-accent);
+  color: #fff;
+  font-weight: 600;
+  font-size: 14px;
+  border-radius: 0 0 8px 8px;
+  text-decoration: none;
+  transition: top 0.15s ease;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+}
+
+.skip-link:focus {
+  outline: 3px solid var(--color-accent-deep);
+  outline-offset: 2px;
+  top: -2px;
+}
+
 }
 
 [data-theme="dark"] {
@@ -251,6 +278,18 @@ body, html, #root {
 
 .minimap-view.dragging {
   cursor: grabbing;
+}
+
+
+/* Visible focus indicator for keyboard navigation — ARIA a11y */
+.node:focus-visible {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* Remove outline for mouse/pointer interaction */
+.node:focus:not(:focus-visible) {
+  outline: none;
 }
 
 .minimap-view:focus {
