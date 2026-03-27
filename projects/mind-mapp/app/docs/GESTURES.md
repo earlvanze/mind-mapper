@@ -1,0 +1,74 @@
+# Mind Mapp — Gestures
+
+## Mouse + Trackpad
+- Shift + drag: pan
+- Shift + G: toggle grid overlay
+- Shift + M: toggle mini-map visibility
+- Shift + A: toggle advanced toolbar actions
+- Ctrl/Cmd + wheel: zoom
+- = / +: zoom in (center‑preserving)
+- -: zoom out (center‑preserving)
+- 0: reset pan/zoom view
+- Alt + Shift + C: center selected nodes
+- Shift + C: center root node
+- Shift + P: focus + center parent node
+- Shift + N: focus + center first child node
+- Shift + H: focus + center previous sibling (wraps)
+- Shift + J: focus + center next sibling (wraps)
+- Shift + L: focus + center first leaf in focused subtree
+- Shift + K: focus + center last leaf in focused subtree
+- Shift + ,: focus + center previous leaf in focused subtree
+- Shift + .: focus + center next leaf in focused subtree
+- R: focus + center root node
+- Shift + R: jump forward in focus history
+- Alt + R: jump back to previous focus
+- Alt + Shift + Home: jump to oldest focus history entry
+- Alt + Shift + End: jump to newest focus history entry
+- Alt + Shift + Q: reset focus history to current node
+- Cmd/Ctrl + click: add/remove node in multi-selection
+- Cmd/Ctrl + A: select all nodes
+- Alt + I: invert selection
+- Cmd/Ctrl + D: duplicate selected node(s)
+- Cmd/Ctrl + Shift + C: copy selected/focused node text
+- Cmd/Ctrl + Shift + L: copy focused subtree outline
+- Alt + S: select siblings of focused node
+- Alt + C: select children of focused node
+- Alt + L: select leaves under focused subtree
+- Alt + U: select ancestors of focused node
+- Alt + T: reduce selection to top-level nodes
+- Alt + G: select nodes at focused depth level
+- Alt + X: clear selection extras (keep focus)
+- Alt + N: expand selection to parents + children
+- Alt + Shift + X: align selected nodes to focused X
+- Alt + Shift + Y: align selected nodes to focused Y
+- Alt + Shift + H: distribute selected nodes horizontally
+- Alt + Shift + V: distribute selected nodes vertically
+- Alt + Shift + R: layout selected nodes into a row
+- Alt + Shift + D: layout selected nodes into a column
+- Alt + Shift + F: fit focused subtree
+- Alt + Shift + G: snap selected nodes to 20px grid
+- Alt + Shift + M: mirror selected nodes across focused X axis
+- Alt + Shift + W: mirror selected nodes across focused Y axis
+- Alt + [: stack selected nodes along X from focus
+- Alt + ]: stack selected nodes along Y from focus
+- Alt + B: select focused subtree
+- Alt + Shift + B: center focused subtree
+- Alt + P: select parent of focused node
+- Alt + Shift + P: copy focused node path
+- Drag selected node(s): group move
+- Click mini-map node: focus + center that node
+- Click mini-map background: recenter viewport to that location
+- Mini-map viewport box: shows current visible canvas window; drag it to pan (focusable for keyboard pan/page/edge-jump)
+- Focus mini-map canvas (Tab), then Arrow keys to pan viewport (Shift + Arrow = faster)
+- Focus mini-map canvas (Tab), then PageUp/PageDown to pan viewport vertically by large steps
+- Focus mini-map canvas (Tab), then Shift+PageUp/Shift+PageDown to pan viewport horizontally by large steps
+- Focus mini-map canvas (Tab), then Home/End to jump viewport to map edges
+- Double-click background: reset view
+
+## Touch
+- One-finger drag: pan
+- Two-finger pinch: zoom
+- Two-finger move: pan while zooming
+
+## Keyboard
+See KEYS.md for full shortcuts.

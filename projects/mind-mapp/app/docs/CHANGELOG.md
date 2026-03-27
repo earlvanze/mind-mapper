@@ -1,0 +1,309 @@
+# Mind Mapp — Changelog
+
+## 0.11.0
+- Skip navigation link (keyboard accessibility)
+- `:focus-visible` ring discrimination (keyboard vs mouse)
+- `prefers-reduced-motion` CSS support
+- Dedicated `aria-live` status region
+- Canvas div with `id="mindmap-canvas"` as skip link target
+
+## 0.10.0
+- Named version snapshots (save/load/rename/delete)
+- Version history dialog (`Alt+V`)
+- Up to 50 snapshots with duplicate-name guard
+- Snapshot date formatting (Today/Yesterday/date)
+- Loading a snapshot commits to undo stack
+
+## 0.9.0
+- Embedded images in nodes (URL or file upload)
+- Images display above node text (SVG + Canvas renderers)
+- Image picker in style toolbar
+- Images preserved in JSON/PNG/SVG/PDF exports
+- Images stored as data URLs in localStorage
+
+## 0.8.0
+- Force-directed layout (Fruchterman-Reingold physics simulation)
+- `L` key cycles: Tree ↔ Radial ↔ Force ↔ off
+- Force layout with configurable area, gravity, speed, iterations
+- Radial layout with concentric ring arrangement by depth
+- Tree layout with configurable horizontal/vertical spacing
+- Layout mode persisted in UI preferences
+
+## 0.5.0
+- PDF export with page layout options (A4/Letter, portrait/landscape, fit-to-content)
+- SVG export (vector format via html-to-image)
+- FreeMind XML export (.mm format — interoperable with FreeMind/MindMaster)
+- Export preserves node styling (colors, icons, shapes)
+- Page size and orientation controls in PDF export
+
+## 0.4.0
+- Node color presets (7 presets: default, primary, success, warning, danger, info, muted)
+- Theme-aware color resolution (light/dark variants)
+- Custom color pickers (background, text, border)
+- Node shapes: rectangle, rounded, ellipse, diamond
+- Emoji icon picker with 20 quick-access icons
+- Style toolbar with color/shape/icon pickers
+- Border width control
+- Reset style action
+- `Cmd/Ctrl+1-7` for color presets
+- Rich text formatting toolbar in edit mode (bold, italic, lists)
+- Style data model in store + JSON import/export preservation
+
+## 0.3.0
+- Sample map loader
+- Reset view (no reload)
+- Shortcuts centralized + expanded (PNG export)
+- Toolbar tooltips + wrap
+- Node editing polish (no drag while editing, default label)
+- Higher-res PNG export
+- UI hints (node count + shortcut hint)
+- Deploy notes + status summary
+- Docs inventory refresh (checklist + links)
+- Utilities barrel import cleanup
+- Keyboard hook dependency fix
+- Added FAQ + glossary docs
+- Added exports doc
+- Added imports doc
+- Linked imports/exports in overview
+- Added app architecture doc
+- Added gestures doc
+- Added style guide
+- Added accessibility doc
+- Updated docs status summary
+- Added style guide status note
+- Added import validation with clear success/error notices
+- Added undo/redo history (toolbar + shortcuts)
+- Added import graph integrity checks (root/links/self-parent/unreachable)
+- Avoided no-op text edits in undo history
+- Added Vitest setup + import validation unit tests
+- Added undo/redo store unit tests
+- Added GitHub Actions CI for tests + build on app changes
+- Added Markdown export (button + shortcut)
+- Switched edge rendering from straight lines to curved paths
+- Added touch pan/pinch gestures for canvas navigation
+- Added multi-select + group drag move
+- Added mini-map navigator overlay
+- Added Cmd/Ctrl+A shortcut for select-all in multi-select mode
+- Added Alt+Arrow keyboard nudge for selected node groups
+- Synced Fit-to-view with pan/zoom controller state (prevents post-fit jump)
+- Added center-focused-node control (C shortcut + mini-map click center)
+- Added duplicate-selected control (Cmd/Ctrl+D + toolbar, including subtree duplication)
+- Added mini-map viewport indicator synced with pan/zoom state
+- Switched mini-map viewport sync from polling to pan/zoom view-change events
+- Added focused-node sibling selection command (Alt+S + toolbar)
+- Added mini-map background click-to-recenter navigation
+- Added focused-subtree selection command (Alt+B + toolbar)
+- Added parent-selection command (Alt+P + toolbar)
+- Added children-selection command (Alt+C + toolbar)
+- Added invert-selection command (Alt+I + toolbar)
+- Added leaf-selection command (Alt+L + toolbar)
+- Added ancestor-selection command (Alt+U + toolbar)
+- Added top-level-selection command (Alt+T + toolbar)
+- Added clear-selection-extras command (Alt+X + toolbar)
+- Added neighbor-expansion command (Alt+N + toolbar)
+- Added generation-selection command (Alt+G + toolbar)
+- Added selection alignment commands (Alt+Shift+X / Alt+Shift+Y + toolbar)
+- Added selection distribution commands (Alt+Shift+H / Alt+Shift+V + toolbar)
+- Added selection stacking commands (Alt+[ / Alt+] + toolbar)
+- Added grid-snapping command (Alt+Shift+G + toolbar)
+- Added selection mirroring commands (Alt+Shift+M / Alt+Shift+W + toolbar)
+- Added fit-selection command (Alt+F + toolbar)
+- Added grid overlay toggle (Shift+G + toolbar)
+- Added row/column layout commands (Alt+Shift+R / Alt+Shift+D + toolbar)
+- Lazy-loaded Search/Help dialogs to reduce initial JS payload
+- Added collapsible Advanced actions toolbar section to reduce top-bar clutter
+- Persisted UI prefs for grid/advanced toggle states across reloads
+- Added Shift+A shortcut for Advanced toolbar toggle
+- Added Shift+M mini-map visibility toggle and persisted mini-map preference
+- Search selection now centers viewport on the chosen node
+- Added keyboard +/- zoom shortcuts (center‑preserving)
+- Added toolbar zoom percentage indicator
+- Added keyboard 0 shortcut to reset pan/zoom view
+- Added R shortcut + toolbar button to focus and center root node
+- Added Cmd/Ctrl+Shift+C + toolbar action to copy selected/focused node text
+- Added auto-dismissing toolbar notices with manual close control
+- Added Alt+Shift+F + toolbar action to fit the focused subtree in view
+- Added Cmd/Ctrl+Shift+L + toolbar action to copy focused subtree outline
+- Added live filter/search inside Help shortcuts dialog
+- Added Alt+Shift+P + toolbar action to copy focused node path
+- Made focused-path breadcrumb segments clickable for ancestor navigation
+- Added Alt+R + toolbar Back action to jump to previous focus node
+- Added Shift+C + toolbar action to center root without changing focus
+- Improved search ranking + ID matching with bounded selection index handling
+- Added path-aware multi-term search matching (label/id/path)
+- Added search-result metadata rows (node id + path context)
+- Added highlighted query terms + result count in Search dialog
+- Added quoted phrase and negated term support in search queries
+- Added search keyboard quality-of-life controls (Tab cycle + Cmd/Ctrl+F focus hint)
+- Added accurate total-match reporting alongside capped search results
+- Unified search token parsing between matching and highlighting
+- Added Alt+Shift+C + toolbar action to center selected nodes in viewport
+- Added Alt+Shift+B + toolbar action to center focused subtree in viewport
+- Added Shift+P + toolbar action to focus and center parent node
+- Added Shift+N + toolbar action to focus and center first child node
+- Added Shift+H/Shift+J + toolbar actions to focus previous/next siblings
+- Updated sibling focus navigation to wrap at ends
+- Added Shift+L + toolbar action to jump focus to first leaf in focused subtree
+- Added Shift+K + toolbar action to jump focus to last leaf in focused subtree
+- Added Shift+, / Shift+. + toolbar actions to cycle focused subtree leaves
+- Improved leaf-cycle behavior by climbing to nearest multi-leaf ancestor when focused node is a leaf
+- Added leaf-cycle toolbar indicator and disabled cycle controls when unavailable
+- Added context-aware disabling for parent/child/sibling/leaf focus actions
+- Added Shift+R + toolbar Forward action for focus-history forward navigation
+- Added Alt+Shift+Q + toolbar action to reset focus history to current node
+- Improved focus history back/forward by skipping stale entries and surfacing target labels in button hints
+- Added automatic focus-history pruning when nodes disappear (import/reset/edit safety)
+- Added Alt+Shift+Home / Alt+Shift+End + toolbar actions to jump focus history to oldest/newest valid entries
+- Added compact Focus Navigation & History section in Help dialog to improve shortcut discoverability
+- Added focused mini-map Arrow/Shift+Arrow keyboard panning with clamped viewport stepping
+- Added breadcrumb navigation ARIA labels and mini-map region semantics for accessibility polish
+- Reset focus history to root automatically on Clear/Sample/Import map actions to avoid cross-map stale trails
+- Prevented global map shortcuts from firing while typing in text inputs/contenteditable fields
+- Added search result keyboard jumps (PageUp/PageDown/Home/End) for faster navigation in large result sets
+- Optimized search path matching with per-query path caching (cycle-safe) for large maps
+- Restored Search dialog Tab/Shift+Tab wrap-around cycling while keeping Arrow/Page/Home-End navigation
+- Improved Search dialog accessibility semantics (dialog/listbox/option roles, active-descendant wiring, live summary, keyboard-selected option auto-scroll)
+- Normalized search whitespace so quoted phrases still match labels/paths with irregular spacing
+- Added Search dialog Shift/Cmd/Ctrl+Enter to jump to selected result without closing the dialog
+- Persisted focus history across reloads with safe index validation and missing-node pruning
+- Added Search dialog Esc behavior to clear query first and only close when already empty
+- Added diacritic-insensitive search normalization for labels/paths and query tokens
+- Added Search modifier-click parity with modifier-Enter (including Alt) so result jumps can keep the dialog open
+- Improved Help dialog accessibility + keyboard flow (dialog semantics, Esc clear-then-close, Cmd/Ctrl+F focus)
+- Made Cmd/Ctrl+K a true Search toggle (open/close) including close support while Search dialog is active
+- Suspended global map shortcuts while Search/Help dialogs are open to prevent accidental canvas actions
+- Unified Search result highlighting with normalized matching (diacritics/whitespace/punctuation aware)
+- Added punctuation/camelCase-insensitive search matching for ids/labels (e.g., n-root ↔ n_root, auto scale ↔ Auto-Scale, auto scale v2 ↔ AutoScaleV2)
+- Centralized Help dialog Focus Navigation & History key list in shared shortcut registry with regression tests
+- Made Search/Help toggles mutually exclusive (opening one closes the other) and set ? / Cmd/Ctrl+/ to toggle help consistently
+- Added env-configurable Vite `allowedHosts` via `MINDMAPP_ALLOWED_HOSTS` with parsing/validation tests (hostname/URL normalization)
+- Allowed Cmd/Ctrl+/ help toggle while typing in dialog inputs (keeping plain ? typing-safe)
+- Added toolbar Help On/Off label and aria-pressed states for toolbar toggle buttons (Search/Help/Grid/Mini-map/Advanced)
+- Added aria-expanded/aria-controls/aria-haspopup + aria-keyshortcuts wiring between toolbar Search/Help toggles and their dialogs
+- Added aria-expanded/aria-controls + aria-keyshortcuts wiring for toolbar Mini-map and Advanced toggles
+- Added Search result aria-posinset/aria-setsize metadata for clearer listbox announcements
+- Added toolbar role/labeled group semantics to improve assistive-tech navigation of action controls
+- Added explicit toolbar horizontal orientation and named primary action group id for stronger structural semantics
+- Added Search dialog Cmd/Ctrl+Shift+K shortcut to clear query while keeping dialog open
+- Added aria-keyshortcuts metadata to toolbar root/back/forward/history-start/history-end/reset-history buttons
+- Added aria-keyshortcuts metadata to toolbar undo/redo, fit/center, and focus traversal buttons (parent/child/sibling/leaf jumps), including redo Cmd/Ctrl+Y alias and Fit (F)
+- Added aria-keyshortcuts metadata to toolbar export/copy/reset-view buttons (JSON/Markdown/PNG, copy text/tree/path, reset pan+zoom)
+- Added aria-keyshortcuts metadata to Advanced toolbar action buttons (selection tools, transforms, stack/mirror, duplicate)
+- Improved Search dialog accessibility wiring by linking keyboard-hint + summary text to combobox/listbox via aria-describedby
+- Extended Search dialog aria-describedby wiring to the dialog container for clearer initial announcements
+- Improved Help dialog accessibility wiring by linking filter summary + hint text to the filter input via aria-describedby
+- Extended Help dialog aria-describedby wiring to the dialog container and marked no-match copy as role=status
+- Added explicit Close buttons to Search/Help dialog headers with accessible labels/titles + aria-keyshortcuts metadata for non-keyboard dismissal discoverability
+- Added dialog-level aria-keyshortcuts maps on Search/Help containers to expose in-dialog keyboard affordances to assistive tech
+- Centralized Search/Help aria-keyshortcuts strings in shared dialogKeyshortcuts constants with regression tests
+- Added dialogKeyshortcuts regression checks to keep shared keymap constants aligned with shortcut-registry Search/Help input entries
+- Added Help dialog Cmd/Ctrl+Shift+K shortcut to clear filter while keeping dialog open
+- Added shortcut-registry regression check ensuring Search/Help clear + focus shortcuts remain listed
+- Added Search/Help Cmd/Ctrl+A select-input shortcuts to shared registry + dialog keymap metadata
+- Added explicit input-level aria-keyshortcuts metadata on Search/Help filter fields using shared dialogKeyshortcuts constants
+- Centralized Search/Help dialog input key-event parsing in shared dialogInputKeys helper utilities
+- Hardened dialog input select-shortcut guard to skip textarea/contenteditable targets in addition to input fields
+- Added cached search index layer (WeakMap by nodes object) so repeated query edits avoid rebuilding normalized node/path search text
+- Compacted cached search haystack assembly to avoid duplicating label text already present in normalized path strings
+- Replaced full-match sort with one-pass bucketed rank assembly for search rank levels (0-4) and direct Node bucket output (no intermediate {node,rank} result objects)
+- Added deterministic per-rank tie-break ordering in search results (node text, then node id) with regression coverage
+- Partitioned normalized search tokens into positive/negative terms in a single pass, deduplicated repeated terms, and skipped unnecessary sort calls for 0/1-item rank buckets
+- Added contradictory include/exclude term short-circuit in search ranking to avoid unnecessary index scans when queries cannot match
+- Folded overlap detection into the positive/negative term partition pass to remove an extra overlap-scan phase
+- Added WeakMap cache for partitioned search terms (positive/negative/phrase/overlap) keyed by normalized token arrays for repeated-query reuse
+- Optimized positive-phrase assembly to skip `join` allocation for single-term and empty-term search partitions
+- Replaced rank bucket `Array.flat()` output with pre-sized manual flattening to avoid intermediate flatten allocation
+- Optimized `searchNodes` to use direct ranking+slice path (avoids `searchNodesWithTotal` result-wrapper allocation when total is not needed)
+- Added zero-limit fast path in `searchNodesWithTotal` to avoid unnecessary slice allocation while still reporting total matches
+- Centralized per-entry search term skip gating into shared helper to keep include/exclude logic in one branchable path
+- Added 1-term/2-term fast paths for search include/exclude term checks (all/any) with combined include+exclude regression coverage
+- Added branch fast paths for entry skip gating when only include terms or only exclude terms are present
+- Converted pre-tokenized search-token normalization/filtering to a loop-based pass to avoid intermediate map/filter allocations
+- Reused tokenized query output between search ranking and highlight-term extraction in Search dialog to remove duplicate parsing work
+- Removed redundant full-query lowercasing before search token regex parsing (token normalization already handles casing), with regression coverage for uppercase/quoted/negated input
+- Reused a module-level search-query token regex instance (resetting lastIndex per call) and added sequential-query regression coverage
+- Added support for whitespace-separated negation marker before quoted search phrases (e.g., - "alpha review") and unicode dash negation markers (− / – / —) with regression coverage
+- Switched search negation-prefix detection from regex-test to direct single-character checks in tokenizer hot path
+- Added last-query token cache reuse in search query tokenization and froze cached token arrays/entries to avoid accidental mutation
+- Tagged normalized search-token arrays to short-circuit re-normalization when tokenized query output is reused directly
+- Centralized pre-tokenized search token normalization into a shared builder helper used by normalizeTokens to reduce internal duplication
+- Added normalized search result-cap handling (non-finite → default, negative → zero, decimals truncated) with regression coverage
+- Centralized default search result cap in shared DEFAULT_SEARCH_RESULT_LIMIT constant and reused it in Search dialog/tests
+- Added deferred query evaluation in Search dialog with inline "updating…" status to keep typing responsive on larger maps
+- Added shared search summary formatter + listbox aria-busy wiring while deferred results are catching up
+- Gated Enter-to-jump while Search deferred results are still updating to prevent stale-result jumps
+- Added shared canExecuteSearchJump guard and applied it to both Enter + click result jumps during deferred updates
+- Added shared canNavigateSearchSelection guard and applied it to keyboard/hover selection movement during deferred updates
+- Added shared search navigation-key classifier (Arrow/Page/Home/End/Tab) for consistent pending no-op handling
+- Centralized key→selection-index mapping in navigateSearchSelectionByKey helper with regression tests
+- Made pending Search navigation keys explicit no-ops (preventDefault without selection changes) to avoid focus escape and page scroll drift
+- Added pending-result aria-disabled + disabled visual state in Search list while deferred results are catching up
+- Gated Search result hover-selection while deferred updates are pending and exposed listbox-level aria-disabled
+- Gated Search Tab/Page/Home/End selection navigation while deferred updates are pending
+- Paused Search combobox aria-activedescendant + active-row highlight while deferred updates are pending
+- Added pending-state tooltip copy on Search results (rows + listbox) while deferred updates are catching up
+- Reused shared pending tooltip + empty-state helper directly in Search dialog list rendering to keep pending/no-results copy consistent and avoid per-row helper recomputation
+- Centralized pending tooltip copy in shared searchStatus utility with regression coverage
+- Added shared search empty-state messaging helper to distinguish pending "Searching nodes…" from settled no-results copy
+- Expanded search empty-state helper to account for shown vs total matches (including hidden-results refine copy) and wired Search dialog to the new signature
+- Added shared shouldDisplaySearchEmptyState helper so Search empty-state copy stays hidden for blank/whitespace-only and tokenless (punctuation-only) input
+- Optimized search empty-state whitespace detection to reuse a non-whitespace regex check (avoids per-call trim allocation)
+- Added token-presence fast path in search empty-state visibility helper to skip regex checks when no normalized terms exist
+- Simplified search summary string assembly with explicit branch returns to avoid repeated string concatenation mutations
+- Centralized search count normalization in shared helper reused by both search summary and empty-state copy formatting
+- Added cached focus-path resolver for Search result metadata labels and wired SearchDialog to reuse it across result rows
+- Added deferred Help filter evaluation with shared help summary formatter and aria-busy pending-state semantics
+- Added Help results wrapper aria-disabled + pending tooltip semantics during deferred filter updates
+- Added shared getHelpPendingMessage helper and "Filtering shortcuts…" pending empty-state copy to avoid premature no-results messaging while filter updates are in flight
+- Added shared getHelpEmptyMessage helper and wired Help dialog empty-state rendering to shared pending/no-match copy
+- Centralized Help count normalization in shared helper reused by help empty-state and summary formatting
+- Simplified Help summary string assembly with base+branch return formatting (avoids mutable concatenation path)
+- Extracted reusable normalizeNonNegativeInt utility and reused it across Search/Help status helpers with dedicated regression tests
+- Added normalizeNonNegativeIntOrDefault helper and reused it for Search result-limit normalization fallback semantics
+- Added WeakMap-backed resolver caching in selectionText so repeated createFocusPathResolver calls for the same nodes object reuse the same memoized resolver
+- Added Search: Cmd/Ctrl+F entry to shared shortcut registry for Help filter discoverability parity
+- Improved toolbar import/copy notices with status/alert live-region semantics and explicit dismiss button labels for screen-reader clarity
+- Centralized Search/Help dialog close handlers in App to keep keyboard and overlay close paths consistent
+- Kept Cmd/Ctrl+K search toggle available while typing in non-editing inputs for faster command access
+- Improved Help shortcut filtering with punctuation-agnostic multi-term matching + symbol/alias terms (e.g., ctrl slash, command slash, forward slash, question mark, shift plus pageup) and cached normalized haystacks
+- Added shared shortcut-query tokenizer utility + regression coverage for Help shortcut query normalization behavior
+- Deduplicated repeated normalized Help filter terms to avoid redundant per-term includes checks during shortcut matching
+- Added specialized 2-term shortcut-query dedupe path to avoid Set allocation for the most common repeated-term case
+- Added non-whitespace precheck fast path in shortcut query tokenization to skip normalization work for blank input
+- Hoisted shortcut-normalization regex patterns to module-level constants to reduce per-call regex allocation churn during Help filtering
+- Added last-query token cache reuse in shortcut query tokenization to reduce repeated normalization/split work while typing the same Help filter value
+- Hardened shortcut-query token cache by returning frozen token arrays to prevent accidental external mutation of cached query terms
+- Added 1-term/2-term fast paths in Help shortcut term matching to reduce loop overhead in common filter cases
+- Replaced Help shortcut `.filter(...)` callback path with a single-pass push loop and added reference-behavior regression coverage
+- Fixed Help shortcut alias normalization so forward slash/question mark queries avoid Cmd/Ctrl+F false positives while still matching Cmd/Ctrl+/
+- Unified search normalization logic in shared helper to keep search matching and highlighting behavior in lockstep
+- Optimized search boundary classification checks to use ASCII char-code helpers (regex-free hot path) with added guard-case regression coverage
+- Marked current breadcrumb segment as aria-current/disabled to prevent redundant refocus clicks
+- Added mini-map Home/End keyboard edge-jump + PageUp/PageDown vertical and Shift+PageUp/PageDown horizontal large-step navigation when mini-map canvas is focused
+- Made mini-map viewport handle keyboard-focusable with the same Arrow/Page/Home/End navigation support
+- Added toolbar Search toggle button to mirror Cmd/Ctrl+K discoverability
+- Extracted focus-navigation helpers into tested utility functions
+- Moved parent/child focus resolution into shared focusNav helpers
+- Enabled mini-map viewport box dragging for pan navigation
+
+## 0.1.1
+- Added toolbar actions (Fit/Help/Clear)
+- Added help dialog and shortcut updates
+- Search keyboard navigation + result cap
+- Edge arrowheads
+- Autosave improvements + storage helpers
+- JSON export versioning + Cmd/Ctrl+S mapping
+- UI polish: node count, min width, edit focus behavior
+
+## 0.1.0
+- Scaffolded Vite + React + TS app
+- Node CRUD (create sibling/child, delete)
+- Keyboard navigation (arrows)
+- Search dialog (Cmd/Ctrl+K)
+- Autosave + JSON export/import
+- PNG export
+- Pan/zoom + fit-to-view
+- Help dialog + shortcuts
+- Edge rendering
+- Explicit edit mode + Shift+Tab promote
+- Reset view (double-click)

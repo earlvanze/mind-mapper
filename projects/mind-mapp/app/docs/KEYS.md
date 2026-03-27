@@ -1,0 +1,96 @@
+# Mind Mapp — Keyboard Shortcuts
+
+Most selection/layout commands are also available in toolbar `Advanced ▾`.
+
+- Enter: new sibling
+- Tab: new child
+- Shift+Tab: promote node
+- Delete/Backspace: delete selected node(s)
+- Cmd/Ctrl+click: multi-select nodes
+- Cmd/Ctrl+A: select all nodes
+- Alt+I: invert selection
+- Cmd/Ctrl+D: duplicate selected node(s)
+- Alt+S: select siblings of focused node
+- Alt+C: select children of focused node
+- Alt+L: select leaves under focused subtree
+- Alt+U: select ancestors of focused node
+- Alt+T: reduce selection to top-level nodes
+- Alt+G: select nodes at focused depth level
+- Alt+X: clear selection extras (keep focus)
+- Alt+N: expand selection to parents + children
+- Alt+Shift+X: align selected nodes to focused X
+- Alt+Shift+Y: align selected nodes to focused Y
+- Alt+Shift+H: distribute selected nodes horizontally
+- Alt+Shift+V: distribute selected nodes vertically
+- Alt+Shift+R: layout selected nodes into a row
+- Alt+Shift+D: layout selected nodes into a column
+- Alt+Shift+G: snap selected nodes to 20px grid
+- Alt+Shift+M: mirror selected nodes across focused X axis
+- Alt+Shift+W: mirror selected nodes across focused Y axis
+- Alt+[: stack selected nodes along X from focus
+- Alt+]: stack selected nodes along Y from focus
+- Alt+B: select focused subtree
+- Alt+Shift+B: center focused subtree
+- Alt+P: select parent of focused node
+- Alt+Shift+P: copy focused node path
+- Cmd/Ctrl+Z: undo
+- Cmd/Ctrl+Shift+Z or Cmd/Ctrl+Y: redo
+- E / double‑click: edit node
+- Cmd/Ctrl+K: toggle search dialog
+- Search dialog: Tab/Shift+Tab cycle result selection
+- Search dialog: PageUp/PageDown jump result selection by 5
+- Search dialog: Home/End jump to first/last result
+- Search dialog: Shift/Cmd/Ctrl/Alt+Enter/click jump to result and keep dialog open
+- Search dialog: Esc clear query (or close when query is empty)
+- Search dialog: Cmd/Ctrl+Shift+K clear query and keep dialog open
+- Search dialog: Cmd/Ctrl+F focus query input
+- Search dialog: Cmd/Ctrl+A select query input text
+- Help dialog: Esc clear filter (or close when filter is empty)
+- Help dialog: Cmd/Ctrl+Shift+K clear filter and keep dialog open
+- Help dialog: Cmd/Ctrl+F focus filter input
+- Help dialog: Cmd/Ctrl+A select filter input text
+- Cmd/Ctrl+S: export JSON
+- Cmd/Ctrl+Shift+M: export Markdown
+- Cmd/Ctrl+Shift+C: copy selected/focused node text
+- Cmd/Ctrl+Shift+L: copy focused subtree outline
+- Cmd/Ctrl+Shift+S: export PNG
+- Arrow keys: move focus
+- Mini-map focused + Arrow keys: pan mini-map viewport
+- Mini-map focused + Shift+Arrow: pan mini-map viewport faster
+- Mini-map focused + PageUp/PageDown: pan mini-map viewport vertically by large steps
+- Mini-map focused + Shift+PageUp/Shift+PageDown: pan mini-map viewport horizontally by large steps
+- Mini-map focused + Home/End: jump mini-map viewport to map edges
+- Alt+Arrow: nudge selected node(s) by 10px
+- Shift+Alt+Arrow: nudge selected node(s) by 40px
+- F: fit to view
+- Alt+F: fit selected nodes
+- Alt+Shift+F: fit focused subtree
+- Shift+G: toggle grid overlay
+- Shift+M: toggle mini-map visibility
+- Shift+A: toggle advanced toolbar actions
+- C: center focused node
+- Alt+Shift+C: center selected nodes
+- Shift+C: center root node
+- Shift+P: focus + center parent node
+- Shift+N: focus + center first child node
+- Shift+H: focus + center previous sibling (wraps)
+- Shift+J: focus + center next sibling (wraps)
+- Shift+L: focus + center first leaf in focused subtree
+- Shift+K: focus + center last leaf in focused subtree
+- Shift+,: focus + center previous leaf in focused subtree
+- Shift+.: focus + center next leaf in focused subtree
+- R: focus + center root node
+- Shift+R: jump forward in focus history
+- Alt+R: jump back to previous focus
+- Alt+Shift+Home: jump to oldest focus history entry
+- Alt+Shift+End: jump to newest focus history entry
+- Alt+Shift+Q: reset focus history to current node
+- L: auto‑layout children
+- Shift+drag: pan
+- Ctrl/Cmd+wheel: zoom
+- = / +: zoom in (center‑preserving)
+- -: zoom out (center‑preserving)
+- 0: reset pan/zoom view
+- Double‑click background: reset view (also toolbar button)
+- ?: toggle help dialog
+- Cmd/Ctrl+/: toggle help dialog

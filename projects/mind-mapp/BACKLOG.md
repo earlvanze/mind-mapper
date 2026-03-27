@@ -74,13 +74,13 @@
 - [x] Dedicated `aria-live` status region
 - [x] Style picker focus trap + Escape handler
 
-## v1.0 (MVP Complete)
+## v1.0 (MVP Complete) ✅ Complete
 - [x] WCAG 2.1 AA color contrast audit — all text/bg pairs meet 4.5:1 threshold
 - [x] WCAG 2.1 AA keyboard navigation audit — verify all interactive elements accessible via keyboard
 - [x] WCAG 2.1 AA error message audit — all form errors have proper `aria-describedby` associations
 - [x] Performance benchmarks documented (1000+ nodes, memory usage, render time)
-- [ ] Public documentation site
-- [ ] Production deployment guide
+- [x] Public documentation site — comprehensive docs/ with index.html + all markdown files
+- [x] Production deployment guide — enhanced DEPLOY.md with Netlify, Vercel, AWS, Docker, self-hosted options
 
 ## Future (Post-v1.0)
 - [ ] Collaborative editing (CRDT-based)
@@ -89,3 +89,12 @@
 - [ ] File attachments (non-image binary files)
 - [ ] Node tags/categories
 - [ ] Advanced search (regex, wildcards)
+- [ ] Export templates (custom styling presets)
+- [ ] Import from other formats (XMind, MindManager, Obsidian)
+- [ ] Cloud sync (optional backend)
+- [ ] Presentation mode (slideshow through branches)
+- [ ] Node comments and annotations
+- [ ] Custom themes and color schemes
+- [ ] Keyboard shortcut customization
+- [ ] Node animations and transitions
+- [ ] Advanced filters (by style, date, properties)

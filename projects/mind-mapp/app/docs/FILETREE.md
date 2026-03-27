@@ -1,0 +1,33 @@
+# Mind Mapp — File Tree (docs)
+
+- README.md
+- OVERVIEW.md
+- STATUS.md
+- ROADMAP.md
+- TODO.md
+- KEYS.md
+- DEPLOY.md
+- CONTRIBUTING.md
+- AUDIT.md
+- KNOWN_ISSUES.md
+- LINKS.md
+- DOCS_CHECKLIST.md
+- MIGRATIONS.md
+- RELEASE.md
+- FAQ.md
+- GLOSSARY.md
+- EXPORTS.md
+- IMPORTS.md
+- ARCHITECTURE.md
+- GESTURES.md
+- STYLE.md
+- ACCESSIBILITY.md
+- FILETREE.md
+- SECURITY.md
+- SESSION_NOTES.md
+- .editorconfig
+- .nvmrc
+- package.json
+- package-lock.json
+- tsconfig.json
+- vite.config.ts

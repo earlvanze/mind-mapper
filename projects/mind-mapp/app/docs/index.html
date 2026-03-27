@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mind Mapp - Documentation</title>
+    <style>
+        :root {
+            --bg: #ffffff;
+            --fg: #000000;
+            --accent: #0066cc;
+            --border: #e0e0e0;
+            --code-bg: #f5f5f5;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #1a1a1a;
+                --fg: #e0e0e0;
+                --accent: #4da6ff;
+                --border: #333333;
+                --code-bg: #2a2a2a;
+            }
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: var(--fg);
+            background: var(--bg);
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--accent);
+        }
+
+        .tagline {
+            font-size: 1.2rem;
+            color: #666;
+            margin-bottom: 2rem;
+        }
+
+        .nav-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .nav-card {
+            background: var(--code-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .nav-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .nav-card h2 {
+            font-size: 1.3rem;
+            margin-bottom: 0.8rem;
+            color: var(--accent);
+        }
+
+        .nav-card p {
+            color: #666;
+            margin-bottom: 1rem;
+            font-size: 0.95rem;
+        }
+
+        .nav-card ul {
+            list-style: none;
+        }
+
+        .nav-card li {
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-card a {
+            color: var(--accent);
+            text-decoration: none;
+            font-size: 0.95rem;
+        }
+
+        .nav-card a:hover {
+            text-decoration: underline;
+        }
+
+        .quick-links {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-bottom: 3rem;
+        }
+
+        .quick-link {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background: var(--accent);
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: opacity 0.2s;
+        }
+
+        .quick-link:hover {
+            opacity: 0.9;
+        }
+
+        .footer {
+            margin-top: 4rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border);
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        code {
+            background: var(--code-bg);
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .nav-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Mind Mapp</h1>
+    <p class="tagline">A lightweight, keyboard-first mind mapping application</p>
+
+    <div class="quick-links">
+        <a href="../index.html" class="quick-link">🚀 Try Mind Mapp</a>
+        <a href="README.md" class="quick-link">📖 Getting Started</a>
+        <a href="KEYS.md" class="quick-link">⌨️ Keyboard Shortcuts</a>
+        <a href="https://github.com/your-org/mind-mapp" class="quick-link">💻 GitHub</a>
+    </div>
+
+    <div class="nav-grid">
+        <div class="nav-card">
+            <h2>📚 Getting Started</h2>
+            <p>New to Mind Mapp? Start here.</p>
+            <ul>
+                <li><a href="README.md">README</a> — Overview and features</li>
+                <li><a href="RUN.md">Quick Start</a> — Installation and setup</li>
+                <li><a href="OVERVIEW.md">Product Overview</a> — What is Mind Mapp?</li>
+                <li><a href="FAQ.md">FAQ</a> — Common questions</li>
+                <li><a href="GLOSSARY.md">Glossary</a> — Key terminology</li>
+            </ul>
+        </div>
+
+        <div class="nav-card">
+            <h2>⌨️ User Guide</h2>
+            <p>Learn how to use Mind Mapp effectively.</p>
+            <ul>
+                <li><a href="KEYS.md">Keyboard Shortcuts</a> — Complete reference</li>
+                <li><a href="GESTURES.md">Mouse & Touch</a> — Gestures and interactions</li>
+                <li><a href="EXPORTS.md">Export Formats</a> — PNG, PDF, JSON, Markdown, FreeMind</li>
+                <li><a href="IMPORTS.md">Import Data</a> — Load existing mind maps</li>
+                <li><a href="ACCESSIBILITY.md">Accessibility</a> — Screen reader support</li>
+            </ul>
+        </div>
+
+        <div class="nav-card">
+            <h2>🚀 Deployment</h2>
+            <p>Deploy Mind Mapp to production.</p>
+            <ul>
+                <li><a href="DEPLOY.md">Deployment Guide</a> — Netlify, Vercel, AWS, Docker</li>
+                <li><a href="SECURITY.md">Security</a> — Data privacy and security notes</li>
+                <li><a href="KNOWN_ISSUES.md">Known Issues</a> — Current limitations</li>
+            </ul>
+        </div>
+
+        <div class="nav-card">
+            <h2>💻 Development</h2>
+            <p>Contribute to Mind Mapp.</p>
+            <ul>
+                <li><a href="CONTRIBUTING.md">Contributing Guide</a> — How to contribute</li>
+                <li><a href="ARCHITECTURE.md">Architecture</a> — Technical design</li>
+                <li><a href="STYLE.md">Style Guide</a> — UI/UX conventions</li>
+                <li><a href="FILETREE.md">File Structure</a> — Project layout</li>
+            </ul>
+        </div>
+
+        <div class="nav-card">
+            <h2>📊 Project Info</h2>
+            <p>Release notes and roadmap.</p>
+            <ul>
+                <li><a href="CHANGELOG.md">Changelog</a> — Version history</li>
+                <li><a href="ROADMAP.md">Roadmap</a> — Upcoming features</li>
+                <li><a href="STATUS.md">Current Status</a> — Development status</li>
+                <li><a href="BENCHMARKS.md">Performance</a> — Benchmarks and optimization</li>
+            </ul>
+        </div>
+
+        <div class="nav-card">
+            <h2>🔧 Reference</h2>
+            <p>Technical documentation.</p>
+            <ul>
+                <li><a href="AUDIT.md">Accessibility Audit</a> — WCAG compliance</li>
+                <li><a href="MIGRATIONS.md">Data Migrations</a> — Schema changes</li>
+                <li><a href="RELEASE.md">Release Checklist</a> — Release process</li>
+                <li><a href="LINKS.md">All Documents</a> — Complete doc index</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p><strong>Mind Mapp v0.11.0</strong> — A keyboard-first mind mapping tool built with React, TypeScript, and Vite.</p>
+        <p>Documentation auto-generated from source. Last updated: <span id="last-updated"></span></p>
+    </div>
+
+    <script>
+        document.getElementById('last-updated').textContent = new Date().toLocaleDateString();
+    </script>
+</body>
+</html>
