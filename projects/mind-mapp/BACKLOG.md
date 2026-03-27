@@ -78,7 +78,7 @@
 - [x] WCAG 2.1 AA color contrast audit — all text/bg pairs meet 4.5:1 threshold
 - [x] WCAG 2.1 AA keyboard navigation audit — verify all interactive elements accessible via keyboard
 - [x] WCAG 2.1 AA error message audit — all form errors have proper `aria-describedby` associations
-- [ ] Performance benchmarks documented (1000+ nodes, memory usage, render time)
+- [x] Performance benchmarks documented (1000+ nodes, memory usage, render time)
 - [ ] Public documentation site
 - [ ] Production deployment guide
 
