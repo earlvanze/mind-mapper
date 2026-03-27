@@ -3,7 +3,7 @@
   --color-text: #111;
   --color-text-secondary: #666;
   --color-text-muted: #667085;
-  --color-text-dim: #98a2b3;
+  --color-text-dim: #64748b;
   --color-bg: #f8f9fb;
   --color-surface: #fff;
   --color-border: #cfd6e4;
@@ -70,7 +70,7 @@
   --color-text: #e2e8f0;
   --color-text-secondary: #94a3b8;
   --color-text-muted: #94a3b8;
-  --color-text-dim: #64748b;
+  --color-text-dim: #94a3b8;
   --color-bg: #0f172a;
   --color-surface: #1e293b;
   --color-border: #334155;
