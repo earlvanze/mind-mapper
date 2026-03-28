@@ -110,11 +110,11 @@ Branch: feature/node-tags
 - [x] Display tags below node text
 - [x] Add tag to sample maps
 
-### Phase 2: Tag Input & Editing
-- [ ] Create TagInput component with autocomplete
-- [ ] Add tag edit mode
-- [ ] Keyboard shortcuts for tag operations
-- [ ] Bulk tag for multi-select
+### Phase 2: Tag Input & Editing ✅ Complete
+- [x] Create TagInput component with autocomplete
+- [x] Add tag edit mode (via TagInput)
+- [x] Keyboard shortcuts for tag operations (Cmd+T)
+- [x] Bulk tag for multi-select (addTagToSelected)
 
 ### Phase 3: Tag Picker Dialog
 - [ ] Create TagPickerDialog component
