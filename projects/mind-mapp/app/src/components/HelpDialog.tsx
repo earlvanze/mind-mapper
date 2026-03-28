@@ -1,18 +1,21 @@
 import { useDeferredValue, useEffect, useId, useMemo, useRef, useState } from 'react';
-import { HELP_DIALOG_ARIA_KEYSHORTCUTS, HELP_DIALOG_CLOSE_ARIA_KEYSHORTCUTS, HELP_INPUT_ARIA_KEYSHORTCUTS, filterShortcuts, FOCUS_NAV_HISTORY_SHORTCUT_KEYS, formatHelpSummary, getHelpEmptyMessage, getHelpPendingMessage, isDialogClearInputEvent, isDialogFocusInputEvent, isDialogSelectInputEvent, pickShortcutsByKeys, SHORTCUTS, shouldSkipDialogSelectShortcut } from '../utils';
+import { HELP_DIALOG_ARIA_KEYSHORTCUTS, HELP_DIALOG_CLOSE_ARIA_KEYSHORTCUTS, HELP_INPUT_ARIA_KEYSHORTCUTS, filterShortcuts, FOCUS_NAV_HISTORY_SHORTCUT_KEYS, formatHelpSummary, getHelpEmptyMessage, getHelpPendingMessage, isDialogClearInputEvent, isDialogFocusInputEvent, isDialogSelectInputEvent, pickShortcutsByKeys, SHORTCUTS, shouldSkipDialogSelectShortcut, TAG_TUTORIAL } from '../utils';
 
 export default function HelpDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [query, setQuery] = useState('');
+  const [showTutorial, setShowTutorial] = useState(false);
   const deferredQuery = useDeferredValue(query);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const titleId = useId();
   const summaryId = useId();
   const quickSectionId = useId();
   const hintId = useId();
+  const tutorialSectionId = useId();
 
   useEffect(() => {
     if (!open) return;
     setQuery('');
+    setShowTutorial(false);
     setTimeout(() => inputRef.current?.focus(), 0);
   }, [open]);
 
@@ -103,6 +106,36 @@ export default function HelpDialog({ open, onClose }: { open: boolean; onClose: 
             ))}
           </ul>
         </div>
+        <div className="help-tutorial-toggle">
+          <button
+            type="button"
+            className={`tutorial-toggle-btn ${showTutorial ? 'active' : ''}`}
+            onClick={() => setShowTutorial(!showTutorial)}
+            aria-expanded={showTutorial}
+          >
+            {showTutorial ? '▼' : '▶'} Tags Tutorial
+          </button>
+        </div>
+        {showTutorial && (
+          <div
+            id={tutorialSectionId}
+            className="help-tutorial-section"
+            role="region"
+            aria-labelledby="tag-tutorial-heading"
+          >
+            <h4 id="tag-tutorial-heading">Node Tags &amp; Filtering</h4>
+            {TAG_TUTORIAL.map((section, sectionIndex) => (
+              <div key={sectionIndex} className="tutorial-subsection">
+                <h5>{section.title}</h5>
+                <ul>
+                  {section.items.map((item, itemIndex) => (
+                    <li key={itemIndex}>{item.text}</li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        )}
         <input
           ref={inputRef}
           className="help-filter"

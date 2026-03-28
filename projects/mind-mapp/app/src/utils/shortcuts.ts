@@ -136,3 +136,49 @@ export function pickShortcutsByKeys(shortcuts: Shortcut[], keys: string[]): Shor
     .map(key => map.get(key))
     .filter((shortcut): shortcut is Shortcut => !!shortcut);
 }
+
+export type TutorialSection = {
+  title: string;
+  items: { text: string }[];
+};
+
+export const TAG_TUTORIAL: TutorialSection[] = [
+  {
+    title: 'Tag Basics',
+    items: [
+      { text: 'Click the tag icon on a node to add/edit tags' },
+      { text: 'Type a tag name and press Enter to add it' },
+      { text: 'Press Backspace on an empty tag field to remove the last tag' },
+      { text: 'Existing tags are shown in the autocomplete dropdown' },
+      { text: 'Tags appear as colored badges below the node text' },
+    ],
+  },
+  {
+    title: 'Bulk Tagging',
+    items: [
+      { text: 'Select multiple nodes with Cmd/Ctrl+click' },
+      { text: 'Press Cmd/Ctrl+T to open the tag picker for selection' },
+      { text: 'Check or uncheck tags to apply them to all selected nodes' },
+    ],
+  },
+  {
+    title: 'Filtering by Tags',
+    items: [
+      { text: 'Press Cmd/Ctrl+Shift+F to open the tag filter panel' },
+      { text: 'Click a tag in the panel to filter — matching nodes stay visible' },
+      { text: 'Non-matching nodes fade to 20% opacity' },
+      { text: 'Use "Any" mode: show nodes with any of the selected tags' },
+      { text: 'Use "All" mode: show only nodes with all selected tags' },
+      { text: 'Click × on a filter chip to remove that tag filter' },
+      { text: 'Filter by typing in the panel search field' },
+    ],
+  },
+  {
+    title: 'Keyboard Shortcuts',
+    items: [
+      { text: 'Cmd/Ctrl+T — open tag picker dialog' },
+      { text: 'Cmd/Ctrl+Shift+T — open tag picker dialog (alternative)' },
+      { text: 'Cmd/Ctrl+Shift+F — toggle tag filter panel' },
+    ],
+  },
+];

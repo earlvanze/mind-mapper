@@ -831,3 +831,80 @@ body, html, #root {
   opacity: 0.45;
   cursor: not-allowed;
 }
+
+/* Tag Tutorial in Help Dialog */
+.help-tutorial-toggle {
+  margin-top: 8px;
+}
+
+.tutorial-toggle-btn {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  text-align: left;
+  transition: background 0.15s ease;
+}
+
+.tutorial-toggle-btn:hover {
+  background: var(--color-hover);
+}
+
+.tutorial-toggle-btn.active {
+  background: var(--color-help-section-bg);
+  border-color: var(--color-help-section-border);
+}
+
+.help-tutorial-section {
+  margin-top: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 8px;
+  background: var(--color-help-section-bg);
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+[data-theme="dark"] .help-tutorial-section {
+  background: var(--color-help-section-bg);
+}
+
+.help-tutorial-section h4 {
+  margin: 0 0 10px;
+  font-size: 13px;
+  color: var(--color-help-heading);
+  font-weight: 600;
+}
+
+.help-tutorial-section h5 {
+  margin: 8px 0 4px;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.help-tutorial-section ul {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 12px;
+}
+
+.help-tutorial-section li {
+  margin: 3px 0;
+  line-height: 1.4;
+}
+
+.tutorial-subsection {
+  margin-bottom: 8px;
+}
+
+.tutorial-subsection:last-child {
+  margin-bottom: 0;
+}
