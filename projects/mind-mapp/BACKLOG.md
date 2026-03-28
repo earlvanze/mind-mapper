@@ -132,9 +132,9 @@ Branch: feature/node-tags
 - [ ] Import tags from JSON (existing parseImportPayload already handles tags field)
 
 ### Phase 6: Testing & Documentation
-- [ ] Unit tests for tag operations
-- [ ] Integration tests for filtering
-- [ ] Update keyboard shortcuts doc
+- [x] Unit tests for tag operations
+- [x] Integration tests for filtering
+- [x] Update keyboard shortcuts doc
 - [ ] Add tag tutorial to help dialog
 - [x] Filter tags by search
 - [x] Keyboard shortcut (Cmd/Ctrl+Shift+T)
