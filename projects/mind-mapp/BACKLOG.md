@@ -98,3 +98,41 @@
 - [ ] Keyboard shortcut customization
 - [ ] Node animations and transitions
 - [ ] Advanced filters (by style, date, properties)
+
+## v1.1 Node Tags & Categories (In Progress)
+Branch: feature/node-tags
+
+### Phase 1: Data Model & Basic UI
+- [x] Add `tags` field to Node interface
+- [x] Create TagBadge component
+- [x] Feature specification document
+- [x] Update localStorage schema (auto-serialized)
+- [ ] Display tags below node text
+- [ ] Add tag to sample maps
+
+### Phase 2: Tag Input & Editing
+- [ ] Create TagInput component with autocomplete
+- [ ] Add tag edit mode
+- [ ] Keyboard shortcuts for tag operations
+- [ ] Bulk tag for multi-select
+
+### Phase 3: Tag Picker Dialog
+- [ ] Create TagPickerDialog component
+- [ ] Show all existing tags with counts
+- [ ] Click to toggle tag on selected nodes
+
+### Phase 4: Filtering & Visualization
+- [ ] Tag filter panel component
+- [ ] Filter logic (match any/all modes)
+- [ ] Fade non-matching nodes
+
+### Phase 5: Export/Import
+- [ ] Include tags in JSON export
+- [ ] Preserve tags in FreeMind export
+- [ ] Import tags from JSON
+
+### Phase 6: Testing & Documentation
+- [ ] Unit tests for tag operations
+- [ ] Integration tests for filtering
+- [ ] Update keyboard shortcuts doc
+- [ ] Add tag tutorial to help dialog
