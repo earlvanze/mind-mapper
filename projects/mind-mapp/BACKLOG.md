@@ -94,10 +94,10 @@ Branch: feature/node-tags
 - [x] Unit tests for importRouter + importXMind
 
 ### Phase 2: Obsidian Import
-- [ ] Parse Obsidian vault markdown files (nested folders → tree)
-- [ ] Detect and convert [[wiki-links]] between notes
-- [ ] Import tags from YAML frontmatter
-- [ ] Import #headings as child nodes
+- [x] Parse Obsidian vault markdown files (nested folders → tree)
+- [x] Detect and convert [[wiki-links]] between notes
+- [x] Import tags from YAML frontmatter
+- [x] Import #headings as child nodes
 
 ### Phase 3: MindManager (FreeMind Enhanced)
 - [ ] Handle MindManager-specific attributes (priority, resource, boundary)
