@@ -1,13 +1,14 @@
 /**
  * Unified import router — detects file format and routes to the correct parser.
- * Supports: MindMapp JSON, XMind (8/9), FreeMind (.mm)
+ * Supports: MindMapp JSON, XMind (8/9), FreeMind (.mm), Obsidian markdown
  */
 
 import type { Node } from '../store/useMindMapStore';
 import { parseImportPayload } from './importValidation';
 import { parseXMind, isXMindContent } from './importXMind';
+import { parseObsidian, isObsidianContent } from './importObsidian';
 
-export type ImportFormat = 'mindmapp-json' | 'xmind' | 'freemind' | 'unknown';
+export type ImportFormat = 'mindmapp-json' | 'xmind' | 'freemind' | 'obsidian' | 'unknown';
 
 export interface ImportResult {
   nodes: Record<string, Node>;
@@ -26,7 +27,6 @@ function isFreemindContent(content: string): boolean {
 function isMindMappJson(content: string): boolean {
   try {
     const parsed = JSON.parse(content);
-    // MindMapp JSON has a "nodes" field or is a flat node record with n_root
     if (parsed && typeof parsed === 'object') {
       if (parsed.nodes && typeof parsed.nodes === 'object') return true;
       if (parsed.n_root) return true;
@@ -44,16 +44,17 @@ export function detectImportFormat(content: string, filename?: string): ImportFo
     if (ext.endsWith('.json')) return 'mindmapp-json';
     if (ext.endsWith('.xmind')) return 'xmind';
     if (ext.endsWith('.mm')) return 'freemind';
+    if (ext.endsWith('.md')) return 'obsidian';
   }
 
-  // Content-based detection
   const trimmed = content.trim();
-  
+
   if (isMindMappJson(trimmed)) return 'mindmapp-json';
+  if (isObsidianContent(trimmed)) return 'obsidian';
   if (isXMindContent(trimmed)) return 'xmind';
   if (isFreemindContent(trimmed)) return 'freemind';
 
-  // Try JSON last (most specific errors)
+  // Try JSON last
   if (trimmed.startsWith('{') || trimmed.startsWith('[')) return 'mindmapp-json';
 
   return 'unknown';
@@ -78,13 +79,16 @@ export function parseImportContent(
   }
 
   if (detected === 'freemind') {
-    // FreeMind is structurally similar enough to XMind that we can use the same parser
-    // with adjusted root detection
-    const nodes = parseXMind(content); // parseXMind handles both formats
+    const nodes = parseXMind(content);
     return { nodes, format: 'freemind' };
   }
 
+  if (detected === 'obsidian') {
+    const nodes = parseObsidian(content, filename);
+    return { nodes, format: 'obsidian' };
+  }
+
   throw new Error(
-    `Unsupported file format. Supported formats: MindMapp JSON (.json), XMind (.xmind), FreeMind (.mm)`
+    `Unsupported file format. Supported formats: MindMapp JSON (.json), XMind (.xmind), FreeMind (.mm), Obsidian (.md)`
   );
 }
