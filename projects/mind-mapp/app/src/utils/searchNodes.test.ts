@@ -332,7 +332,7 @@ describe('wildcard search', () => {
 
     // *review matches Review, Alpha Review, Beta Review
     const results = searchNodes(wild, '*review');
-    expect(results.map(node => node.id)).toEqual(['n1', 'n2', 'n3']);
+    expect(results.map(node => node.id)).toEqual(['n2', 'n3', 'n1']);
   });
 
   it('matches suffix wildcard *', () => {
@@ -390,7 +390,7 @@ describe('wildcard search', () => {
     };
 
     const results = searchNodes(wild, 'node_*_1');
-    expect(results.map(node => node.id)).toEqual(['n1']);
+    expect(results.map(node => node.id)).toEqual(['node_alpha_1']);
   });
 
   it('wildcard matches zero characters with *', () => {

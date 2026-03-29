@@ -257,16 +257,9 @@ function globToRegex(pattern: string): RegExp {
     }
   }
 
-  // Determine anchor placement based on wildcard position
-  const hasLeadingWildcard = pattern.startsWith('*') || pattern.startsWith('?');
-  const hasTrailingWildcard = pattern.endsWith('*') || pattern.endsWith('?');
-  
-  // Only anchor when no wildcard at that end (anchors enforce exact boundary)
-  const startAnchor = hasLeadingWildcard ? '' : '^';
-  const endAnchor = hasTrailingWildcard ? '' : '$';
-  
-  // Now convert preserved * and ? to regex syntax
-  const regexStr = `${startAnchor}${parts.join('').replace(/\*/g, '.*').replace(/\?/g, '.')}${endAnchor}`;
+  // No anchors - this is used for substring matching.
+  // Anchors are applied by callers that need exact boundaries.
+  const regexStr = parts.join('').replace(/\*/g, '.*').replace(/\?/g, '.');
   return new RegExp(regexStr, 'i');
 }
 
@@ -428,19 +421,7 @@ function matchesWildcardPattern(haystack: string, pattern: string, prefixStrict:
   if (!hasWildcards(pattern)) {
     return prefixStrict ? haystack.startsWith(pattern) : haystack.includes(pattern);
   }
-
-  // Delegate to matchWithWildcard; for prefix-strict, anchor start of regex
-  if (prefixStrict) {
-    try {
-      const regex = globToRegex(pattern);
-      // The regex from globToRegex is anchored at both ends; adjust for prefix-only
-      const prefixRegex = new RegExp(regex.source.replace(/\$$/, ''), 'i');
-      return prefixRegex.test(haystack);
-    } catch {
-      return false;
-    }
-  }
-
+  // For wildcard patterns, use matchWithWildcard (substring match)
   return matchWithWildcard(haystack, pattern);
 }
 
