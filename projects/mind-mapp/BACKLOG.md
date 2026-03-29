@@ -83,7 +83,7 @@
 - [x] Production deployment guide — enhanced DEPLOY.md with Netlify, Vercel, AWS, Docker, self-hosted options
 
 
-## v1.2 Import Formats (In Progress)
+## v1.2 Import Formats (Complete)
 Branch: feature/node-tags
 
 ### Phase 1: Format Detection & Routing
