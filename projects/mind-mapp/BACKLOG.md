@@ -103,10 +103,10 @@ Branch: feature/node-tags
 - [x] Handle MindManager-specific attributes (priority, resource, boundary)
 - [x] Map MindManager folds to MindMapp expand/collapse
 
-### Phase 4: Testing & Documentation
-- [ ] Integration tests with sample files (XMind, FreeMind, Obsidian)
-- [ ] Update keyboard shortcuts docs
-- [ ] Document supported import formats
+### Phase 4: Testing & Documentation ✅ Complete
+- [x] Integration tests with sample files (XMind, FreeMind, Obsidian)
+- [x] Update keyboard shortcuts docs
+- [x] Document supported import formats
 
 
 ## Future (Post-v1.0)
@@ -114,10 +114,10 @@ Branch: feature/node-tags
 - [ ] Plugin system for custom visualizations
 - [ ] Mobile app (React Native)
 - [ ] File attachments (non-image binary files)
-- [ ] Node tags/categories
+- [x] Node tags/categories ✅
 - [ ] Advanced search (regex, wildcards)
 - [ ] Export templates (custom styling presets)
-- [ ] Import from other formats (XMind, MindManager, Obsidian)
+- [x] Import from other formats (XMind, MindManager, Obsidian) ✅
 - [ ] Cloud sync (optional backend)
 - [ ] Presentation mode (slideshow through branches)
 - [ ] Node comments and annotations
