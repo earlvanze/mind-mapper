@@ -100,8 +100,8 @@ Branch: feature/node-tags
 - [x] Import #headings as child nodes
 
 ### Phase 3: MindManager (FreeMind Enhanced)
-- [ ] Handle MindManager-specific attributes (priority, resource, boundary)
-- [ ] Map MindManager folds to MindMapp expand/collapse
+- [x] Handle MindManager-specific attributes (priority, resource, boundary)
+- [x] Map MindManager folds to MindMapp expand/collapse
 
 ### Phase 4: Testing & Documentation
 - [ ] Integration tests with sample files (XMind, FreeMind, Obsidian)

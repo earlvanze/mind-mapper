@@ -48,6 +48,7 @@ function nodeAttrs(node: Node): { attrs: string; note: string } {
   if (bgColor) attrs += ` BACKGROUND_COLOR="${bgColor}"`;
   if (borderColor) attrs += ` COLOR="${borderColor}"`;
   if (icon) attrs += ` ICON="${icon}"`;
+  if (node.isCollapsed) attrs += ` FOLDED="true"`;
 
   let note = '';
   if (tags && tags.length > 0) {

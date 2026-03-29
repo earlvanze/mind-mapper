@@ -35,6 +35,7 @@ import type { Node } from '../store/useMindMapStore';
 import { uid as generateId } from './id';
 
 type RawNode = {
+  isCollapsed?: boolean;
   text: string;
   children: RawNode[];
 };
@@ -57,39 +58,59 @@ function parseTopics(topicsElement: Element): RawNode[] {
 }
 
 function parseTopic(topicEl: Element): RawNode {
+  // Handle both XMind <title> and FreeMind TEXT="" attribute
   const titleEl = topicEl.getElementsByTagName('title')[0];
-  const text = titleEl?.textContent?.trim() ?? 'Untitled';
-  
+  const text = titleEl?.textContent?.trim()
+    ?? topicEl.getAttribute('TEXT')?.trim()
+    ?? 'Untitled';
+
+  // FreeMind FOLDED="true" attribute → collapsed state
+  const isCollapsed = topicEl.getAttribute('FOLDED') === 'true';
+
   const children: RawNode[] = [];
-  
-  // Look for children in various XMind formats
-  const childrenElements = topicEl.getElementsByTagName('children');
-  for (let i = 0; i < childrenElements.length; i++) {
-    const childEl = childrenElements[i];
-    // children can contain <topics> or <topics type="attached">
-    const topicsElements = childEl.getElementsByTagName('topics');
-    for (let j = 0; j < topicsElements.length; j++) {
-      children.push(...parseTopics(topicsElements[j]));
+
+  // FreeMind uses <node> children directly; XMind uses <children><topics><topic>
+  // Try FreeMind <node> children first
+  const freeMindChildren = topicEl.getElementsByTagName('node');
+  for (let i = 0; i < freeMindChildren.length; i++) {
+    children.push(parseTopic(freeMindChildren[i]));
+  }
+
+  // XMind-style children (skipped if we already found FreeMind nodes)
+  if (children.length === 0) {
+    const childrenElements = topicEl.getElementsByTagName('children');
+    for (let i = 0; i < childrenElements.length; i++) {
+      const childEl = childrenElements[i];
+      const topicsElements = childEl.getElementsByTagName('topics');
+      for (let j = 0; j < topicsElements.length; j++) {
+        children.push(...parseTopics(topicsElements[j]));
+      }
     }
   }
-  
-  return { text, children };
+
+  return { text, children, ...(isCollapsed ? { isCollapsed } : {}) };
 }
 
 function parseSheet(sheetEl: Element): RawNode[] {
+  // FreeMind: <map><node TEXT="..." FOLDED="..."><node>...
+  const freeMindRoot = sheetEl.getElementsByTagName('node');
+  if (freeMindRoot.length > 0) {
+    return [parseTopic(freeMindRoot[0])];
+  }
+
   const rootTopics = sheetEl.getElementsByTagName('root-topic');
   if (rootTopics.length === 0) return [];
-  
+
   const result: RawNode[] = [];
-  
+
   for (let i = 0; i < rootTopics.length; i++) {
     const rootTopic = rootTopics[i];
     const titleEl = rootTopic.getElementsByTagName('title')[0];
     const text = titleEl?.textContent?.trim() ?? 'Root';
-    
+
     const children: RawNode[] = [];
     const childrenElements = rootTopic.getElementsByTagName('children');
-    
+
     for (let j = 0; j < childrenElements.length; j++) {
       const childEl = childrenElements[j];
       const topicsElements = childEl.getElementsByTagName('topics');
@@ -97,10 +118,10 @@ function parseSheet(sheetEl: Element): RawNode[] {
         children.push(...parseTopics(topicsElements[k]));
       }
     }
-    
+
     result.push({ text, children });
   }
-  
+
   // XMind 8 format: root-topic + sibling topics at sheet level
   const topicsElements = sheetEl.getElementsByTagName('topics');
   for (let i = 0; i < topicsElements.length; i++) {
@@ -108,7 +129,7 @@ function parseSheet(sheetEl: Element): RawNode[] {
     if (result.length > 0) break;
     result.push(...parseTopics(topicsElements[i]));
   }
-  
+
   return result;
 }
 
@@ -124,6 +145,7 @@ function rawToNodes(rawRoot: RawNode, parentId: string | null): Record<string, N
       y: 0,
       children: [],
       parentId: pid,
+      ...(raw.isCollapsed ? { isCollapsed: true } : {}),
     };
     nodes[id] = node;
     
@@ -232,7 +254,14 @@ export function parseXMind(xmlString: string): Record<string, Node> {
   if (workbook) {
     sheets = Array.from(workbook.getElementsByTagName('sheet'));
   } else if (mapRoot) {
-    // Treat as single-sheet format
+    // FreeMind: <map version="..."><node TEXT="..." FOLDED="..."><node>...
+    const freeMindRoot = mapRoot.getElementsByTagName('node')[0];
+    if (freeMindRoot) {
+      const rootNode = parseTopic(freeMindRoot);
+      const nodes = rawToNodes(rootNode, null);
+      return positionNodes(nodes);
+    }
+    // Fallback: root-topic (rarely used in FreeMind context)
     const rootTopic = mapRoot.getElementsByTagName('root-topic')[0];
     if (rootTopic) {
       return parseXMind(`<?xml version="1.0"?><workbook><sheet><root-topic>${rootTopic.innerHTML}</root-topic></sheet></workbook>`);
