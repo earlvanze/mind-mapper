@@ -4,6 +4,7 @@ import { isTypingTarget } from '../utils/keyboardTarget';
 import { isHelpToggleEvent } from '../utils/helpToggle';
 import { LayoutMode } from '../utils/treeLayout';
 import { isSearchToggleEvent } from '../utils/searchToggle';
+import { getKeyboardPref } from '../utils/uiPrefs';
 import { COLOR_PRESETS } from '../utils/nodeStyles';
 
 type Props = {
@@ -193,10 +194,15 @@ export function useKeyboard({ onSearch, onFit, onFitSelection, onFitSubtree, onT
       if (e.key === '>') { e.preventDefault(); onFocusForward(); return; }
 
       // Arrow nudging (Shift+Arrow)
-      if (e.shiftKey && e.key === 'ArrowUp') { e.preventDefault(); nudgeSelected(0, -10); return; }
-      if (e.shiftKey && e.key === 'ArrowDown') { e.preventDefault(); nudgeSelected(0, 10); return; }
-      if (e.shiftKey && e.key === 'ArrowLeft') { e.preventDefault(); nudgeSelected(-10, 0); return; }
-      if (e.shiftKey && e.key === 'ArrowRight') { e.preventDefault(); nudgeSelected(10, 0); return; }
+      if (e.shiftKey && e.key === 'ArrowUp') { e.preventDefault(); nudgeSelected(0, -getKeyboardPref('nudge')); return; }
+      if (e.shiftKey && e.key === 'ArrowDown') { e.preventDefault(); nudgeSelected(0, getKeyboardPref('nudge')); return; }
+      if (e.shiftKey && e.key === 'ArrowLeft') { e.preventDefault(); nudgeSelected(-getKeyboardPref('nudge'), 0); return; }
+      if (e.shiftKey && e.key === 'ArrowRight') { e.preventDefault(); nudgeSelected(getKeyboardPref('nudge'), 0); return; }
+      // Large arrow nudging (Shift+Alt+Arrow)
+      if (e.shiftKey && e.altKey && e.key === 'ArrowUp') { e.preventDefault(); nudgeSelected(0, -getKeyboardPref('nudgeLarge')); return; }
+      if (e.shiftKey && e.altKey && e.key === 'ArrowDown') { e.preventDefault(); nudgeSelected(0, getKeyboardPref('nudgeLarge')); return; }
+      if (e.shiftKey && e.altKey && e.key === 'ArrowLeft') { e.preventDefault(); nudgeSelected(-getKeyboardPref('nudgeLarge'), 0); return; }
+      if (e.shiftKey && e.altKey && e.key === 'ArrowRight') { e.preventDefault(); nudgeSelected(getKeyboardPref('nudgeLarge'), 0); return; }
     };
 
     document.addEventListener('keydown', onKey);

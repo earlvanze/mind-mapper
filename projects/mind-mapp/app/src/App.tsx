@@ -10,7 +10,7 @@ import { useKeyboard } from './hooks/useKeyboard';
 import { useVirtualization } from './hooks/useVirtualization';
 import { usePanZoom } from './hooks/usePanZoom';
 import { useAutosave } from './hooks/useAutosave';
-import { exportPng, exportJsonData, exportMarkdownData, exportSvg, exportFreemindData, exportPdf, fitToView, computeFitView, computeSelectionBounds, formatSelectionText, formatSubtreeOutline, getFocusPathSegments, getParentFocusId, getFirstChildId, getWrappedSiblingId, getFirstLeafId, getLastLeafId, getCycledLeafId, getLeafCycleRootId, getLeafIdsInSubtree, createFocusHistory, recordFocus, resetFocusHistory, findStepFocus, findEdgeFocus, pruneFocusHistory, centerPointInView, confirmAction, parseImportPayload, parseImportContent, sampleMap, loadFocusHistory, saveFocusHistory, loadUiPrefs, saveUiPrefs, APP_VERSION, HELP_TOGGLE_ARIA_KEYSHORTCUTS, SEARCH_TOGGLE_ARIA_KEYSHORTCUTS, encodeShareLink, loadSharedMap, clearShareLink } from './utils';
+import { exportPng, exportJsonData, exportMarkdownData, exportSvg, exportFreemindData, exportPdf, fitToView, computeFitView, computeSelectionBounds, formatSelectionText, formatSubtreeOutline, getFocusPathSegments, getParentFocusId, getFirstChildId, getWrappedSiblingId, getFirstLeafId, getLastLeafId, getCycledLeafId, getLeafCycleRootId, getLeafIdsInSubtree, createFocusHistory, recordFocus, resetFocusHistory, findStepFocus, findEdgeFocus, pruneFocusHistory, centerPointInView, confirmAction, parseImportPayload, parseImportContent, sampleMap, loadFocusHistory, saveFocusHistory, loadUiPrefs, saveUiPrefs, getKeyboardPref, APP_VERSION, HELP_TOGGLE_ARIA_KEYSHORTCUTS, SEARCH_TOGGLE_ARIA_KEYSHORTCUTS, encodeShareLink, loadSharedMap, clearShareLink } from './utils';
 import MiniMap from './components/MiniMap';
 import StyleToolbar from './components/StyleToolbar';
 import TagFilterPanel from './components/TagFilterPanel';
@@ -20,6 +20,7 @@ const HelpDialog = lazy(() => import('./components/HelpDialog'));
 const VersionHistoryDialogLazy = lazy(() => import('./components/VersionHistoryDialog'));
 const TagPickerDialog = lazy(() => import('./components/TagPickerDialog'));
 const CommentDialog = lazy(() => import('./components/CommentDialog'));
+const ShortcutSettingsDialog = lazy(() => import('./components/ShortcutSettingsDialog'));
 
 export default function App() {
   const [useCanvasRenderer, setUseCanvasRenderer] = useState(false);
@@ -31,6 +32,7 @@ export default function App() {
   const [commentNodeId, setCommentNodeId] = useState<string | null>(null);
   const [tagPickerOpen, setTagPickerOpen] = useState(false);
   const [showTagFilter, setShowTagFilter] = useState(false);
+  const [shortcutSettingsOpen, setShortcutSettingsOpen] = useState(false);
   const [showGrid, setShowGrid] = useState(false);
   const [showMiniMap, setShowMiniMap] = useState(true);
   const [showAdvancedActions, setShowAdvancedActions] = useState(false);
@@ -417,8 +419,8 @@ export default function App() {
     onFit: () => fitToView(),
     onFitSelection: () => fitSelection(),
     onFitSubtree: () => fitFocusedSubtree(),
-    onZoomIn: () => zoomBy(1.15),
-    onZoomOut: () => zoomBy(1 / 1.15),
+    onZoomIn: () => zoomBy(getKeyboardPref('zoomIn')),
+    onZoomOut: () => zoomBy(getKeyboardPref('zoomOut')),
     onResetView: () => (window as any).__mindmappResetView?.(),
     onCenterFocus: () => centerOnNode(focusId),
     onCenterSelection: () => centerSelection(),
@@ -805,6 +807,14 @@ export default function App() {
             {helpOpen ? 'Help On' : 'Help Off'}
           </button>
           <button
+            title="Keyboard shortcut settings"
+            aria-label="Configure keyboard shortcut distances and zoom factors"
+            aria-haspopup="dialog"
+            onClick={() => setShortcutSettingsOpen(true)}
+          >
+            ⚙️
+          </button>
+          <button
             title={versionHistoryOpen ? 'Hide version history (Alt+V)' : 'Version history (Alt+V)'}
             aria-pressed={versionHistoryOpen}
             aria-expanded={versionHistoryOpen}
@@ -937,6 +947,7 @@ export default function App() {
       <Suspense fallback={null}>
         <SearchDialog open={searchOpen} onClose={closeSearchDialog} />
         <HelpDialog open={helpOpen} onClose={closeHelpDialog} />
+        <ShortcutSettingsDialog open={shortcutSettingsOpen} onClose={() => setShortcutSettingsOpen(false)} />
         <TagPickerDialog open={tagPickerOpen} onClose={() => setTagPickerOpen(false)} />
         {commentNodeId && (
           <CommentDialog nodeId={commentNodeId} onClose={() => setCommentNodeId(null)} />
