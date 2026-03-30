@@ -7,6 +7,7 @@ export const SHORTCUTS: Shortcut[] = [
   { key: 'Enter', desc: 'new sibling' },
   { key: 'Tab', desc: 'new child' },
   { key: 'Shift+Tab', desc: 'promote node' },
+  { key: '/', desc: 'collapse/expand focused node' },
   { key: 'Delete', desc: 'delete selected node(s)' },
   { key: 'Cmd/Ctrl+Z', desc: 'undo' },
   { key: 'Cmd/Ctrl+Shift+Z / Cmd/Ctrl+Y', desc: 'redo' },

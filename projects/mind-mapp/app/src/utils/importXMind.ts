@@ -240,7 +240,8 @@ export function parseXMind(xmlString: string): Record<string, Node> {
   const doc = parser.parseFromString(xmlString, 'application/xml');
   
   // Check for parse errors
-  const errorNode = doc.querySelector('parsererror');
+  const errorNodes = doc.getElementsByTagName('parsererror');
+  const errorNode = errorNodes.length > 0 ? errorNodes[0] : null;
   if (errorNode) {
     throw new Error('Invalid XMind XML: parse error');
   }

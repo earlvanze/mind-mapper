@@ -256,6 +256,33 @@ function Node({ node, isFocused, isSelected, isEditing, isFaded = false }: Props
             alignItems: 'center',
             gap: 4,
           }}>
+            {node.children.length > 0 && (
+              <button
+                title={node.isCollapsed ? 'Expand children (/)' : 'Collapse children (/)'}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  useMindMapStore.getState().toggleNodeCollapsed(node.id);
+                }}
+                onMouseDown={(e) => e.stopPropagation()}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: '1px 3px',
+                  fontSize: '0.75em',
+                  lineHeight: 1,
+                  color: resolved.text,
+                  opacity: 0.6,
+                  display: 'flex',
+                  alignItems: 'center',
+                  transform: node.isCollapsed ? 'rotate(-90deg)' : undefined,
+                  transition: 'transform 0.2s ease, opacity 0.15s ease',
+                }}
+                aria-label={node.isCollapsed ? 'Expand' : 'Collapse'}
+              >
+                ▾
+              </button>
+            )}
             {resolved.icon ? <span style={{ fontSize: '1em', lineHeight: 1 }}>{resolved.icon}</span> : null}
             {node.style?.linkUrl && (
               <a

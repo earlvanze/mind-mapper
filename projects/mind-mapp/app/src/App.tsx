@@ -12,6 +12,7 @@ import { useVirtualization } from './hooks/useVirtualization';
 import { usePanZoom } from './hooks/usePanZoom';
 import { useAutosave } from './hooks/useAutosave';
 import { exportPng, exportJsonData, exportMarkdownData, exportSvg, exportFreemindData, exportPdf, fitToView, computeFitView, computeSelectionBounds, formatSelectionText, formatSubtreeOutline, getFocusPathSegments, getParentFocusId, getFirstChildId, getWrappedSiblingId, getFirstLeafId, getLastLeafId, getCycledLeafId, getLeafCycleRootId, getLeafIdsInSubtree, createFocusHistory, recordFocus, resetFocusHistory, findStepFocus, findEdgeFocus, pruneFocusHistory, centerPointInView, confirmAction, parseImportPayload, parseImportContent, sampleMap, loadFocusHistory, saveFocusHistory, loadUiPrefs, saveUiPrefs, getKeyboardPref, APP_VERSION, HELP_TOGGLE_ARIA_KEYSHORTCUTS, SEARCH_TOGGLE_ARIA_KEYSHORTCUTS, encodeShareLink, loadSharedMap, clearShareLink } from './utils';
+import { getHiddenNodeIds } from './utils/collapseUtils';
 import MiniMap from './components/MiniMap';
 import StyleToolbar from './components/StyleToolbar';
 import TagFilterPanel from './components/TagFilterPanel';
@@ -26,8 +27,9 @@ const ShortcutSettingsDialog = lazy(() => import('./components/ShortcutSettingsD
 
 export default function App() {
   const [useCanvasRenderer, setUseCanvasRenderer] = useState(false);
-  const { nodes, focusId, selectedIds, editingId, activeTagFilters, matchMode, setFocus, selectAll, invertSelection, selectSiblings, selectChildren, selectLeaves, selectAncestors, selectTopLevel, selectGeneration, clearSelectionSet, expandSelectionToNeighbors, selectSubtree, selectParent, alignSelection, distributeSelection, layoutSelection, stackSelection, snapSelectionToGrid, mirrorSelection, duplicateSelected, importState, resetMap, undo, redo, canUndo, canRedo } = useMindMapStore();
+  const { nodes, focusId, selectedIds, editingId, activeTagFilters, matchMode, setFocus, selectAll, invertSelection, selectSiblings, selectChildren, selectLeaves, selectAncestors, selectTopLevel, selectGeneration, clearSelectionSet, expandSelectionToNeighbors, selectSubtree, selectParent, alignSelection, distributeSelection, layoutSelection, stackSelection, snapSelectionToGrid, mirrorSelection, duplicateSelected, importState, resetMap, undo, redo, canUndo, canRedo, toggleNodeCollapsed, collapseAll, expandAll } = useMindMapStore();
   const { visibleNodeIds, shouldVirtualize } = useVirtualization(nodes, useCanvasRenderer);
+  const hiddenNodeIds = getHiddenNodeIds(nodes);
   const [searchOpen, setSearchOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [versionHistoryOpen, setVersionHistoryOpen] = useState(false);
@@ -454,6 +456,9 @@ export default function App() {
     onCopySubtree: () => copySubtreeText(),
     onCopyPath: () => copyFocusPath(),
     onCenterRoot: () => centerRoot(),
+    onToggleCollapse: () => toggleNodeCollapsed(focusId),
+    onCollapseAll: () => collapseAll(),
+    onExpandAll: () => expandAll(),
     suspended: searchOpen || helpOpen,
   });
   usePanZoom({ selector: '.canvas' });
@@ -679,6 +684,9 @@ export default function App() {
           <button title="Fit to view (F)" aria-keyshortcuts="F" onClick={() => fitToView()}>Fit</button>
           <button title="Fit selected nodes (Alt+F)" aria-keyshortcuts="Alt+F" onClick={fitSelection}>Fit Sel</button>
           <button title="Fit focused subtree (Alt+Shift+F)" aria-keyshortcuts="Alt+Shift+F" onClick={fitFocusedSubtree}>Fit Sub</button>
+          <button title="Collapse focused node (/)" aria-keyshortcuts="/" onClick={() => toggleNodeCollapsed(focusId)}>▾ Coll</button>
+          <button title="Expand all nodes" onClick={expandAll}>▸ Expand All</button>
+          <button title="Collapse all nodes" onClick={collapseAll}>▾ Collapse All</button>
           <button title="Center focused node (C)" aria-keyshortcuts="C" onClick={() => centerOnNode(focusId)}>Center</button>
           <button title="Center selected nodes (Alt+Shift+C)" aria-keyshortcuts="Alt+Shift+C" onClick={centerSelection}>Center Sel</button>
           <button title="Center focused subtree (Alt+Shift+B)" aria-keyshortcuts="Alt+Shift+B" onClick={centerSubtree}>Center Sub</button>
@@ -920,7 +928,7 @@ export default function App() {
       </div>
       <div id="mindmap-canvas" className={`canvas ${showGrid ? 'grid-on' : ''}`} role="application" aria-label="Mind map canvas. Use arrow keys to navigate nodes, Enter to edit, Tab to add child, Delete to remove." tabIndex={-1}>
         {useCanvasRenderer ? <CanvasEdges nodes={nodes} /> : <Edges nodes={nodes} />}
-        {Object.values(nodes).filter(n => !shouldVirtualize || visibleNodeIds.has(n.id)).map(n => {
+        {Object.values(nodes).filter(n => !shouldVirtualize || visibleNodeIds.has(n.id)).filter(n => !hiddenNodeIds.has(n.id)).map(n => {
           const hasFilters = activeTagFilters.length > 0;
           const nodeTags = n.tags || [];
           const isFaded = hasFilters && (

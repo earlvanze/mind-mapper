@@ -47,11 +47,14 @@ type Props = {
   onCopyPath: () => void;
   onCenterRoot: () => void;
   onVersionHistory: () => void;
+  onToggleCollapse: () => void;
+  onCollapseAll: () => void;
+  onExpandAll: () => void;
   suspended?: boolean;
 };
 
-export function useKeyboard({ onSearch, onFit, onFitSelection, onFitSubtree, onTagPicker, onTagFilter, onZoomIn, onZoomOut, onResetView, onCenterFocus, onCenterSelection, onCenterSubtree, onFocusParent, onFocusChild, onFocusPrevSibling, onFocusNextSibling, onFocusSubtreeFirstLeaf, onFocusSubtreeLastLeaf, onFocusPrevLeaf, onFocusNextLeaf, onFocusRoot, onFocusPrevious, onFocusForward, onFocusHistoryStart, onFocusHistoryEnd, onResetFocusHistory, onToggleGrid, onToggleMiniMap, onToggleAdvanced, onToggleTheme, onHelp, onUndo, onRedo, onExportMarkdown, onCopySelection, onCopySubtree, onCopyPath, onCenterRoot, suspended = false }: Props) {
-  const { focusId, addSibling, addChild, promoteNode, deleteSelected, duplicateSelected, moveFocus, selectParent, setFocus, selectAll, invertSelection, selectSiblings, selectChildren, selectLeaves, selectAncestors, selectTopLevel, selectGeneration, clearSelectionSet, expandSelectionToNeighbors, selectSubtree, alignSelection, distributeSelection, layoutSelection, stackSelection, snapSelectionToGrid, mirrorSelection, autoLayoutChildren, autoLayout, setLayoutMode, nudgeSelected, editingId, startEditing, setSelectedStyle, selectedIds } = useMindMapStore();
+export function useKeyboard({ onSearch, onFit, onFitSelection, onFitSubtree, onTagPicker, onTagFilter, onZoomIn, onZoomOut, onResetView, onCenterFocus, onCenterSelection, onCenterSubtree, onFocusParent, onFocusChild, onFocusPrevSibling, onFocusNextSibling, onFocusSubtreeFirstLeaf, onFocusSubtreeLastLeaf, onFocusPrevLeaf, onFocusNextLeaf, onFocusRoot, onFocusPrevious, onFocusForward, onFocusHistoryStart, onFocusHistoryEnd, onResetFocusHistory, onToggleGrid, onToggleMiniMap, onToggleAdvanced, onToggleTheme, onHelp, onUndo, onRedo, onExportMarkdown, onCopySelection, onCopySubtree, onCopyPath, onCenterRoot, onToggleCollapse, onCollapseAll, onExpandAll, suspended = false }: Props) {
+  const { focusId, addSibling, addChild, promoteNode, deleteSelected, duplicateSelected, moveFocus, selectParent, setFocus, selectAll, invertSelection, selectSiblings, selectChildren, selectLeaves, selectAncestors, selectTopLevel, selectGeneration, clearSelectionSet, expandSelectionToNeighbors, selectSubtree, alignSelection, distributeSelection, layoutSelection, stackSelection, snapSelectionToGrid, mirrorSelection, autoLayoutChildren, autoLayout, setLayoutMode, nudgeSelected, editingId, startEditing, setSelectedStyle, selectedIds, toggleNodeCollapsed, collapseAll, expandAll } = useMindMapStore();
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -173,6 +176,13 @@ export function useKeyboard({ onSearch, onFit, onFitSelection, onFitSubtree, onT
       if (isSearchToggleEvent(e)) { e.preventDefault(); onSearch(); return; }
       if (isHelpToggleEvent(e, typingTarget)) { e.preventDefault(); onHelp(); return; }
 
+      // Collapse/expand focused node (/) — only when not typing
+      if (e.key === '/' && !e.metaKey && !e.ctrlKey && !e.altKey && !e.shiftKey) {
+        e.preventDefault();
+        onToggleCollapse();
+        return;
+      }
+
       if (editingId || typingTarget) return;
 
       if (e.key === 'ArrowUp') { e.preventDefault(); moveFocus('up'); return; }
@@ -207,5 +217,5 @@ export function useKeyboard({ onSearch, onFit, onFitSelection, onFitSubtree, onT
 
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
-  }, [focusId, editingId, addSibling, addChild, promoteNode, deleteSelected, duplicateSelected, moveFocus, selectParent, setFocus, onSearch, onFit, onFitSelection, onFitSubtree, onTagPicker, onTagFilter, onZoomIn, onZoomOut, onResetView, onCenterFocus, onCenterSelection, onCenterSubtree, onFocusParent, onFocusChild, onFocusPrevSibling, onFocusNextSibling, onFocusSubtreeFirstLeaf, onFocusSubtreeLastLeaf, onFocusPrevLeaf, onFocusNextLeaf, onFocusRoot, onFocusPrevious, onFocusForward, onFocusHistoryStart, onFocusHistoryEnd, onResetFocusHistory, onToggleGrid, onToggleMiniMap, onToggleAdvanced, onToggleTheme, onHelp, onUndo, onRedo, selectAll, invertSelection, selectSiblings, selectChildren, selectLeaves, selectAncestors, selectTopLevel, selectGeneration, clearSelectionSet, expandSelectionToNeighbors, selectSubtree, alignSelection, distributeSelection, layoutSelection, stackSelection, snapSelectionToGrid, mirrorSelection, autoLayoutChildren, autoLayout, setLayoutMode, nudgeSelected, startEditing, setSelectedStyle, selectedIds, onExportMarkdown, onCopySelection, onCopySubtree, onCopyPath, onCenterRoot, suspended]);
+  }, [focusId, editingId, addSibling, addChild, promoteNode, deleteSelected, duplicateSelected, moveFocus, selectParent, setFocus, onSearch, onFit, onFitSelection, onFitSubtree, onTagPicker, onTagFilter, onZoomIn, onZoomOut, onResetView, onCenterFocus, onCenterSelection, onCenterSubtree, onFocusParent, onFocusChild, onFocusPrevSibling, onFocusNextSibling, onFocusSubtreeFirstLeaf, onFocusSubtreeLastLeaf, onFocusPrevLeaf, onFocusNextLeaf, onFocusRoot, onFocusPrevious, onFocusForward, onFocusHistoryStart, onFocusHistoryEnd, onResetFocusHistory, onToggleGrid, onToggleMiniMap, onToggleAdvanced, onToggleTheme, onHelp, onUndo, onRedo, selectAll, invertSelection, selectSiblings, selectChildren, selectLeaves, selectAncestors, selectTopLevel, selectGeneration, clearSelectionSet, expandSelectionToNeighbors, selectSubtree, alignSelection, distributeSelection, layoutSelection, stackSelection, snapSelectionToGrid, mirrorSelection, autoLayoutChildren, autoLayout, setLayoutMode, nudgeSelected, startEditing, setSelectedStyle, selectedIds, onExportMarkdown, onCopySelection, onCopySubtree, onCopyPath, onCenterRoot, onToggleCollapse, onCollapseAll, onExpandAll, suspended]);
 }

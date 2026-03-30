@@ -97,6 +97,8 @@ type MindMapState = {
   clearTagFilters: () => void;
   toggleMatchMode: () => void;
   toggleNodeCollapsed: (id: string) => void;
+  collapseAll: () => void;
+  expandAll: () => void;
   setNodeComment: (id: string, comment: string | undefined) => void;
 };
 
@@ -1182,7 +1184,35 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
         if (!node || node.children.length === 0) return {};
         const newNodes = { ...state.nodes };
         newNodes[id] = { ...newNodes[id], isCollapsed: !newNodes[id].isCollapsed };
-        return { nodes: newNodes };
+        return { ...withHistory(state), nodes: newNodes };
+      });
+    },
+    collapseAll: () => {
+      set((state) => {
+        const newNodes = { ...state.nodes };
+        let changed = false;
+        Object.values(newNodes).forEach((node) => {
+          if (node.children.length > 0 && !node.isCollapsed) {
+            newNodes[node.id] = { ...node, isCollapsed: true };
+            changed = true;
+          }
+        });
+        if (!changed) return {};
+        return { ...withHistory(state), nodes: newNodes };
+      });
+    },
+    expandAll: () => {
+      set((state) => {
+        const newNodes = { ...state.nodes };
+        let changed = false;
+        Object.values(newNodes).forEach((node) => {
+          if (node.isCollapsed) {
+            newNodes[node.id] = { ...node, isCollapsed: false };
+            changed = true;
+          }
+        });
+        if (!changed) return {};
+        return { ...withHistory(state), nodes: newNodes };
       });
     },
     setNodeComment: (id, comment) => {
