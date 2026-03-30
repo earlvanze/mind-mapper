@@ -1,7 +1,7 @@
 import { useDeferredValue, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { HELP_DIALOG_ARIA_KEYSHORTCUTS, HELP_DIALOG_CLOSE_ARIA_KEYSHORTCUTS, HELP_INPUT_ARIA_KEYSHORTCUTS, filterShortcuts, FOCUS_NAV_HISTORY_SHORTCUT_KEYS, formatHelpSummary, getHelpEmptyMessage, getHelpPendingMessage, isDialogClearInputEvent, isDialogFocusInputEvent, isDialogSelectInputEvent, pickShortcutsByKeys, SHORTCUTS, shouldSkipDialogSelectShortcut, TAG_TUTORIAL } from '../utils';
 
-export default function HelpDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
+export default function HelpDialog({ open, onClose, onOpenShortcutSettings }: { open: boolean; onClose: () => void; onOpenShortcutSettings?: () => void }) {
   const [query, setQuery] = useState('');
   const [showTutorial, setShowTutorial] = useState(false);
   const deferredQuery = useDeferredValue(query);
@@ -97,6 +97,27 @@ export default function HelpDialog({ open, onClose }: { open: boolean; onClose: 
           >
             ×
           </button>
+          {onOpenShortcutSettings && (
+            <button
+              type="button"
+              className="dialog-header-btn"
+              title="Customize keyboard shortcuts"
+              aria-label="Customize keyboard shortcuts"
+              onClick={onOpenShortcutSettings}
+              style={{
+                marginLeft: 'auto',
+                padding: '4px 10px',
+                fontSize: 12,
+                borderRadius: 6,
+                border: '1px solid var(--border-color, #ccc)',
+                background: 'var(--bg-input, #fff)',
+                color: 'var(--text-color, #333)',
+                cursor: 'pointer',
+              }}
+            >
+              Customize…
+            </button>
+          )}
         </div>
         <div className="help-quick-section" role="region" aria-labelledby={quickSectionId}>
           <h4 id={quickSectionId}>Focus Navigation &amp; History</h4>

@@ -959,7 +959,7 @@ export default function App() {
       </div>
       <Suspense fallback={null}>
         <SearchDialog open={searchOpen} onClose={closeSearchDialog} />
-        <HelpDialog open={helpOpen} onClose={closeHelpDialog} />
+        <HelpDialog open={helpOpen} onClose={closeHelpDialog} onOpenShortcutSettings={() => { closeHelpDialog(); setShortcutSettingsOpen(true); }} />
         <ShortcutSettingsDialog open={shortcutSettingsOpen} onClose={() => setShortcutSettingsOpen(false)} />
         <TagPickerDialog open={tagPickerOpen} onClose={() => setTagPickerOpen(false)} />
         {commentNodeId && (
