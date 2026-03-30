@@ -27,6 +27,8 @@ export type Node = {
   tags?: string[];     // NEW: node tags for categorization
   isCollapsed?: boolean; // NEW: collapsed state
   comment?: string;    // NEW: node annotation/comment (hides children in canvas)
+  createdAt?: number;  // Unix timestamp ms — when node was created
+  updatedAt?: number;  // Unix timestamp ms — when node was last modified
 };
 
 type Snapshot = {
@@ -96,6 +98,18 @@ type MindMapState = {
   setTagFilter: (tag: string) => void;
   clearTagFilters: () => void;
   toggleMatchMode: () => void;
+  // Style filters
+  styleFilterShapes: string[];
+  styleFilterColors: string[];
+  styleFilterIcons: string[];
+  styleFilterDateMode?: 'created' | 'updated';
+  styleFilterDateFrom?: number;
+  styleFilterDateTo?: number;
+  setStyleFilterShapes: (shapes: string[]) => void;
+  setStyleFilterColors: (colors: string[]) => void;
+  setStyleFilterIcons: (icons: string[]) => void;
+  setStyleFilterDate: (mode?: 'created' | 'updated', from?: number, to?: number) => void;
+  clearStyleFilters: () => void;
   toggleNodeCollapsed: (id: string) => void;
   collapseAll: () => void;
   expandAll: () => void;
@@ -131,7 +145,7 @@ function withHistory(state: MindMapState) {
 
 const defaultState = {
   nodes: {
-    [rootId]: { id: rootId, text: 'Root', x: 320, y: 180, parentId: null, children: [] },
+    [rootId]: { id: rootId, text: 'Root', x: 320, y: 180, parentId: null, children: [], createdAt: Date.now(), updatedAt: Date.now() },
   },
   focusId: rootId,
   selectedIds: [rootId],
@@ -180,6 +194,7 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
             ...current,
             text,
             ...(newStyle ? { style: newStyle } : {}),
+            updatedAt: Date.now(),
           },
         },
       };
@@ -738,7 +753,7 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
       ...withHistory(s),
       nodes: {
         ...s.nodes,
-        [newId]: { id: newId, text: 'New', x: base.x + 140, y: base.y, parentId, children: [] },
+        [newId]: { id: newId, text: 'New', x: base.x + 140, y: base.y, parentId, children: [], createdAt: Date.now(), updatedAt: Date.now() },
         ...(parentId
           ? { [parentId]: { ...s.nodes[parentId], children: [...s.nodes[parentId].children, newId] } }
           : {}),
@@ -755,7 +770,7 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
       ...withHistory(s),
       nodes: {
         ...s.nodes,
-        [newId]: { id: newId, text: 'New', x: base.x + 140, y: base.y + 80, parentId: id, children: [] },
+        [newId]: { id: newId, text: 'New', x: base.x + 140, y: base.y + 80, parentId: id, children: [], createdAt: Date.now(), updatedAt: Date.now() },
         [id]: { ...s.nodes[id], children: [...s.nodes[id].children, newId] },
       },
       focusId: newId,
@@ -788,7 +803,18 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
       const focusId = Object.keys(nodes)[0] || rootId;
       return { ...withHistory(state), nodes, focusId, selectedIds: [focusId] };
     }),
-  resetMap: () => set(state => ({ ...withHistory(state), ...defaultState })),
+  resetMap: () => set(state => ({
+    ...withHistory(state),
+    ...defaultState,
+    activeTagFilters: [],
+    matchMode: 'any' as const,
+    styleFilterShapes: [],
+    styleFilterColors: [],
+    styleFilterIcons: [],
+    styleFilterDateMode: undefined,
+    styleFilterDateFrom: undefined,
+    styleFilterDateTo: undefined,
+  })),
   deleteNode: id => {
     if (id === rootId) return; // don't delete root
     const state = get();
@@ -909,6 +935,8 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
           children: source.children.map(cid => idMap[cid]).filter(Boolean),
           ...(source.style ? { style: { ...source.style } } : {}),
           ...(source.tags ? { tags: [...source.tags] } : {}),
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
         };
       }
 
@@ -1178,6 +1206,11 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
         matchMode: state.matchMode === 'any' ? 'all' : 'any',
       }));
     },
+    setStyleFilterShapes: (shapes) => set({ styleFilterShapes: shapes }),
+    setStyleFilterColors: (colors) => set({ styleFilterColors: colors }),
+    setStyleFilterIcons: (icons) => set({ styleFilterIcons: icons }),
+    setStyleFilterDate: (mode, from, to) => set({ styleFilterDateMode: mode, styleFilterDateFrom: from, styleFilterDateTo: to }),
+    clearStyleFilters: () => set({ styleFilterShapes: [], styleFilterColors: [], styleFilterIcons: [], styleFilterDateMode: undefined, styleFilterDateFrom: undefined, styleFilterDateTo: undefined }),
     toggleNodeCollapsed: (id) => {
       set((state) => {
         const node = state.nodes[id];

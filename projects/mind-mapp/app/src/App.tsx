@@ -15,7 +15,8 @@ import { exportPng, exportJsonData, exportMarkdownData, exportSvg, exportFreemin
 import { getHiddenNodeIds } from './utils/collapseUtils';
 import MiniMap from './components/MiniMap';
 import StyleToolbar from './components/StyleToolbar';
-import TagFilterPanel from './components/TagFilterPanel';
+import FilterPanel from './components/FilterPanel';
+import { shouldFadeNode } from './utils/nodeFilters';
 
 const SearchDialog = lazy(() => import('./components/SearchDialog'));
 const HelpDialog = lazy(() => import('./components/HelpDialog'));
@@ -929,16 +930,20 @@ export default function App() {
       <div id="mindmap-canvas" className={`canvas ${showGrid ? 'grid-on' : ''}`} role="application" aria-label="Mind map canvas. Use arrow keys to navigate nodes, Enter to edit, Tab to add child, Delete to remove." tabIndex={-1}>
         {useCanvasRenderer ? <CanvasEdges nodes={nodes} /> : <Edges nodes={nodes} />}
         {Object.values(nodes).filter(n => !shouldVirtualize || visibleNodeIds.has(n.id)).filter(n => !hiddenNodeIds.has(n.id)).map(n => {
-          const hasFilters = activeTagFilters.length > 0;
-          const nodeTags = n.tags || [];
-          const isFaded = hasFilters && (
-            matchMode === 'any'
-              ? !activeTagFilters.some(f => nodeTags.includes(f))
-              : !activeTagFilters.every(f => nodeTags.includes(f))
-          );
+          const filterState = useMindMapStore.getState();
+          const isFaded = shouldFadeNode(n, {
+            activeTagFilters: filterState.activeTagFilters,
+            matchMode: filterState.matchMode,
+            styleFilterShapes: filterState.styleFilterShapes,
+            styleFilterColors: filterState.styleFilterColors,
+            styleFilterIcons: filterState.styleFilterIcons,
+            styleFilterDateMode: filterState.styleFilterDateMode,
+            styleFilterDateFrom: filterState.styleFilterDateFrom,
+            styleFilterDateTo: filterState.styleFilterDateTo,
+          });
           return <Node key={n.id} node={n} isFocused={focusId === n.id} isSelected={selectedIds.includes(n.id)} isEditing={editingId === n.id} isFaded={isFaded} />;
         })}
-        {showTagFilter && <TagFilterPanel />}
+        {showTagFilter && <FilterPanel />}
         {showMiniMap ? (
           <MiniMap
             nodes={nodes}

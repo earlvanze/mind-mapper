@@ -259,3 +259,93 @@ export function getEffectiveShortcuts(): { key: string; desc: string }[] {
 export function resetAllBindings() {
   saveShortcutsPrefs({});
 }
+
+/**
+ * Dispatch map — maps ShortcutAction to its callback name in useKeyboard.
+ * This lets us route custom bindings to the right handler.
+ */
+export type ShortcutHandlerMap = Partial<Record<ShortcutAction, () => void>>;
+
+/**
+ * Check if a keyboard event matches a custom binding.
+ * Returns the action if matched, null otherwise.
+ */
+export function checkCustomBinding(
+  e: KeyboardEvent,
+  prefs: ShortcutsPrefs,
+): ShortcutAction | null {
+  for (const binding of DEFAULT_SHORTCUT_BINDINGS) {
+    const effectiveKey = prefs[binding.action] ?? binding.defaultKey;
+    if (!effectiveKey) continue;
+    if (matchesBinding(e, effectiveKey)) {
+      // If this is a custom binding (not default), return the action
+      if (prefs[binding.action] !== undefined) {
+        return binding.action;
+      }
+    }
+  }
+  return null;
+}
+
+import type { ShortcutAction } from './keyboardShortcuts';
+
+/**
+ * Maps ShortcutAction → useKeyboard callback prop name.
+ * Must stay in sync with useKeyboard Props interface.
+ */
+export const ACTION_TO_HANDLER: Record<ShortcutAction, string> = {
+  search:              'onSearch',
+  help:                'onHelp',
+  fit:                 'onFit',
+  fitSelection:        'onFitSelection',
+  fitSubtree:          'onFitSubtree',
+  centerFocus:         'onCenterFocus',
+  centerSelection:     'onCenterSelection',
+  centerSubtree:       'onCenterSubtree',
+  centerRoot:          'onCenterRoot',
+  focusRoot:           'onFocusRoot',
+  focusParent:         'onFocusParent',
+  focusChild:          'onFocusChild',
+  focusPrevSibling:    'onFocusPrevSibling',
+  focusNextSibling:    'onFocusNextSibling',
+  focusPrevLeaf:       'onFocusPrevLeaf',
+  focusNextLeaf:       'onFocusNextLeaf',
+  focusSubtreeFirstLeaf: 'onFocusSubtreeFirstLeaf',
+  focusSubtreeLastLeaf:  'onFocusSubtreeLastLeaf',
+  focusPrevious:       'onFocusPrevious',
+  focusForward:        'onFocusForward',
+  focusHistoryStart:   'onFocusHistoryStart',
+  focusHistoryEnd:     'onFocusHistoryEnd',
+  toggleGrid:          'onToggleGrid',
+  toggleMiniMap:       'onToggleMiniMap',
+  toggleAdvanced:      'onToggleAdvanced',
+  toggleTheme:         'onToggleTheme',
+  toggleCollapse:      'onToggleCollapse',
+  collapseAll:         'onCollapseAll',
+  expandAll:           'onExpandAll',
+  layout:              'onLayout',
+  layoutSubtree:        'onLayoutSubtree',
+  zoomIn:              'onZoomIn',
+  zoomOut:             'onZoomOut',
+  resetView:           'onResetView',
+  exportPng:           'onExportPng',
+  exportMarkdown:      'onExportMarkdown',
+  exportJson:          'onExportJson',
+  copySelection:       'onCopySelection',
+  copySubtree:         'onCopySubtree',
+  copyPath:            'onCopyPath',
+  addChild:            'onAddChild',
+  addSibling:          'onAddSibling',
+  promoteNode:         'onPromoteNode',
+  deleteSelected:      'onDeleteSelected',
+  duplicateSelected:   'onDuplicateSelected',
+  editNode:            'onEditNode',
+  tagPicker:           'onTagPicker',
+  tagFilter:           'onTagFilter',
+  undo:                'onUndo',
+  redo:                'onRedo',
+};
+
+export function getHandlerNameForAction(action: ShortcutAction): string {
+  return ACTION_TO_HANDLER[action] ?? action;
+}
