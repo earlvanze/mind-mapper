@@ -29,6 +29,8 @@ export type Node = {
   comment?: string;    // NEW: node annotation/comment (hides children in canvas)
   createdAt?: number;  // Unix timestamp ms — when node was created
   updatedAt?: number;  // Unix timestamp ms — when node was last modified
+  isNew?: boolean;     // true briefly after creation for entry animation
+  isDeleting?: boolean; // true briefly before deletion for exit animation
 };
 
 type Snapshot = {
@@ -89,6 +91,7 @@ type MindMapState = {
   autoLayoutChildren: (parentId: string) => void;
   undo: () => void;
   redo: () => void;
+  clearNewFlag: (id: string) => void;
   setNodeStyle: (id: string, style: Partial<NodeStyle> | undefined) => void;
   setSelectedStyle: (style: Partial<NodeStyle> | undefined) => void;
   restoreSnapshot: (nodes: Record<string, Node>, focusId: string) => void;
@@ -756,7 +759,7 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
       ...withHistory(s),
       nodes: {
         ...s.nodes,
-        [newId]: { id: newId, text: 'New', x: base.x + 140, y: base.y, parentId, children: [], createdAt: Date.now(), updatedAt: Date.now() },
+        [newId]: { id: newId, text: 'New', x: base.x + 140, y: base.y, parentId, children: [], createdAt: Date.now(), updatedAt: Date.now(), isNew: true },
         ...(parentId
           ? { [parentId]: { ...s.nodes[parentId], children: [...s.nodes[parentId].children, newId] } }
           : {}),
@@ -773,7 +776,7 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
       ...withHistory(s),
       nodes: {
         ...s.nodes,
-        [newId]: { id: newId, text: 'New', x: base.x + 140, y: base.y + 80, parentId: id, children: [], createdAt: Date.now(), updatedAt: Date.now() },
+        [newId]: { id: newId, text: 'New', x: base.x + 140, y: base.y + 80, parentId: id, children: [], createdAt: Date.now(), updatedAt: Date.now(), isNew: true },
         [id]: { ...s.nodes[id], children: [...s.nodes[id].children, newId] },
       },
       focusId: newId,
@@ -1075,6 +1078,14 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
       selectedIds: [focusId],
       editingId: undefined,
     })),
+  clearNewFlag: (id) =>
+    set(state => {
+      const node = state.nodes[id];
+      if (!node) return {};
+      return {
+        nodes: { ...state.nodes, [id]: { ...node, isNew: false } },
+      };
+    }),
   setNodeStyle: (id, style) =>
     set(state => {
       const node = state.nodes[id];
