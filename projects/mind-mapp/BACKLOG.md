@@ -98,7 +98,6 @@
 - [ ] Export templates (custom styling presets)
 - [ ] Cloud sync (optional backend)
 - [ ] Keyboard shortcut customization
-- [ ] Node animations and transitions
 - [ ] Advanced filters (by style, date, properties)
 
 ---
@@ -109,3 +108,5 @@
 - ✅ Presentation mode (slideshow through branches)
 - ✅ Node comments and annotations
 - ✅ Custom themes and color schemes
+
+- ✅ Node animations and transitions (entry/exit, prefers-reduced-motion, layout transitions)
