@@ -212,7 +212,7 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
           aria-keyshortcuts={SEARCH_INPUT_ARIA_KEYSHORTCUTS}
           aria-expanded={results.length > 0}
           aria-activedescendant={activeDescendantId}
-          placeholder='Search nodes… (use "phrase" or -exclude)'
+          placeholder='Search nodes… ("phrase"), -exclude, *wildcard*, /regex/i'
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />

@@ -150,6 +150,7 @@ type PartitionedSearchTerms = {
   hasOverlap: boolean;
   phrase: string;
   hasWildcardTerms: boolean;
+  hasRegexTerms: boolean;
 };
 
 const searchTermPartitionCache = new WeakMap<readonly SearchToken[], PartitionedSearchTerms>();
@@ -201,6 +202,10 @@ function normalizeTokens(input: SearchQueryInput): readonly SearchToken[] {
 
 // Wildcard support: * matches any sequence, ? matches single character
 const WILDCARD_PATTERN = /[*:?]/;
+// Regex support: /pattern/flags syntax (e.g., /node|leaf/i)
+const REGEX_LITERAL_PATTERN = /^\/(.+)\/([gimsuvy]*)$/;
+
+export function hasRegex(value: string): boolean { return REGEX_LITERAL_PATTERN.test(value); }
 
 export function hasWildcards(value: string): boolean {
   const result = WILDCARD_PATTERN.test(value);
@@ -264,6 +269,18 @@ function globToRegex(pattern: string): RegExp {
 }
 
 
+function matchWithRegex(haystack: string, pattern: string): boolean {
+  try {
+    const match = REGEX_LITERAL_PATTERN.exec(pattern);
+    if (!match) return false;
+    const [, regexPattern, flags] = match;
+    const regex = new RegExp(regexPattern, flags.includes('i') ? flags : flags + 'i');
+    return regex.test(haystack);
+  } catch {
+    return false;
+  }
+}
+
 function matchWithWildcard(haystack: string, pattern: string): boolean {
   try {
     const regex = globToRegex(pattern);
@@ -274,25 +291,23 @@ function matchWithWildcard(haystack: string, pattern: string): boolean {
   }
 }
 
+function termMatches(term: string, haystack: string): boolean {
+  if (hasRegex(term)) return matchWithRegex(haystack, term);
+  if (hasWildcards(term)) return matchWithWildcard(haystack, term);
+  return haystack.includes(term);
+}
+
 function includesAllTerms(haystack: string, terms: readonly string[]): boolean {
   if (terms.length === 1) {
-    const term = terms[0];
-    return hasWildcards(term)
-      ? matchWithWildcard(haystack, term)
-      : haystack.includes(term);
+    return termMatches(terms[0]!, haystack);
   }
 
   if (terms.length === 2) {
-    const [a, b] = terms;
-    const aMatch = hasWildcards(a) ? matchWithWildcard(haystack, a) : haystack.includes(a);
-    const bMatch = hasWildcards(b) ? matchWithWildcard(haystack, b) : haystack.includes(b);
-    return aMatch && bMatch;
+    return termMatches(terms[0]!, haystack) && termMatches(terms[1]!, haystack);
   }
 
   for (let i = 0; i < terms.length; i += 1) {
-    const term = terms[i];
-    const matches = hasWildcards(term) ? matchWithWildcard(haystack, term) : haystack.includes(term);
-    if (!matches) {
+    if (!termMatches(terms[i]!, haystack)) {
       return false;
     }
   }
@@ -302,22 +317,15 @@ function includesAllTerms(haystack: string, terms: readonly string[]): boolean {
 
 function includesAnyTerm(haystack: string, terms: readonly string[]): boolean {
   if (terms.length === 1) {
-    const term = terms[0];
-    return hasWildcards(term)
-      ? matchWithWildcard(haystack, term)
-      : haystack.includes(term);
+    return termMatches(terms[0]!, haystack);
   }
 
   if (terms.length === 2) {
-    const [a, b] = terms;
-    const aMatch = hasWildcards(a) ? matchWithWildcard(haystack, a) : haystack.includes(a);
-    const bMatch = hasWildcards(b) ? matchWithWildcard(haystack, b) : haystack.includes(b);
-    return aMatch || bMatch;
+    return termMatches(terms[0]!, haystack) || termMatches(terms[1]!, haystack);
   }
 
   for (let i = 0; i < terms.length; i += 1) {
-    const term = terms[i];
-    if (hasWildcards(term) ? matchWithWildcard(haystack, term) : haystack.includes(term)) {
+    if (termMatches(terms[i]!, haystack)) {
       return true;
     }
   }
@@ -356,6 +364,7 @@ function splitSearchTerms(tokens: readonly SearchToken[]): PartitionedSearchTerm
   const negativeSeen = new Set<string>();
   let hasOverlap = false;
   let hasWildcardTerms = false;
+  let hasRegexTerms = false;
 
   for (let i = 0; i < tokens.length; i += 1) {
     const token = tokens[i];
@@ -369,6 +378,7 @@ function splitSearchTerms(tokens: readonly SearchToken[]): PartitionedSearchTerm
       negativeSeen.add(token.value);
       negativeTerms.push(token.value);
       if (hasWildcards(token.value)) hasWildcardTerms = true;
+      if (hasRegex(token.value)) hasRegexTerms = true;
       continue;
     }
 
@@ -380,6 +390,7 @@ function splitSearchTerms(tokens: readonly SearchToken[]): PartitionedSearchTerm
     positiveSeen.add(token.value);
     positiveTerms.push(token.value);
     if (hasWildcards(token.value)) hasWildcardTerms = true;
+    if (hasRegex(token.value)) hasRegexTerms = true;
   }
 
   const partitioned: PartitionedSearchTerms = {
@@ -388,6 +399,7 @@ function splitSearchTerms(tokens: readonly SearchToken[]): PartitionedSearchTerm
     hasOverlap,
     phrase: getPositiveTermsPhrase(positiveTerms),
     hasWildcardTerms,
+    hasRegexTerms,
   };
   searchTermPartitionCache.set(tokens, partitioned);
 
@@ -432,7 +444,7 @@ function rankSearchMatches(
   const tokens = normalizeTokens(query);
   if (!tokens.length) return [];
 
-  const { positiveTerms, negativeTerms, hasOverlap, phrase, hasWildcardTerms } = splitSearchTerms(tokens);
+  const { positiveTerms, negativeTerms, hasOverlap, phrase, hasWildcardTerms, hasRegexTerms } = splitSearchTerms(tokens);
   if (hasOverlap) return [];
   const searchIndex = getSearchIndex(nodes);
   const rankBuckets: [Node[], Node[], Node[], Node[], Node[]] = [[], [], [], [], []];
@@ -446,7 +458,13 @@ function rankSearchMatches(
 
     let rank: number;
 
-    if (positiveTerms.length === 0) {
+    if (hasRegexTerms) {
+      // Regex terms: label match > id match > path match > no match
+      const allLabelMatch = includesAllTerms(label, positiveTerms);
+      const allIdMatch = includesAllTerms(id, positiveTerms);
+      const allPathMatch = includesAllTerms(path, positiveTerms);
+      rank = allLabelMatch ? 0 : allIdMatch ? 1 : allPathMatch ? 2 : 3;
+    } else if (positiveTerms.length === 0) {
       rank = 4;
     } else if (hasWildcardTerms) {
       // With wildcards, adjust ranking: exact prefix match still preferred
