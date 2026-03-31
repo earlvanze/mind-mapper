@@ -12,7 +12,6 @@ describe('nodeAnimations', () => {
   describe('prefersReducedMotion', () => {
     it('returns false when window is undefined', () => {
       const originalWindow = globalThis.window;
-      // @ts-expect-error - testing undefined case
       delete (globalThis as any).window;
       expect(prefersReducedMotion()).toBe(false);
       globalThis.window = originalWindow;

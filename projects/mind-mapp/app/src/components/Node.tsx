@@ -2,6 +2,7 @@ import { useEffect, useRef, memo, useState } from 'react';
 import { Node as NodeType, useMindMapStore } from '../store/useMindMapStore';
 import { resolveStyle } from '../utils/nodeStyles';
 import { loadTheme } from '../utils/theme';
+import { getNodeAnimationStyle } from '../utils/nodeAnimations';
 import { TagBadge } from './TagBadge';
 import { TagInput } from './TagInput';
 
@@ -27,7 +28,6 @@ function Node({ node, isFocused, isSelected, isEditing, isFaded = false }: Props
   } = useMindMapStore();
   const textRef = useRef<HTMLSpanElement>(null);
   const [showTagInput, setShowTagInput] = useState(false);
-  const nodeRef = useRef<HTMLDivElement>(null);
 
   // Sync editing state: enable contentEditable and select all text when editing
   useEffect(() => {
@@ -94,6 +94,13 @@ function Node({ node, isFocused, isSelected, isEditing, isFaded = false }: Props
   const resolved = resolveStyle(node.style, theme);
   const focusColor = getComputedStyle(document.documentElement).getPropertyValue('--color-accent').trim() || '#4f46e5';
 
+  // Get entry/exit animation styles if node is new or deleting
+  const animationStyle = getNodeAnimationStyle(
+    node.createdAt || Date.now(),
+    node.isNew || false,
+    node.isDeleting || false
+  );
+
   const nodeStyle: React.CSSProperties = {
     position: 'absolute',
     left: node.x,
@@ -122,6 +129,7 @@ function Node({ node, isFocused, isSelected, isEditing, isFaded = false }: Props
     transition: isTransitioning
       ? 'left 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94), top 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.15s ease'
       : 'opacity 0.15s ease',
+    ...animationStyle,
   };
 
   return (
@@ -337,7 +345,7 @@ function Node({ node, isFocused, isSelected, isEditing, isFaded = false }: Props
                   e.preventDefault();
                   applyFormat('italic');
                 }
-                // Lists: Cmd+Shift+7 = ol, Cmd+Shift+8 = ul
+                // Lists: Cmd+Shift+8 = ol, Cmd+Shift+8 = ul
                 if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === '8') {
                   e.preventDefault();
                   applyFormat('insertUnorderedList');
@@ -346,8 +354,6 @@ function Node({ node, isFocused, isSelected, isEditing, isFaded = false }: Props
                   e.preventDefault();
                   applyFormat('insertOrderedList');
                 }
-              }}
-              onKeyDown={(e) => {
                 // Cmd/Ctrl+T: open tag input
                 if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 't' && !e.shiftKey) {
                   e.preventDefault();
@@ -405,7 +411,7 @@ function Node({ node, isFocused, isSelected, isEditing, isFaded = false }: Props
           )}
         </div>
       </div>
-      {showTagInput && nodeRef.current && (
+      {showTagInput && (
         <div
           style={{
             position: 'absolute',
@@ -435,6 +441,8 @@ export default memo(Node, (prev, next) => {
     prev.isFocused === next.isFocused &&
     prev.isSelected === next.isSelected &&
     prev.isEditing === next.isEditing &&
+    prev.node.isNew === next.node.isNew &&
+    prev.node.isDeleting === next.node.isDeleting &&
     prev.node.style?.backgroundColor === next.node.style?.backgroundColor &&
     prev.node.style?.textColor === next.node.style?.textColor &&
     prev.node.style?.borderColor === next.node.style?.borderColor &&
