@@ -46,9 +46,11 @@ type MindMapState = {
   future: Snapshot[];
   canUndo: boolean;
   canRedo: boolean;
+  isTransitioning: boolean;
   layoutMode: LayoutMode;
   autoLayout: (rootId?: string) => void;
   setLayoutMode: (mode: LayoutMode) => void;
+  setIsTransitioning: (v: boolean) => void;
   setText: (id: string, text: string) => void;
   setFocus: (id: string) => void;
   toggleSelection: (id: string) => void;
@@ -154,6 +156,7 @@ const defaultState = {
   future: [] as Snapshot[],
   canUndo: false,
   canRedo: false,
+  isTransitioning: false,
   layoutMode: 'tree' as LayoutMode,
   activeTagFilters: [] as string[],
   matchMode: 'any' as 'any' | 'all',
@@ -1008,6 +1011,7 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
     set(s => ({ ...withHistory(s), nodes: updatedNodes }));
   },
   setLayoutMode: mode => set({ layoutMode: mode }),
+  setIsTransitioning: v => set({ isTransitioning: v }),
   autoLayout: (rootId) => {
     const state = get();
     const id = rootId ?? state.focusId;
