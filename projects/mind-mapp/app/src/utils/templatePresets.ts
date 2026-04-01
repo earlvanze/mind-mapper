@@ -167,3 +167,102 @@ export function renameTemplatePreset(id: string, name: string) {
   const all = loadStored().map(p => p.id === id ? { ...p, name } : p);
   saveStored(all);
 }
+
+/** Export all custom templates to a .json file download.
+ *  Built-in presets are excluded to keep the file clean. */
+export function exportTemplatesToJson(): void {
+  const custom = loadStored();
+  if (!custom.length) return;
+  const payload = {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    templates: custom,
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'mindmapp-templates.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+/** Parse a File object as Mind Mapp templates JSON.
+ *  Assigns fresh IDs to imported presets to avoid collisions.
+ *  Skips duplicates by name (case-insensitive) among already-stored custom templates. */
+export async function importTemplatesFromJson(
+  file: File,
+): Promise<{ imported: number; duplicates: number; errors: string[] }> {
+  const errors: string[] = [];
+  let imported = 0;
+  let duplicates = 0;
+
+  let raw: unknown;
+  try {
+    raw = JSON.parse(await file.text());
+  } catch {
+    errors.push('Invalid JSON — could not parse file.');
+    return { imported, duplicates, errors };
+  }
+
+  // Support both flat array (legacy) and wrapped object (current export format)
+  let templates: TemplatePreset[];
+  if (Array.isArray(raw)) {
+    templates = raw as TemplatePreset[];
+  } else if (raw && typeof raw === 'object' && 'templates' in raw && Array.isArray((raw as Record<string, unknown>).templates)) {
+    templates = ((raw as Record<string, unknown>).templates) as TemplatePreset[];
+  } else {
+    errors.push('Unrecognised file format — expected a templates array or { templates: [...] } object.');
+    return { imported, duplicates, errors };
+  }
+
+  if (!templates.length) {
+    errors.push('File contains no templates.');
+    return { imported, duplicates, errors };
+  }
+
+  const stored = loadStored();
+  const existingNames = new Set(stored.map(p => p.name.toLowerCase()));
+
+  for (const t of templates) {
+    if (!t || typeof t !== 'object') { errors.push(`Skipped invalid entry.`); continue; }
+    if (!t.name || typeof t.name !== 'string') { errors.push(`Skipped entry with missing name.`); continue; }
+    if (existingNames.has(t.name.toLowerCase())) { duplicates++; continue; }
+
+    const fresh: TemplatePreset = {
+      id: 'tpl_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+      name: t.name,
+      theme: t.theme === 'dark' ? 'dark' : 'light',
+      defaultStyle: {
+        backgroundColor: t.defaultStyle?.backgroundColor,
+        textColor: t.defaultStyle?.textColor,
+        borderColor: t.defaultStyle?.borderColor,
+        borderWidth: t.defaultStyle?.borderWidth,
+        shape: t.defaultStyle?.shape,
+        fontSize: t.defaultStyle?.fontSize,
+        bold: t.defaultStyle?.bold,
+        italic: t.defaultStyle?.italic,
+        icon: t.defaultStyle?.icon,
+      },
+      colorPresets: Array.isArray(t.colorPresets) ? t.colorPresets.map(cp => ({
+        backgroundColor: cp?.backgroundColor,
+        textColor: cp?.textColor,
+        borderColor: cp?.borderColor,
+        borderWidth: cp?.borderWidth,
+        shape: cp?.shape,
+        fontSize: cp?.fontSize,
+        bold: cp?.bold,
+        italic: cp?.italic,
+        icon: cp?.icon,
+      })) : [],
+      createdAt: Date.now(),
+    };
+
+    stored.push(fresh);
+    existingNames.add(fresh.name.toLowerCase());
+    imported++;
+  }
+
+  saveStored(stored);
+  return { imported, duplicates, errors };
+}

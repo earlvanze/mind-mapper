@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useId } from 'react';
+import { useState, useRef, useEffect, useId, useCallback } from 'react';
 import { useMindMapStore } from '../store/useMindMapStore';
 import type { NodeStyle } from '../store/useMindMapStore';
 import {
@@ -6,6 +6,8 @@ import {
   saveTemplatePreset,
   deleteTemplatePreset,
   renameTemplatePreset,
+  exportTemplatesToJson,
+  importTemplatesFromJson,
   type TemplatePreset,
 } from '../utils/templatePresets';
 import type { Theme } from '../utils/theme';
@@ -25,12 +27,17 @@ export default function TemplateDialog({ theme, open, onClose }: Props) {
   const [saveName, setSaveName] = useState('');
   const [applyAllPresetId, setApplyAllPresetId] = useState<string>('');
   const [activeTab, setActiveTab] = useState<'apply' | 'manage'>('apply');
+  const [importResult, setImportResult] = useState<{ imported: number; duplicates: number; errors: string[] } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
   const dialogTitleId = useId();
 
   useEffect(() => {
-    if (open) setPresets(getTemplatePresets());
+    if (open) {
+      setPresets(getTemplatePresets());
+      setImportResult(null);
+    }
   }, [open]);
 
   // Focus trap + Escape
@@ -62,6 +69,10 @@ export default function TemplateDialog({ theme, open, onClose }: Props) {
     if (editingId) nameInputRef.current?.focus();
   }, [editingId]);
 
+  const refreshPresets = useCallback(() => {
+    setPresets(getTemplatePresets());
+  }, []);
+
   const applyPreset = (preset: TemplatePreset) => {
     if (selectedIds.length === 0) return;
     const defaultStyle = { ...preset.defaultStyle };
@@ -88,23 +99,46 @@ export default function TemplateDialog({ theme, open, onClose }: Props) {
       defaultStyle: baseStyle,
       colorPresets: [],
     });
-    setPresets(getTemplatePresets());
+    refreshPresets();
     setSaveName('');
     setShowSave(false);
   };
 
   const handleDelete = (id: string) => {
     deleteTemplatePreset(id);
-    setPresets(getTemplatePresets());
+    refreshPresets();
     setEditingId(null);
   };
 
   const handleRename = (id: string) => {
     if (!editName.trim()) return;
     renameTemplatePreset(id, editName.trim());
-    setPresets(getTemplatePresets());
+    refreshPresets();
     setEditingId(null);
     setEditName('');
+  };
+
+  const handleExport = () => {
+    const custom = getTemplatePresets().filter(p => p.id.startsWith('tpl_'));
+    if (!custom.length) {
+      setImportResult({ imported: 0, duplicates: 0, errors: ['No custom templates to export.'] });
+      return;
+    }
+    exportTemplatesToJson();
+  };
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange: React.ChangeEventHandler<HTMLInputElement> = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const result = await importTemplatesFromJson(file);
+    setImportResult(result);
+    refreshPresets();
+    // Reset so the same file can be re-imported
+    e.target.value = '';
   };
 
   if (!open) return null;
@@ -127,6 +161,14 @@ export default function TemplateDialog({ theme, open, onClose }: Props) {
       }}
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".json,application/json"
+        style={{ display: 'none' }}
+        onChange={handleFileChange}
+        aria-hidden="true"
+      />
       <div
         style={{
           background: 'var(--color-surface)',
@@ -134,7 +176,7 @@ export default function TemplateDialog({ theme, open, onClose }: Props) {
           border: '1px solid var(--color-border)',
           borderRadius: 12,
           padding: '24px',
-          width: 480,
+          width: 520,
           maxWidth: '90vw',
           maxHeight: '80vh',
           overflowY: 'auto',
@@ -310,6 +352,66 @@ export default function TemplateDialog({ theme, open, onClose }: Props) {
 
         {activeTab === 'manage' && (
           <div>
+            {/* Import / Export row */}
+            <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+              <button
+                onClick={handleImportClick}
+                style={{
+                  flex: 1,
+                  padding: '8px 12px',
+                  background: 'var(--color-bg)',
+                  color: 'var(--color-text)',
+                  border: '1px solid var(--color-border)',
+                  borderRadius: 6,
+                  cursor: 'pointer',
+                  fontSize: 13,
+                  fontWeight: 500,
+                }}
+              >
+                📥 Import from file
+              </button>
+              <button
+                onClick={handleExport}
+                style={{
+                  flex: 1,
+                  padding: '8px 12px',
+                  background: 'var(--color-bg)',
+                  color: 'var(--color-text)',
+                  border: '1px solid var(--color-border)',
+                  borderRadius: 6,
+                  cursor: 'pointer',
+                  fontSize: 13,
+                  fontWeight: 500,
+                }}
+              >
+                📤 Export custom templates
+              </button>
+            </div>
+
+            {/* Import result feedback */}
+            {importResult && (
+              <div
+                role="status"
+                aria-live="polite"
+                style={{
+                  marginBottom: 12,
+                  padding: '8px 12px',
+                  borderRadius: 6,
+                  fontSize: 12,
+                  background: importResult.errors.length ? 'rgba(239,68,68,0.1)' : 'rgba(16,185,129,0.1)',
+                  color: importResult.errors.length ? 'var(--color-error-text, #ef4444)' : 'var(--color-success-text, #10b981)',
+                  border: '1px solid ' + (importResult.errors.length ? 'rgba(239,68,68,0.3)' : 'rgba(16,185,129,0.3)'),
+                }}
+              >
+                {importResult.imported > 0 && <span>✅ Imported {importResult.imported} template{importResult.imported !== 1 ? 's' : ''}. </span>}
+                {importResult.duplicates > 0 && <span>⏭️ Skipped {importResult.duplicates} duplicate{importResult.duplicates !== 1 ? 's' : ''} by name. </span>}
+                {importResult.errors.map((err, i) => <span key={i}>{err} </span>)}
+                {importResult.imported === 0 && importResult.duplicates === 0 && importResult.errors.length === 0 && (
+                  <span>No custom templates to export.</span>
+                )}
+              </div>
+            )}
+
             <p style={{ margin: '0 0 12px', fontSize: 13, color: 'var(--color-text-secondary)' }}>
               Rename or delete saved templates. Built-in presets cannot be deleted.
             </p>
