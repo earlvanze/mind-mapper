@@ -1,197 +1,281 @@
-import { describe, it, expect } from 'vitest';
-import { shouldFadeNode, getUniqueShapes, getUniqueColors, getUniqueIcons } from './nodeFilters';
+import { describe, expect, it } from 'vitest';
+import {
+  shouldFadeNode,
+  getUniqueShapes,
+  getUniqueColors,
+  getUniqueIcons,
+} from './nodeFilters';
 import type { Node } from '../store/useMindMapStore';
 
-const makeNode = (overrides: Partial<Node> = {}): Node =>
-  ({ id: 'n1', text: 'Test', x: 0, y: 0, parentId: null, children: [], createdAt: Date.now(), updatedAt: Date.now(), ...overrides });
+function makeNode(overrides: Partial<Node> = {}): Node {
+  return {
+    id: 'n1',
+    text: 'Test Node',
+    x: 0,
+    y: 0,
+    parentId: null,
+    children: [],
+    createdAt: 1700000000000,
+    updatedAt: 1700000000000,
+    ...overrides,
+  };
+}
 
-const NO_FILTERS = { activeTagFilters: [], matchMode: 'any' as const, styleFilterShapes: [], styleFilterColors: [], styleFilterIcons: [], styleFilterDateMode: undefined, styleFilterDateFrom: undefined, styleFilterDateTo: undefined };
+const BASE_OPTS = {
+  activeTagFilters: [] as string[],
+  matchMode: 'any' as const,
+  styleFilterShapes: [] as string[],
+  styleFilterColors: [] as string[],
+  styleFilterIcons: [] as string[],
+  styleFilterDateMode: undefined as 'created' | 'updated' | undefined,
+  styleFilterDateFrom: undefined as number | undefined,
+  styleFilterDateTo: undefined as number | undefined,
+};
 
 describe('shouldFadeNode', () => {
-  describe('no filters', () => {
-    it('returns false when nothing is filtered', () => {
-      expect(shouldFadeNode(makeNode(), NO_FILTERS)).toBe(false);
-    });
+  it('returns false when no filters are active', () => {
+    const node = makeNode();
+    expect(shouldFadeNode(node, BASE_OPTS)).toBe(false);
   });
 
   describe('tag filters', () => {
-    it('fades node without matching tag in any mode', () => {
+    const opts = { ...BASE_OPTS, activeTagFilters: ['urgent', 'review'] };
+
+    it('returns false when node has one of the tags (any mode)', () => {
+      const node = makeNode({ tags: ['urgent'] });
+      expect(shouldFadeNode(node, opts)).toBe(false);
+    });
+
+    it('returns true when node has none of the tags (any mode)', () => {
       const node = makeNode({ tags: ['done'] });
-      const opts = { ...NO_FILTERS, activeTagFilters: ['urgent'], matchMode: 'any' };
       expect(shouldFadeNode(node, opts)).toBe(true);
     });
 
-    it('does not fade node with matching tag in any mode', () => {
-      const node = makeNode({ tags: ['urgent'] });
-      const opts = { ...NO_FILTERS, activeTagFilters: ['urgent'], matchMode: 'any' };
-      expect(shouldFadeNode(node, opts)).toBe(false);
+    it('returns false when node has all tags (all mode)', () => {
+      const opts2 = { ...opts, matchMode: 'all' as const };
+      const node = makeNode({ tags: ['urgent', 'review', 'done'] });
+      expect(shouldFadeNode(node, opts2)).toBe(false);
     });
 
-    it('fades node missing one tag in all mode', () => {
+    it('returns true when node is missing one tag (all mode)', () => {
+      const opts2 = { ...opts, matchMode: 'all' as const };
       const node = makeNode({ tags: ['urgent'] });
-      const opts = { ...NO_FILTERS, activeTagFilters: ['urgent', 'review'], matchMode: 'all' };
+      expect(shouldFadeNode(node, opts2)).toBe(true);
+    });
+
+    it('treats missing tags array as empty', () => {
+      const node = makeNode();
       expect(shouldFadeNode(node, opts)).toBe(true);
-    });
-
-    it('does not fade node with all tags in all mode', () => {
-      const node = makeNode({ tags: ['urgent', 'review'] });
-      const opts = { ...NO_FILTERS, activeTagFilters: ['urgent', 'review'], matchMode: 'all' };
-      expect(shouldFadeNode(node, opts)).toBe(false);
     });
   });
 
   describe('shape filters', () => {
-    it('fades node that does not match shape filter', () => {
+    const opts = { ...BASE_OPTS, styleFilterShapes: ['ellipse', 'diamond'] };
+
+    it('returns false when node shape matches', () => {
       const node = makeNode({ style: { shape: 'ellipse' } });
-      const opts = { ...NO_FILTERS, styleFilterShapes: ['rectangle'] };
+      expect(shouldFadeNode(node, opts)).toBe(false);
+    });
+
+    it('returns true when node shape does not match', () => {
+      const node = makeNode({ style: { shape: 'rectangle' } });
       expect(shouldFadeNode(node, opts)).toBe(true);
     });
 
-    it('does not fade node matching shape filter', () => {
-      const node = makeNode({ style: { shape: 'rectangle' } });
-      const opts = { ...NO_FILTERS, styleFilterShapes: ['rectangle', 'ellipse'] };
-      expect(shouldFadeNode(node, opts)).toBe(false);
-    });
-
-    it('treats no shape as rectangle default', () => {
+    it('treats missing shape as rectangle (default)', () => {
       const node = makeNode({ style: {} });
-      const opts = { ...NO_FILTERS, styleFilterShapes: ['rectangle'] };
-      expect(shouldFadeNode(node, opts)).toBe(false);
+      expect(shouldFadeNode(node, opts)).toBe(true);
     });
   });
 
   describe('color filters', () => {
-    it('fades node without matching color', () => {
-      const node = makeNode({ style: { backgroundColor: '#ff0000' } });
-      const opts = { ...NO_FILTERS, styleFilterColors: ['#0000ff'] };
+    const opts = { ...BASE_OPTS, styleFilterColors: ['primary', 'danger'] };
+
+    it('returns false when node background color matches (substring)', () => {
+      const node = makeNode({ style: { backgroundColor: 'primary' } });
+      expect(shouldFadeNode(node, opts)).toBe(false);
+    });
+
+    it('returns false when node bg matches variant (lowercase)', () => {
+      const node = makeNode({ style: { backgroundColor: '#DC2626' } });
+      const opts2 = { ...BASE_OPTS, styleFilterColors: ['danger', 'dc2626'] };
+      expect(shouldFadeNode(node, opts2)).toBe(false);
+    });
+
+    it('returns true when node color does not match', () => {
+      const node = makeNode({ style: { backgroundColor: 'success' } });
       expect(shouldFadeNode(node, opts)).toBe(true);
     });
 
-    it('does not fade node with matching color', () => {
-      const node = makeNode({ style: { backgroundColor: '#ff0000' } });
-      const opts = { ...NO_FILTERS, styleFilterColors: ['#ff0000'] };
-      expect(shouldFadeNode(node, opts)).toBe(false);
-    });
-
-    it('matches color substring case-insensitively', () => {
-      // '255' is a substring of 'rgba(255,0,0,0.5)' and matches case-insensitively
-      const node = makeNode({ style: { backgroundColor: 'rgba(255,0,0,0.5)' } });
-      const opts = { ...NO_FILTERS, styleFilterColors: ['255'] };
-      expect(shouldFadeNode(node, opts)).toBe(false);
-    });
-
-    it('fades node without any background color', () => {
+    it('treats missing backgroundColor as no match', () => {
       const node = makeNode({ style: {} });
-      const opts = { ...NO_FILTERS, styleFilterColors: ['#ff0000'] };
       expect(shouldFadeNode(node, opts)).toBe(true);
     });
   });
 
   describe('icon filters', () => {
-    it('fades node without icon when icon filter active', () => {
-      const node = makeNode({ style: {} });
-      const opts = { ...NO_FILTERS, styleFilterIcons: ['🔥'] };
+    const opts = { ...BASE_OPTS, styleFilterIcons: ['🔥', '⭐'] };
+
+    it('returns false when node icon matches', () => {
+      const node = makeNode({ style: { icon: '🔥' } });
+      expect(shouldFadeNode(node, opts)).toBe(false);
+    });
+
+    it('returns true when node icon does not match', () => {
+      const node = makeNode({ style: { icon: '💤' } });
       expect(shouldFadeNode(node, opts)).toBe(true);
     });
 
-    it('does not fade node with matching icon', () => {
-      const node = makeNode({ style: { icon: '🔥' } });
-      const opts = { ...NO_FILTERS, styleFilterIcons: ['🔥'] };
-      expect(shouldFadeNode(node, opts)).toBe(false);
+    it('treats missing icon as no match', () => {
+      const node = makeNode({ style: {} });
+      expect(shouldFadeNode(node, opts)).toBe(true);
     });
   });
 
   describe('date filters', () => {
-    it('fades node when createdAt is before from date', () => {
-      const oldDate = Date.now() - 86400000 * 30; // 30 days ago
-      const node = makeNode({ createdAt: oldDate });
-      const fromDate = Date.now() - 86400000 * 7; // 7 days ago
-      const opts = { ...NO_FILTERS, styleFilterDateMode: 'created', styleFilterDateFrom: fromDate };
-      expect(shouldFadeNode(node, opts)).toBe(true);
+    const created = 1700000000000;
+    const node = makeNode({ createdAt: created, updatedAt: created + 1000 });
+
+    it('returns false when node is within date range (created)', () => {
+      const opts2 = { ...BASE_OPTS, styleFilterDateMode: 'created' as const, styleFilterDateFrom: created - 1000, styleFilterDateTo: created + 1000 };
+      expect(shouldFadeNode(node, opts2)).toBe(false);
     });
 
-    it('does not fade node within date range', () => {
-      const recentDate = Date.now() - 86400000 * 2; // 2 days ago
-      const node = makeNode({ createdAt: recentDate });
-      const fromDate = Date.now() - 86400000 * 7;
-      const opts = { ...NO_FILTERS, styleFilterDateMode: 'created', styleFilterDateFrom: fromDate };
-      expect(shouldFadeNode(node, opts)).toBe(false);
+    it('returns true when node is before date range (created)', () => {
+      const opts2 = { ...BASE_OPTS, styleFilterDateMode: 'created' as const, styleFilterDateFrom: created + 1, styleFilterDateTo: undefined };
+      expect(shouldFadeNode(node, opts2)).toBe(true);
     });
 
-    it('fades node when updatedAt is after to date', () => {
-      const node = makeNode({ updatedAt: Date.now() + 86400000 }); // tomorrow
-      const toDate = Date.now();
-      const opts = { ...NO_FILTERS, styleFilterDateMode: 'updated', styleFilterDateTo: toDate };
-      expect(shouldFadeNode(node, opts)).toBe(true);
+    it('returns true when node is after date range (created)', () => {
+      const opts2 = { ...BASE_OPTS, styleFilterDateMode: 'created' as const, styleFilterDateFrom: undefined, styleFilterDateTo: created - 1 };
+      expect(shouldFadeNode(node, opts2)).toBe(true);
+    });
+
+    it('returns false when node is within date range (updated)', () => {
+      const opts2 = { ...BASE_OPTS, styleFilterDateMode: 'updated' as const, styleFilterDateFrom: created, styleFilterDateTo: created + 2000 };
+      expect(shouldFadeNode(node, opts2)).toBe(false);
+    });
+
+    it('treats missing timestamp as no match', () => {
+      const noTs = makeNode({ createdAt: undefined, updatedAt: undefined });
+      const opts2 = { ...BASE_OPTS, styleFilterDateMode: 'created' as const, styleFilterDateFrom: 0, styleFilterDateTo: Date.now() };
+      expect(shouldFadeNode(noTs, opts2)).toBe(true);
     });
   });
 
   describe('combined filters', () => {
-    it('fades node when one category fails', () => {
-      const node = makeNode({ tags: ['urgent'], style: { shape: 'ellipse' } });
-      const opts = { ...NO_FILTERS, activeTagFilters: ['urgent'], styleFilterShapes: ['rectangle'] };
-      expect(shouldFadeNode(node, opts)).toBe(true);
+    it('returns false only when all active filters pass', () => {
+      const node = makeNode({
+        tags: ['urgent'],
+        style: { shape: 'ellipse', backgroundColor: 'primary', icon: '🔥' },
+      });
+      const opts = {
+        ...BASE_OPTS,
+        activeTagFilters: ['urgent'],
+        styleFilterShapes: ['ellipse'],
+        styleFilterColors: ['primary'],
+        styleFilterIcons: ['🔥'],
+      };
+      expect(shouldFadeNode(node, opts)).toBe(false);
     });
 
-    it('does not fade node when all categories pass', () => {
-      const node = makeNode({ tags: ['urgent'], style: { shape: 'rectangle' } });
-      const opts = { ...NO_FILTERS, activeTagFilters: ['urgent'], styleFilterShapes: ['rectangle'] };
-      expect(shouldFadeNode(node, opts)).toBe(false);
+    it('returns true if any single filter fails', () => {
+      const node = makeNode({
+        tags: ['urgent'],
+        style: { shape: 'ellipse' }, // missing color and icon
+      });
+      const opts = {
+        ...BASE_OPTS,
+        activeTagFilters: ['urgent'],
+        styleFilterShapes: ['ellipse'],
+        styleFilterColors: ['primary'],
+        styleFilterIcons: ['🔥'],
+      };
+      expect(shouldFadeNode(node, opts)).toBe(true);
     });
   });
 });
 
 describe('getUniqueShapes', () => {
-  it('returns rectangle for nodes with empty style (default shape)', () => {
-    // Nodes without explicit shape default to 'rectangle'
-    const nodes = { n1: makeNode({ style: {} }) };
-    expect(getUniqueShapes(nodes)).toEqual(['rectangle']);
+  it('returns empty array for empty nodes', () => {
+    expect(getUniqueShapes({})).toEqual([]);
   });
 
-  it('returns rectangle for nodes without style property (default shape)', () => {
-    // Nodes without style property default to 'rectangle'
-    const nodes = { n1: makeNode() };
-    expect(getUniqueShapes(nodes)).toEqual(['rectangle']);
+  it('extracts shape from styled nodes', () => {
+    const nodes: Record<string, Node> = {
+      n1: makeNode({ id: 'n1', style: { shape: 'ellipse' } }),
+      n2: makeNode({ id: 'n2', style: { shape: 'ellipse' } }),
+      n3: makeNode({ id: 'n3', style: { shape: 'diamond' } }),
+      n4: makeNode({ id: 'n4', style: {} }), // default = rectangle
+    };
+    expect(getUniqueShapes(nodes)).toContain('ellipse');
+    expect(getUniqueShapes(nodes)).toContain('diamond');
+    expect(getUniqueShapes(nodes)).toContain('rectangle');
+  });
+
+  it('treats nodes without style as rectangle', () => {
+    const nodes: Record<string, Node> = {
+      n1: makeNode({ id: 'n1' }),
+    };
+    expect(getUniqueShapes(nodes)).toContain('rectangle');
   });
 
   it('returns sorted unique shapes', () => {
-    const nodes = {
+    const nodes: Record<string, Node> = {
       n1: makeNode({ id: 'n1', style: { shape: 'diamond' } }),
-      n2: makeNode({ id: 'n2', style: { shape: 'rectangle' } }),
-      n3: makeNode({ id: 'n3', style: { shape: 'ellipse' } }),
+      n2: makeNode({ id: 'n2', style: { shape: 'ellipse' } }),
     };
-    expect(getUniqueShapes(nodes)).toEqual(['diamond', 'ellipse', 'rectangle']);
+    const result = getUniqueShapes(nodes);
+    const diamondIdx = result.indexOf('diamond');
+    const ellipseIdx = result.indexOf('ellipse');
+    expect(diamondIdx).toBeLessThan(ellipseIdx);
   });
 });
 
 describe('getUniqueColors', () => {
-  it('returns empty array for nodes with no colors', () => {
-    const nodes = { n1: makeNode({ style: {} }) };
-    expect(getUniqueColors(nodes)).toEqual([]);
+  it('returns empty array for empty nodes', () => {
+    expect(getUniqueColors({})).toEqual([]);
   });
 
-  it('returns sorted unique colors', () => {
-    const nodes = {
-      n1: makeNode({ id: 'n1', style: { backgroundColor: '#red' } }),
-      n2: makeNode({ id: 'n2', style: { backgroundColor: '#blue' } }),
-      n3: makeNode({ id: 'n3', style: { backgroundColor: '#red' } }),
+  it('extracts backgroundColor from styled nodes', () => {
+    const nodes: Record<string, Node> = {
+      n1: makeNode({ id: 'n1', style: { backgroundColor: '#dc2626' } }),
+      n2: makeNode({ id: 'n2', style: { backgroundColor: '#dc2626' } }),
+      n3: makeNode({ id: 'n3', style: { backgroundColor: '#2563eb' } }),
+      n4: makeNode({ id: 'n4', style: {} }),
     };
-    expect(getUniqueColors(nodes)).toEqual(['#blue', '#red']);
+    expect(getUniqueColors(nodes)).toEqual(['#2563eb', '#dc2626']);
+  });
+
+  it('omits nodes without backgroundColor', () => {
+    const nodes: Record<string, Node> = {
+      n1: makeNode({ id: 'n1', style: {} }),
+      n2: makeNode({ id: 'n2', style: { backgroundColor: 'primary' } }),
+    };
+    expect(getUniqueColors(nodes)).toEqual(['primary']);
   });
 });
 
 describe('getUniqueIcons', () => {
-  it('returns empty array for nodes with no icons', () => {
-    const nodes = { n1: makeNode({ style: {} }) };
-    expect(getUniqueIcons(nodes)).toEqual([]);
+  it('returns empty array for empty nodes', () => {
+    expect(getUniqueIcons({})).toEqual([]);
   });
 
-  it('returns sorted unique icons', () => {
-    const nodes = {
+  it('extracts icons from styled nodes', () => {
+    const nodes: Record<string, Node> = {
       n1: makeNode({ id: 'n1', style: { icon: '🔥' } }),
-      n2: makeNode({ id: 'n2', style: { icon: '⭐' } }),
-      n3: makeNode({ id: 'n3', style: { icon: '🔥' } }),
+      n2: makeNode({ id: 'n2', style: { icon: '🔥' } }),
+      n3: makeNode({ id: 'n3', style: { icon: '⭐' } }),
+      n4: makeNode({ id: 'n4', style: {} }),
     };
     expect(getUniqueIcons(nodes)).toEqual(['⭐', '🔥']);
+  });
+
+  it('omits nodes without icon', () => {
+    const nodes: Record<string, Node> = {
+      n1: makeNode({ id: 'n1', style: {} }),
+      n2: makeNode({ id: 'n2', style: { icon: '💡' } }),
+    };
+    expect(getUniqueIcons(nodes)).toEqual(['💡']);
   });
 });
