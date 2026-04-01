@@ -95,7 +95,7 @@
 - [ ] Mobile app (React Native)
 - [x] File attachments (non-image binary files)
 - [x] Advanced search (regex, wildcards)
-- [ ] Export templates (custom styling presets)
+- [x] Export templates (custom styling presets)
 - [ ] Cloud sync (optional backend)
 - [x] Keyboard shortcut customization
 - [x] Advanced filters (by style, date, properties)
