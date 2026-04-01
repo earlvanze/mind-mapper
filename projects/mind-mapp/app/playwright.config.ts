@@ -18,7 +18,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'npm run dev',
+    command: "MINDMAPP_PORT=5180 npm run dev",
     url: 'http://localhost:5180',
     reuseExistingServer: !process.env.CI,
     timeout: 30_000,
