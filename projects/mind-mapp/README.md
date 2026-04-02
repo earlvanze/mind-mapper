@@ -1,87 +1,99 @@
-# Mind Mapp — MVP Spec (v0.1)
+# Mind Mapp — Collaborative Mind Mapping for Teams
 
-## Situation
-We need a lightweight mind map app focused on speed and execution. The user wants “Automate Everything” and the app should feel like frictionless external cognition.
+A fast, keyboard-first mind mapping tool built for individuals and teams. Create, organize, and share visual maps directly in your browser — no account required.
 
-## Analysis
-Most mind map tools are heavy (accounts, collaboration, templates). The MVP should prioritize:
-- ultra-fast node creation
-- zero setup
-- export/share
-- local persistence
+**[Live Demo](https://mind-mapp.example.com)** · [Documentation](docs/) · [Changelog](docs/CHANGELOG.md)
 
-## Recommendation
-Build a browser-first MVP with local storage. Focus on keyboard-first UX. Add export + JSON for future automation pipelines.
+## Features
 
-## Core Jobs-to-be-Done
-1. **Capture and structure** ideas rapidly without breaking flow.
-2. **Rearrange** nodes to clarify relationships.
-3. **Export** to share or archive.
+### Core
+- **Keyboard-first** — Tab/Enter to create nodes, Cmd+K to search, L to cycle layouts
+- **Rich node styling** — Colors, shapes, emoji icons, custom backgrounds
+- **Multiple layouts** — Tree, radial, and force-directed auto-layout
+- **Version history** — Save named snapshots, branch and restore
+- **Import/Export** — JSON, PNG, SVG, PDF, Markdown, FreeMind, XMind, Obsidian vault
 
-## MVP Features
-### 1) Node Operations
-- Create root node (auto on open)
-- Add child node: **Tab**
-- Add sibling node: **Enter**
-- Delete node: **Backspace/Delete**
-- Edit label: double-click or **F2**
+### Collaboration
+- Share maps via URL (no account needed)
+- Full offline support with localStorage autosave
 
-### 2) Layout & Navigation
-- Drag node to reposition
-- Pan (space + drag)
-- Zoom (trackpad or ctrl+wheel)
-- Auto-fit to view
+### Export Formats
+| Format | Use Case |
+|--------|----------|
+| PNG/SVG | Sharing, presentations |
+| PDF | Print-ready documents |
+| JSON | Backup, automation pipelines |
+| Markdown | Obsidian/Notion integration |
+| FreeMind (.mm) | MindManager, Freeplane |
+| XMind | XMind 8/9 compatibility |
 
-### 3) Search & Jump
-- **Cmd/Ctrl+K** opens search
-- Type to filter nodes by label
-- Enter to jump + focus
+## Quick Start
 
-### 4) Persistence
-- Autosave to localStorage (debounced)
-- Manual save to JSON
-
-### 5) Export
-- Export PNG (current map)
-- Export JSON (data model)
-
-## Data Model (JSON)
-```json
-{
-  "id": "map_001",
-  "title": "Untitled",
-  "nodes": [
-    {
-      "id": "n_root",
-      "text": "Root",
-      "x": 0,
-      "y": 0,
-      "parentId": null,
-      "children": ["n_1", "n_2"]
-    }
-  ]
-}
+```bash
+cd app
+npm install
+npm run dev      # Development server
+npm test         # Run tests
+npm run build    # Production build
 ```
 
-## UX Flow (Core)
-1. Open app → root node focused
-2. Type → label set
-3. Tab → child created
-4. Enter → sibling created
-5. Cmd/Ctrl+K → search & jump
+Or open `app/dist/index.html` directly in a browser.
 
-## Stack Proposal
-- **Frontend:** React + TypeScript
-- **Rendering:** SVG (simple) or Canvas (performance)
-- **State:** Zustand or plain React state
-- **Persistence:** localStorage + export/import JSON
+## Keyboard Shortcuts
 
-## Risks
-- Keyboard UX complexity on mobile
-- Large maps performance if SVG only
+| Shortcut | Action |
+|----------|--------|
+| `Tab` | New child node |
+| `Enter` | New sibling node |
+| `Delete` | Delete node |
+| `F2` | Edit node label |
+| `Cmd/Ctrl+K` | Search & jump |
+| `L` | Cycle layout (tree → radial → force) |
+| `Shift+T` | Toggle theme |
+| `Cmd/Ctrl+Z` | Undo |
+| `Cmd/Ctrl+Shift+Z` | Redo |
+| `Cmd/Ctrl+E` | Export dialog |
+| `Cmd/Ctrl+I` | Import dialog |
+| `?` | Help dialog |
 
-## Next Actions
-- Decide rendering method (SVG vs Canvas)
-- Create wireframes for keyboard flow
-- Prototype node creation + drag
+See [KEYS.md](docs/KEYS.md) for the full shortcut reference.
 
+## Architecture
+
+- **React** + **TypeScript** — Component-based UI
+- **Zustand** — Lightweight state management
+- **SVG + Canvas** — Hybrid rendering (SVG for <500 nodes, Canvas for large maps)
+- **Vite** — Build tooling
+- **Vitest** — Unit and component testing
+
+See [ARCHITECTURE.md](docs/ARCHITECTURE.md) for full details.
+
+## Browser Support
+
+| Browser | Support |
+|---------|---------|
+| Chrome 90+ | ✅ Full |
+| Firefox 90+ | ✅ Full |
+| Safari 15+ | ✅ Full |
+| Edge 90+ | ✅ Full |
+
+See [BROWSER_COMPATIBILITY.md](docs/BROWSER_COMPATIBILITY.md) for the full compatibility matrix and known issues.
+
+## Deployment
+
+See [DEPLOY.md](docs/DEPLOY.md) for deployment to Netlify, Vercel, AWS, or self-hosted.
+
+## Version History
+
+| Version | Status | Date |
+|---------|--------|------|
+| v1.2 | ✅ Complete | 2026-04-02 |
+| v1.1 | ✅ Complete | 2026-03-30 |
+| v1.0 | ✅ Complete | 2026-03-25 |
+| v0.14 | ✅ Complete | 2026-03-20 |
+
+Full changelog in [docs/CHANGELOG.md](docs/CHANGELOG.md).
+
+## License
+
+MIT
