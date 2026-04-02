@@ -3,6 +3,7 @@ import { test, expect, type Page } from '@playwright/test';
 test.describe('Presentation Mode', () => {
   test.beforeEach(async ({ page }) => {
     // Clear localStorage to ensure fresh state between tests
+    await page.goto('/');
     await page.evaluate(() => localStorage.clear());
     await page.reload();
   });

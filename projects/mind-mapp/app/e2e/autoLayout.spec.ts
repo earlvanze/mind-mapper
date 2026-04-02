@@ -3,6 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Auto Layout', () => {
   test.beforeEach(async ({ page }) => {
     // Clear localStorage to ensure fresh state between tests
+    await page.goto('/');
     await page.evaluate(() => localStorage.clear());
     await page.reload();
   });

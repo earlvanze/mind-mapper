@@ -12,6 +12,7 @@ async function getNodeCount(page: Page) {
 test.describe('Mind Mapp E2E', () => {
   test.beforeEach(async ({ page }) => {
     // Clear localStorage to ensure fresh state between tests
+    await page.goto('/');
     await page.evaluate(() => localStorage.clear());
     await page.reload();
   });
