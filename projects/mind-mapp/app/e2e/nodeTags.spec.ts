@@ -1,6 +1,12 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Node Tags', () => {
+  test.beforeEach(async ({ page }) => {
+    // Clear localStorage to ensure fresh state between tests
+    await page.evaluate(() => localStorage.clear());
+    await page.reload();
+  });
+
 
   test('adds tag to node via toolbar', async ({ page }) => {
     await page.goto('/');

@@ -5,6 +5,12 @@ async function getNodeCount(page: Page) {
 }
 
 test.describe('Version History', () => {
+  test.beforeEach(async ({ page }) => {
+    // Clear localStorage to ensure fresh state between tests
+    await page.evaluate(() => localStorage.clear());
+    await page.reload();
+  });
+
 
   test('opens version history dialog', async ({ page }) => {
     await page.goto('/');

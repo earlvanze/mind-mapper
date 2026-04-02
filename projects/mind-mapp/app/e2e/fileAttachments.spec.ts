@@ -1,6 +1,12 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('File Attachments', () => {
+  test.beforeEach(async ({ page }) => {
+    // Clear localStorage to ensure fresh state between tests
+    await page.evaluate(() => localStorage.clear());
+    await page.reload();
+  });
+
 
   test('shows file picker for attachment', async ({ page }) => {
     await page.goto('/');

@@ -1,6 +1,12 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Accessibility', () => {
+  test.beforeEach(async ({ page }) => {
+    // Clear localStorage to ensure fresh state between tests
+    await page.evaluate(() => localStorage.clear());
+    await page.reload();
+  });
+
 
   test('skip link is first focusable element', async ({ page }) => {
     await page.goto('/');
