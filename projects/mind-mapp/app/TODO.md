@@ -8,17 +8,16 @@ All features through v1.2 (Import Formats) are complete.
 - [ ] Plugin system — needs separate extension API repo
 - [ ] Mobile app (React Native) — separate repo
 - [ ] Cloud sync — backend + auth service
-- [ ] Advanced search (regex, wildcards) — backend indexing
 
 ### Lower Priority
 - [x] Export templates (custom styling presets)
 - [x] Keyboard shortcut customization
 - [x] Advanced filters (by style, date, properties)
-- [ ] File attachments (non-image binary files)
+- [x] File attachments (non-image binary files) — PDF, DOCX, XLSX, audio, video
+- [x] Advanced search (regex/wildcards — /pattern/flags syntax)
 - [x] E2E testing with Playwright (21 specs passing — needs CI setup)
-
 - [ ] Browser compatibility matrix
 
 ---
 
-**Last Updated:** 2026-03-31 (v1.2 complete)
+**Last Updated:** 2026-04-02 (file attachments + regex search now complete)
