@@ -16,8 +16,8 @@ All features through v1.2 (Import Formats) are complete.
 - [x] File attachments (non-image binary files) — PDF, DOCX, XLSX, audio, video
 - [x] Advanced search (regex/wildcards — /pattern/flags syntax)
 - [x] E2E testing with Playwright (21 specs passing — needs CI setup)
-- [ ] Browser compatibility matrix
+- [x] Browser compatibility matrix — documented in ../../BROWSER_COMPATIBILITY.md
 
 ---
 
-**Last Updated:** 2026-04-02 (file attachments + regex search now complete)
+**Last Updated:** 2026-04-02
