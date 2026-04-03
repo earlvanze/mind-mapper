@@ -7,7 +7,7 @@ export type SearchToggleKeyState = {
 };
 
 export function isSearchToggleEvent(event: SearchToggleKeyState): boolean {
-  return (
+  return !!(
     (event.metaKey || event.ctrlKey)
     && !event.altKey
     && !event.shiftKey

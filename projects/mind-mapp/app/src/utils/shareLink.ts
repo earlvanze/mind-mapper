@@ -46,11 +46,12 @@ export function decodeShareLink(hash: string): Record<string, Node> | null {
     // Validate node structure
     for (const [id, node] of Object.entries(nodes)) {
       if (typeof node !== 'object' || !node) return null;
-      if (typeof node.text !== 'string') return null;
-      if (typeof node.x !== 'number') return null;
-      if (typeof node.y !== 'number') return null;
-      if (node.parentId !== null && typeof node.parentId !== 'string') return null;
-      if (!Array.isArray(node.children)) return null;
+      const n = node as Record<string, unknown>;
+      if (typeof n.text !== 'string') return null;
+      if (typeof n.x !== 'number') return null;
+      if (typeof n.y !== 'number') return null;
+      if (n.parentId !== null && typeof n.parentId !== 'string') return null;
+      if (!Array.isArray(n.children)) return null;
     }
     
     return nodes as Record<string, Node>;

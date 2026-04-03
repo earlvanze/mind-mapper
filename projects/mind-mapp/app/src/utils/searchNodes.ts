@@ -192,12 +192,12 @@ function getSearchIndex(nodes: Record<string, Node>): SearchIndexEntry[] {
 function normalizeTokens(input: SearchQueryInput): readonly SearchToken[] {
   if (!Array.isArray(input)) return tokenizeSearchQuery(input);
 
-  const maybeNormalizedTokens = input as readonly SearchToken[] & { [NORMALIZED_SEARCH_TOKEN_ARRAY]?: true };
+  const maybeNormalizedTokens = input as NormalizedSearchTokenArray;
   if (maybeNormalizedTokens[NORMALIZED_SEARCH_TOKEN_ARRAY] === true) {
-    return input;
+    return maybeNormalizedTokens;
   }
 
-  return buildNormalizedSearchTokens(input);
+  return buildNormalizedSearchTokens(maybeNormalizedTokens);
 }
 
 // Wildcard support: * matches any sequence, ? matches single character

@@ -3,7 +3,7 @@
  * Stored separately from autosave so users can save/restore/manage named versions.
  */
 
-import { loadFromStorage, saveToStorage } from './storage';
+import { loadFromStorage, saveToStorage } from '../utils/storage';
 import type { Node } from './useMindMapStore';
 
 const HISTORY_KEY = 'mindmapp.v0.1.history';
