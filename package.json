@@ -1,0 +1,39 @@
+{
+  "name": "mind-mapp",
+  "private": true,
+  "version": "0.14.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "html-to-image": "^1.11.11",
+    "jspdf": "^4.2.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.3.1",
+    "tesseract.js": "^7.0.0",
+    "zustand": "^4.5.2"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.58.2",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^15.0.7",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/node": "^25.5.2",
+    "@types/react": "^18.2.66",
+    "@types/react-dom": "^18.3.7",
+    "@vitejs/plugin-react": "^4.2.1",
+    "@vitest/coverage-v8": "^4.1.2",
+    "@xmldom/xmldom": "^0.9.9",
+    "canvas": "^3.2.3",
+    "jsdom": "^29.0.1",
+    "typescript": "^5.4.2",
+    "vite": "^5.1.4",
+    "vitest": "^4.0.18"
+  }
+}

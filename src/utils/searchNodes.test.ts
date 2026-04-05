@@ -1,0 +1,515 @@
+import { describe, expect, it } from 'vitest';
+import type { Node } from '../store/useMindMapStore';
+import { DEFAULT_SEARCH_RESULT_LIMIT, hasRegex, hasWildcards, searchNodes, searchNodesWithTotal, tokenizeSearchQuery } from './searchNodes';
+
+const nodes: Record<string, Node> = {
+  n_root: { id: 'n_root', text: 'Root', x: 0, y: 0, parentId: null, children: ['n_alpha', 'n_beta', 'n_alpine'] },
+  n_alpha: { id: 'n_alpha', text: 'Alpha', x: 0, y: 0, parentId: 'n_root', children: ['n_review'] },
+  n_beta: { id: 'n_beta', text: 'Beta', x: 0, y: 0, parentId: 'n_root', children: [] },
+  n_alpine: { id: 'n_alpine', text: 'Alpine', x: 0, y: 0, parentId: 'n_root', children: [] },
+  n_review: { id: 'n_review', text: 'Review', x: 0, y: 0, parentId: 'n_alpha', children: [] },
+  node_x1: { id: 'node_x1', text: 'Gamma', x: 0, y: 0, parentId: 'n_root', children: [] },
+};
+
+describe('tokenizeSearchQuery', () => {
+  it('parses quoted and negated terms', () => {
+    expect(tokenizeSearchQuery('"alpha review" -beta id:foo')).toEqual([
+      { value: 'alpha review', negated: false },
+      { value: 'beta', negated: true },
+      { value: 'id foo', negated: false },
+    ]);
+  });
+
+  it('ignores empty tokens', () => {
+    expect(tokenizeSearchQuery('   ""   ')).toEqual([]);
+  });
+
+  it('normalizes repeated whitespace inside tokens', () => {
+    expect(tokenizeSearchQuery('"alpha   review"   beta')).toEqual([
+      { value: 'alpha review', negated: false },
+      { value: 'beta', negated: false },
+    ]);
+  });
+
+  it('normalizes diacritics in tokens', () => {
+    expect(tokenizeSearchQuery('"résumé café"')).toEqual([
+      { value: 'resume cafe', negated: false },
+    ]);
+  });
+
+  it('normalizes uppercase tokens without pre-lowercasing the full query', () => {
+    expect(tokenizeSearchQuery('"Alpha REVIEW" -BETA')).toEqual([
+      { value: 'alpha review', negated: false },
+      { value: 'beta', negated: true },
+    ]);
+  });
+
+  it('reuses frozen cached tokens for equivalent trimmed input', () => {
+    const first = tokenizeSearchQuery(' alpha -beta ');
+    const second = tokenizeSearchQuery('alpha -beta');
+
+    expect(first).toBe(second);
+    expect(Object.isFrozen(first)).toBe(true);
+    expect(Object.isFrozen(first[0]!)).toBe(true);
+  });
+
+  it('supports whitespace-separated negation marker before quoted phrases', () => {
+    expect(tokenizeSearchQuery('- "alpha review" beta')).toEqual([
+      { value: 'alpha review', negated: true },
+      { value: 'beta', negated: false },
+    ]);
+  });
+
+  it('supports unicode dash negation markers', () => {
+    expect(tokenizeSearchQuery('−alpha –"beta gamma"')).toEqual([
+      { value: 'alpha', negated: true },
+      { value: 'beta gamma', negated: true },
+    ]);
+
+    expect(tokenizeSearchQuery('—alpha')).toEqual([
+      { value: 'alpha', negated: true },
+    ]);
+
+    expect(tokenizeSearchQuery('− "alpha review"')).toEqual([
+      { value: 'alpha review', negated: true },
+    ]);
+
+    expect(tokenizeSearchQuery('— "alpha review"')).toEqual([
+      { value: 'alpha review', negated: true },
+    ]);
+  });
+
+  it('tokenizes distinct sequential queries correctly', () => {
+    expect(tokenizeSearchQuery('alpha beta')).toEqual([
+      { value: 'alpha', negated: false },
+      { value: 'beta', negated: false },
+    ]);
+
+    expect(tokenizeSearchQuery('"gamma delta" -beta')).toEqual([
+      { value: 'gamma delta', negated: false },
+      { value: 'beta', negated: true },
+    ]);
+  });
+});
+
+describe('searchNodes', () => {
+  it('returns empty array for blank query', () => {
+    expect(searchNodes(nodes, '   ')).toEqual([]);
+  });
+
+  it('prioritizes label prefix matches over contains/id/path matches', () => {
+    const results = searchNodes(nodes, 'al');
+    expect(results.slice(0, 2).map(node => node.id)).toEqual(['n_alpha', 'n_alpine']);
+  });
+
+  it('can match by node id when label does not match', () => {
+    const results = searchNodes(nodes, 'x1');
+    expect(results.map(node => node.id)).toEqual(['node_x1']);
+  });
+
+  it('supports multi-term queries across node label and path', () => {
+    const results = searchNodes(nodes, 'alpha review');
+    expect(results.map(node => node.id)).toEqual(['n_review']);
+  });
+
+  it('supports quoted phrase queries', () => {
+    const results = searchNodes(nodes, '"alpha review"');
+    expect(results.map(node => node.id)).toEqual(['n_review']);
+  });
+
+  it('supports negated quoted phrases written with a separated minus token', () => {
+    const results = searchNodes(nodes, '- "alpha review"');
+    expect(results.some(node => node.id === 'n_review')).toBe(false);
+  });
+
+  it('accepts pre-tokenized query input', () => {
+    const tokens = tokenizeSearchQuery('alpha review');
+    const results = searchNodes(nodes, tokens);
+    expect(results.map(node => node.id)).toEqual(['n_review']);
+  });
+
+  it('supports pre-tokenized positive and negative terms together', () => {
+    const tokens = [
+      { value: ' Alpha ', negated: false },
+      { value: 'review', negated: true },
+    ];
+    const results = searchNodes(nodes, tokens);
+    expect(results.map(node => node.id)).toEqual(['n_alpha']);
+  });
+
+  it('filters empty pre-tokenized entries after normalization', () => {
+    const tokens = [
+      { value: 'alpha', negated: false },
+      { value: '---', negated: false },
+      { value: 'review', negated: true },
+    ];
+    const results = searchNodes(nodes, tokens);
+    expect(results.map(node => node.id)).toEqual(['n_alpha']);
+  });
+
+  it('supports negative terms for exclusion', () => {
+    const results = searchNodes(nodes, 'alpha -review');
+    expect(results.map(node => node.id)).toEqual(['n_alpha']);
+  });
+
+  it('supports unicode dash negation in search queries', () => {
+    const minusResults = searchNodes(nodes, 'alpha −review');
+    expect(minusResults.map(node => node.id)).toEqual(['n_alpha']);
+
+    const emDashResults = searchNodes(nodes, 'alpha —review');
+    expect(emDashResults.map(node => node.id)).toEqual(['n_alpha']);
+  });
+
+  it('supports multi-term include and multi-term exclude combinations', () => {
+    const results = searchNodes(nodes, 'alpha root -review -beta');
+    expect(results.map(node => node.id)).toEqual(['n_alpha']);
+  });
+
+  it('supports multi-term include queries without excludes', () => {
+    const results = searchNodes(nodes, 'alpha root');
+    expect(results.map(node => node.id)).toEqual(['n_alpha', 'n_review']);
+  });
+
+  it('deduplicates repeated positive/negative terms during ranking checks', () => {
+    const deduped = searchNodes(nodes, 'alpha -review');
+    const repeated = searchNodes(nodes, 'alpha alpha -review -review');
+
+    expect(repeated).toEqual(deduped);
+  });
+
+  it('supports pure negative filtering', () => {
+    const results = searchNodes(nodes, '-review');
+    expect(results.some(node => node.id === 'n_review')).toBe(false);
+    expect(results.length).toBe(Object.keys(nodes).length - 1);
+  });
+
+  it('short-circuits contradictory include/exclude terms', () => {
+    expect(searchNodes(nodes, 'alpha -alpha')).toEqual([]);
+    expect(searchNodes(nodes, 'alpha alpha -alpha -alpha')).toEqual([]);
+    expect(searchNodes(nodes, [
+      { value: 'alpha', negated: false },
+      { value: 'alpha', negated: true },
+      { value: 'alpha', negated: false },
+      { value: 'alpha', negated: true },
+    ])).toEqual([]);
+  });
+
+  it('can match descendants by ancestor path terms', () => {
+    const results = searchNodes(nodes, 'alpha');
+    expect(results.map(node => node.id)).toEqual(['n_alpha', 'n_review']);
+  });
+
+  it('applies result limit after ranking', () => {
+    const results = searchNodes(nodes, 'a', 2);
+    expect(results).toHaveLength(2);
+  });
+
+  it('normalizes non-integer/negative result limits', () => {
+    expect(searchNodes(nodes, 'a', 2.9)).toHaveLength(2);
+    expect(searchNodes(nodes, 'a', -5)).toHaveLength(0);
+  });
+
+  it('returns no results immediately when normalized limit is zero', () => {
+    expect(searchNodes(nodes, 'alpha', 0)).toEqual([]);
+  });
+
+  it('defaults non-finite result limits to 20', () => {
+    const defaultLimited = searchNodes(nodes, 'a', DEFAULT_SEARCH_RESULT_LIMIT);
+
+    expect(searchNodes(nodes, 'a', Number.NaN)).toEqual(defaultLimited);
+    expect(searchNodes(nodes, 'a', Number.POSITIVE_INFINITY)).toEqual(defaultLimited);
+    expect(searchNodes(nodes, 'a', Number.NEGATIVE_INFINITY)).toEqual(defaultLimited);
+  });
+
+  it('reports total matches separately from capped results', () => {
+    const { results, total } = searchNodesWithTotal(nodes, 'a', 2);
+    expect(results).toHaveLength(2);
+    expect(total).toBeGreaterThan(results.length);
+  });
+
+  it('reports total matches even when normalized limit is zero', () => {
+    const { results, total } = searchNodesWithTotal(nodes, 'a', 0);
+    expect(results).toEqual([]);
+    expect(total).toBeGreaterThan(0);
+  });
+
+  it('handles cyclic parent chains without hanging', () => {
+    const cyclic: Record<string, Node> = {
+      a: { id: 'a', text: 'Alpha', x: 0, y: 0, parentId: 'b', children: [] },
+      b: { id: 'b', text: 'Beta', x: 0, y: 0, parentId: 'a', children: [] },
+    };
+
+    const results = searchNodes(cyclic, 'alpha beta');
+    expect(results.map(node => node.id)).toEqual(['a', 'b']);
+  });
+
+  it('matches phrases across irregular whitespace in node text', () => {
+    const spaced: Record<string, Node> = {
+      root: { id: 'root', text: 'Root', x: 0, y: 0, parentId: null, children: ['n1'] },
+      n1: { id: 'n1', text: 'Alpha   Review', x: 0, y: 0, parentId: 'root', children: [] },
+    };
+
+    const results = searchNodes(spaced, '"alpha review"');
+    expect(results.map(node => node.id)).toEqual(['n1']);
+  });
+
+  it('matches diacritic-insensitive queries against labels and paths', () => {
+    const accented: Record<string, Node> = {
+      root: { id: 'root', text: 'Café', x: 0, y: 0, parentId: null, children: ['n1'] },
+      n1: { id: 'n1', text: 'Résumé', x: 0, y: 0, parentId: 'root', children: [] },
+    };
+
+    const direct = searchNodes(accented, 'resume');
+    expect(direct.map(node => node.id)).toEqual(['n1']);
+
+    const pathAware = searchNodes(accented, 'cafe resume');
+    expect(pathAware.map(node => node.id)).toEqual(['n1']);
+  });
+
+  it('matches punctuation-insensitive ids and labels', () => {
+    const punct: Record<string, Node> = {
+      root: { id: 'n_root', text: 'Root', x: 0, y: 0, parentId: null, children: ['n1'] },
+      n1: { id: 'node-1', text: 'Auto-Scale', x: 0, y: 0, parentId: 'n_root', children: [] },
+    };
+
+    expect(searchNodes(punct, 'n-root').map(node => node.id)).toEqual(['n_root']);
+    expect(searchNodes(punct, 'auto scale').map(node => node.id)).toEqual(['node-1']);
+  });
+
+  it('matches camelCase and mixed alnum boundaries', () => {
+    const camel: Record<string, Node> = {
+      root: { id: 'rootNode', text: 'Root', x: 0, y: 0, parentId: null, children: ['n1'] },
+      n1: { id: 'autoScaleV2', text: 'BudgetTrackerV2', x: 0, y: 0, parentId: 'rootNode', children: [] },
+    };
+
+    expect(searchNodes(camel, 'auto scale v2').map(node => node.id)).toEqual(['autoScaleV2']);
+    expect(searchNodes(camel, 'budget tracker v2').map(node => node.id)).toEqual(['autoScaleV2']);
+  });
+
+  it('keeps same-rank results deterministic by text then id', () => {
+    const sameText: Record<string, Node> = {
+      root: { id: 'root', text: 'Root', x: 0, y: 0, parentId: null, children: ['node_b', 'node_a'] },
+      node_b: { id: 'node_b', text: 'Alpha', x: 0, y: 0, parentId: 'root', children: [] },
+      node_a: { id: 'node_a', text: 'Alpha', x: 0, y: 0, parentId: 'root', children: [] },
+    };
+
+    expect(searchNodes(sameText, 'alpha').map(node => node.id)).toEqual(['node_a', 'node_b']);
+  });
+});
+
+describe('wildcard search', () => {
+  it('detects wildcards in search terms', () => {
+    expect(hasWildcards('alpha*')).toBe(true);
+    expect(hasWildcards('*alpha')).toBe(true);
+    expect(hasWildcards('al?ha')).toBe(true);
+    expect(hasWildcards('alpha')).toBe(false);
+    expect(hasWildcards('al*ha?e')).toBe(true);
+  });
+
+  it('matches single character wildcard ?', () => {
+    const wild: Record<string, Node> = {
+      root: { id: 'root', text: 'Root', x: 0, y: 0, parentId: null, children: ['n1', 'n2'] },
+      n1: { id: 'n1', text: 'Alpha', x: 0, y: 0, parentId: 'root', children: [] },
+      n2: { id: 'n2', text: 'Alpine', x: 0, y: 0, parentId: 'root', children: [] },
+    };
+
+    // ? matches single char
+    const results = searchNodes(wild, 'Al?ha');
+    expect(results.map(node => node.id)).toEqual(['n1']);
+
+    // * matches zero or more
+    const results2 = searchNodes(wild, 'Al*ha');
+    expect(results2.map(node => node.id)).toEqual(['n1']);
+  });
+
+  it('matches prefix wildcard *', () => {
+    const wild: Record<string, Node> = {
+      root: { id: 'root', text: 'Root', x: 0, y: 0, parentId: null, children: ['n1', 'n2', 'n3'] },
+      n1: { id: 'n1', text: 'Review', x: 0, y: 0, parentId: 'root', children: [] },
+      n2: { id: 'n2', text: 'Alpha Review', x: 0, y: 0, parentId: 'root', children: [] },
+      n3: { id: 'n3', text: 'Beta Review', x: 0, y: 0, parentId: 'root', children: [] },
+    };
+
+    // *review matches Review, Alpha Review, Beta Review
+    const results = searchNodes(wild, '*review');
+    expect(results.map(node => node.id)).toEqual(['n2', 'n3', 'n1']);
+  });
+
+  it('matches suffix wildcard *', () => {
+    const wild: Record<string, Node> = {
+      root: { id: 'root', text: 'Root', x: 0, y: 0, parentId: null, children: ['n1', 'n2'] },
+      n1: { id: 'n1', text: 'AlphaOne', x: 0, y: 0, parentId: 'root', children: [] },
+      n2: { id: 'n2', text: 'BetaOne', x: 0, y: 0, parentId: 'root', children: [] },
+    };
+
+    const results = searchNodes(wild, 'alpha*');
+    expect(results.map(node => node.id)).toEqual(['n1']);
+  });
+
+  it('matches wildcard across path', () => {
+    const wild: Record<string, Node> = {
+      root: { id: 'root', text: 'Root', x: 0, y: 0, parentId: null, children: ['n1'] },
+      n1: { id: 'n1', text: 'Alpha', x: 0, y: 0, parentId: 'root', children: ['n2'] },
+      n2: { id: 'n2', text: 'Beta', x: 0, y: 0, parentId: 'n1', children: [] },
+    };
+
+    // root alpha beta should match via path
+    const results = searchNodes(wild, 'root * beta');
+    expect(results.map(node => node.id)).toEqual(['n2']);
+  });
+
+  it('supports negated wildcard terms', () => {
+    const wild: Record<string, Node> = {
+      root: { id: 'root', text: 'Root', x: 0, y: 0, parentId: null, children: ['n1', 'n2', 'n3'] },
+      n1: { id: 'n1', text: 'AlphaReview', x: 0, y: 0, parentId: 'root', children: [] },
+      n2: { id: 'n2', text: 'BetaReview', x: 0, y: 0, parentId: 'root', children: [] },
+      n3: { id: 'n3', text: 'GammaReview', x: 0, y: 0, parentId: 'root', children: [] },
+    };
+
+    // Include *Review but exclude *Alpha*
+    const results = searchNodes(wild, '*review -alpha*');
+    expect(results.map(node => node.id)).toEqual(['n2', 'n3']);
+  });
+
+  it('combines wildcard with multi-term queries', () => {
+    const wild: Record<string, Node> = {
+      root: { id: 'root', text: 'Root', x: 0, y: 0, parentId: null, children: ['n1', 'n2'] },
+      n1: { id: 'n1', text: 'Project Alpha', x: 0, y: 0, parentId: 'root', children: [] },
+      n2: { id: 'n2', text: 'Project Beta', x: 0, y: 0, parentId: 'root', children: [] },
+    };
+
+    const results = searchNodes(wild, 'project alpha*');
+    expect(results.map(node => node.id)).toEqual(['n1']);
+  });
+
+  it('handles wildcard in node id matching', () => {
+    const wild: Record<string, Node> = {
+      root: { id: 'root', text: 'Root', x: 0, y: 0, parentId: null, children: ['n1', 'n2'] },
+      n1: { id: 'node_alpha_1', text: 'Alpha', x: 0, y: 0, parentId: 'root', children: [] },
+      n2: { id: 'node_beta_2', text: 'Beta', x: 0, y: 0, parentId: 'root', children: [] },
+    };
+
+    const results = searchNodes(wild, 'node_*_1');
+    expect(results.map(node => node.id)).toEqual(['node_alpha_1']);
+  });
+
+  it('wildcard matches zero characters with *', () => {
+    const wild: Record<string, Node> = {
+      root: { id: 'root', text: 'Root', x: 0, y: 0, parentId: null, children: ['n1'] },
+      n1: { id: 'n1', text: 'Alpha', x: 0, y: 0, parentId: 'root', children: [] },
+    };
+
+    // a* matches Alpha (zero chars between a and l is not correct, but a* matches "Al" prefix)
+    // actually "al*" should match "al" prefix of "alpha" 
+    const results = searchNodes(wild, 'al*');
+    expect(results.map(node => node.id)).toEqual(['n1']);
+  });
+
+  it('wildcard is case-insensitive', () => {
+    const wild: Record<string, Node> = {
+      root: { id: 'root', text: 'Root', x: 0, y: 0, parentId: null, children: ['n1'] },
+      n1: { id: 'n1', text: 'AlphaBeta', x: 0, y: 0, parentId: 'root', children: [] },
+    };
+
+    const results = searchNodes(wild, 'alpha*beta');
+    expect(results.map(node => node.id)).toEqual(['n1']);
+  });
+});
+
+describe('regex search', () => {
+  describe('hasRegex', () => {
+    it('returns true for valid /pattern/flags syntax', () => {
+      expect(hasRegex('/node|leaf/i')).toBe(true);
+      expect(hasRegex('/\\d+/')).toBe(true);
+      expect(hasRegex('/^root/')).toBe(true);
+      expect(hasRegex('/test/g')).toBe(true);
+    });
+
+    it('returns false for plain text', () => {
+      expect(hasRegex('node')).toBe(false);
+      expect(hasRegex('hello world')).toBe(false);
+    });
+
+    it('returns false for wildcards', () => {
+      expect(hasRegex('node*')).toBe(false);
+      expect(hasRegex('*leaf*')).toBe(false);
+    });
+
+    it('returns false for incomplete regex', () => {
+      expect(hasRegex('/pattern')).toBe(false);
+      expect(hasRegex('pattern/')).toBe(false);
+      expect(hasRegex('/')).toBe(false);
+    });
+  });
+
+  it('matches regex pattern in label', () => {
+    const data: Record<string, Node> = {
+      root: { id: 'root', text: 'Root', x: 0, y: 0, parentId: null, children: ['n1', 'n2', 'n3'] },
+      n1: { id: 'n1', text: 'Item one', x: 0, y: 0, parentId: 'root', children: [] },
+      n2: { id: 'n2', text: 'Item two', x: 0, y: 0, parentId: 'root', children: [] },
+      n3: { id: 'n3', text: 'Other', x: 0, y: 0, parentId: 'root', children: [] },
+    };
+    const results = searchNodes(data, '/item/i');
+    expect(results.map(n => n.id).sort()).toEqual(['n1', 'n2']);
+  });
+
+  it('matches regex with alternation in label', () => {
+    const data: Record<string, Node> = {
+      root: { id: 'root', text: 'Root', x: 0, y: 0, parentId: null, children: ['n1', 'n2', 'n3'] },
+      n1: { id: 'n1', text: 'Node Alpha', x: 0, y: 0, parentId: 'root', children: [] },
+      n2: { id: 'n2', text: 'Node Beta', x: 0, y: 0, parentId: 'root', children: [] },
+      n3: { id: 'n3', text: 'Node Gamma', x: 0, y: 0, parentId: 'root', children: [] },
+    };
+    const results = searchNodes(data, '/alpha|beta/i');
+    expect(results.map(n => n.id).sort()).toEqual(['n1', 'n2']);
+  });
+
+  it('matches regex anchored pattern', () => {
+    const data: Record<string, Node> = {
+      root: { id: 'root', text: 'Root', x: 0, y: 0, parentId: null, children: ['n1', 'n2'] },
+      n1: { id: 'n1', text: 'Prefix Alpha Sufix', x: 0, y: 0, parentId: 'root', children: [] },
+      n2: { id: 'n2', text: 'Alpha Sufix', x: 0, y: 0, parentId: 'root', children: [] },
+    };
+    const results = searchNodes(data, '/^alpha/i');
+    expect(results.map(n => n.id)).toEqual(['n2']);
+  });
+
+  it('combines regex with negated terms', () => {
+    const data: Record<string, Node> = {
+      root: { id: 'root', text: 'Root', x: 0, y: 0, parentId: null, children: ['n1', 'n2', 'n3'] },
+      n1: { id: 'n1', text: 'Item Alpha', x: 0, y: 0, parentId: 'root', children: [] },
+      n2: { id: 'n2', text: 'Item Beta', x: 0, y: 0, parentId: 'root', children: [] },
+      n3: { id: 'n3', text: 'Item Gamma', x: 0, y: 0, parentId: 'root', children: [] },
+    };
+    const results = searchNodes(data, '/item/i -alpha');
+    expect(results.map(n => n.id).sort()).toEqual(['n2', 'n3']);
+  });
+
+  it('ranks regex label matches above path matches', () => {
+    const data: Record<string, Node> = {
+      root: { id: 'root', text: 'Root', x: 0, y: 0, parentId: null, children: ['n1'] },
+      n1: { id: 'n1', text: 'Alpha', x: 0, y: 0, parentId: 'root', children: [] },
+    };
+    const results = searchNodes(data, '/alpha/i');
+    expect(results[0]?.id).toBe('n1');
+  });
+
+  it('returns empty for invalid regex', () => {
+    const data: Record<string, Node> = {
+      root: { id: 'root', text: 'Root', x: 0, y: 0, parentId: null, children: ['n1'] },
+      n1: { id: 'n1', text: 'Alpha', x: 0, y: 0, parentId: 'root', children: [] },
+    };
+    const results = searchNodes(data, '/[invalid/i');
+    expect(results.map(n => n.id)).toEqual([]);
+  });
+
+  it('regex is case-insensitive by default', () => {
+    const data: Record<string, Node> = {
+      root: { id: 'root', text: 'Root', x: 0, y: 0, parentId: null, children: ['n1', 'n2'] },
+      n1: { id: 'n1', text: 'ALPHA', x: 0, y: 0, parentId: 'root', children: [] },
+      n2: { id: 'n2', text: 'alpha', x: 0, y: 0, parentId: 'root', children: [] },
+    };
+    const results = searchNodes(data, '/alpha/');
+    expect(results.map(n => n.id).sort()).toEqual(['n1', 'n2']);
+  });
+});

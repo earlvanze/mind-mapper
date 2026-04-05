@@ -1,0 +1,71 @@
+import { normalizeNonNegativeInt } from './countNormalize';
+
+const SEARCH_SELECTION_NAVIGATION_KEYS = new Set([
+  'ArrowDown',
+  'ArrowUp',
+  'PageDown',
+  'PageUp',
+  'Home',
+  'End',
+  'Tab',
+]);
+
+const NON_WHITESPACE_RE = /\S/;
+
+export function canExecuteSearchJump(pending: boolean): boolean {
+  return !pending;
+}
+
+export function canNavigateSearchSelection(pending: boolean): boolean {
+  return !pending;
+}
+
+export function isSearchSelectionNavigationKey(key: string): boolean {
+  return SEARCH_SELECTION_NAVIGATION_KEYS.has(key);
+}
+
+export function getSearchPendingTooltip(pending: boolean): string | undefined {
+  return pending ? 'Search results are updating…' : undefined;
+}
+
+export function shouldDisplaySearchEmptyState(
+  query: string,
+  hasTokens: boolean,
+): boolean {
+  if (!hasTokens) return false;
+  return NON_WHITESPACE_RE.test(query);
+}
+
+export function getSearchEmptyMessage(shown: number, total: number, pending = false): string | undefined {
+  if (pending) return 'Searching nodes…';
+
+  const safeShown = normalizeNonNegativeInt(shown);
+  if (safeShown > 0) return undefined;
+
+  const safeTotal = normalizeNonNegativeInt(total);
+  if (safeTotal > 0) return 'Matches exist, refine your query to reveal them.';
+
+  return 'No nodes match your query.';
+}
+
+export function formatSearchSummary(shown: number, total: number, pending = false): string {
+  const safeShown = normalizeNonNegativeInt(shown);
+  const safeTotal = normalizeNonNegativeInt(total);
+
+  const base = `${safeShown} shown / ${safeTotal} matches`;
+  const needsRefineHint = safeTotal > safeShown;
+
+  if (needsRefineHint && pending) {
+    return `${base} (refine to narrow) • updating…`;
+  }
+
+  if (needsRefineHint) {
+    return `${base} (refine to narrow)`;
+  }
+
+  if (pending) {
+    return `${base} • updating…`;
+  }
+
+  return base;
+}
