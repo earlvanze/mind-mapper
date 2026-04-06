@@ -18,3 +18,12 @@
 - Autistic + ADHD; benefits from structured external cognition
 - Direct, no fluff, prefers structured output
 - Builds tokenized real estate, DAO systems, automation
+
+## 2026-04-05/06 — Mind Mapp session (00:47 UTC)
+- Ran full test suite: 743 tests → 747 (added doubleTapCollapse.test.ts) — all passing
+- Implemented P0 backlog item: double-tap on node body toggles expand/collapse
+  - Added `lastTapRef` in Node.tsx; 300ms threshold; only fires on nodes with children while not editing
+  - Normal click → focus; slow double-click → start editing; double-tap → collapse toggle
+- Git repo had broken refs (conflicted copies with spaces in filenames); cleaned up refs/heads/
+- Pushed to `earlvanze/mind-mapper` main branch (GitHub auth confirmed)
+- Remaining P0: handwriting.js OCR, cron timeout fix
