@@ -6,7 +6,7 @@
 
 ## P1 — High Priority
 - [ ] Supabase auth integration
-- [ ] Add edge CRUD + drag/drop
+- [ ] Add edge CRUD + drag/drop (click-select + Delete done; creation + drag-drop pending)
 - [ ] Save/load projects to Supabase
 - [ ] Export JSON + PNG/SVG
 
