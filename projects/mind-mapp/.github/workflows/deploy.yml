@@ -1,0 +1,58 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main, master]
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      provider:
+        description: 'Deployment provider'
+        required: true
+        default: 'netlify'
+        type: choice
+        options:
+          - netlify
+          - vercel
+          - github-pages
+
+jobs:
+  deploy:
+    name: Deploy to ${{ inputs.provider || 'Netlify' }}
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: app/package-lock.json
+
+      - name: Install dependencies
+        run: cd app && npm ci
+
+      - name: Build
+        run: cd app && npm run build
+
+      - name: Deploy to Netlify
+        if: inputs.provider == 'netlify' || (github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')))
+        run: cd app && npx netlify deploy --prod --dir=dist
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+
+      - name: Deploy to Vercel
+        if: inputs.provider == 'vercel'
+        run: cd app && npx vercel --prod --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Deploy to GitHub Pages
+        if: inputs.provider == 'github-pages' || (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v'))
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./app/dist

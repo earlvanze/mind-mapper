@@ -2,10 +2,10 @@
 
 ## Build
 - Framework: Vite + React + TypeScript
-- Current version: 0.3.0
+- Current version: 0.14.0
 - Last build output in `dist/`
 - Test runner: Vitest (`npm test`) — import, store history, minimap, fit math, edge/path, and pan/zoom math covered
-- CI: GitHub Actions workflow runs `npm test` + `npm run build` on app changes
+- CI: GitHub Actions workflows (`.github/workflows/ci.yml` for tests+build, `.github/workflows/deploy.yml` for deployments)
 - Vite server/preview `allowedHosts` is configurable via `MINDMAPP_ALLOWED_HOSTS` (comma/space-separated; hostnames or URLs)
 - Search/Help dialogs are lazy-loaded for faster initial paint and use mutually exclusive open-state toggles
 - Advanced toolbar actions are collapsible to reduce UI clutter (Shift+A toggle, visibility persisted; toggle wired with aria-expanded/aria-controls + aria-keyshortcuts to grouped advanced actions)
