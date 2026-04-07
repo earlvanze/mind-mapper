@@ -6,6 +6,7 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./src/vitest.setup.ts'],
-    testTimeout: 600000,
+    // Reduce from 600s to 120s — tests run in ~60s, plenty of buffer
+    testTimeout: 120000,
   },
 });
