@@ -1,14 +1,15 @@
 /**
  * Unified import router — detects file format and routes to the correct parser.
- * Supports: MindMapp JSON, XMind (8/9), FreeMind (.mm), Obsidian markdown
+ * Supports: MindMapp JSON, XMind (8/9), FreeMind (.mm), Obsidian markdown, OPML
  */
 
 import type { Node } from '../store/useMindMapStore';
 import { parseImportPayload } from './importValidation';
 import { parseXMind, isXMindContent } from './importXMind';
 import { parseObsidian, isObsidianContent } from './importObsidian';
+import { parseOpml, isOpmlContent } from './importOpml';
 
-export type ImportFormat = 'mindmapp-json' | 'xmind' | 'freemind' | 'obsidian' | 'unknown';
+export type ImportFormat = 'mindmapp-json' | 'xmind' | 'freemind' | 'obsidian' | 'opml' | 'unknown';
 
 export interface ImportResult {
   nodes: Record<string, Node>;
@@ -45,12 +46,17 @@ export function detectImportFormat(content: string, filename?: string): ImportFo
     if (ext.endsWith('.xmind')) return 'xmind';
     if (ext.endsWith('.mm')) return 'freemind';
     if (ext.endsWith('.md')) return 'obsidian';
+    if (ext.endsWith('.opml')) return 'opml';
+    if (ext.endsWith('.xml')) {
+      // .xml could be XMind, FreeMind, or OPML — detect based on content
+    }
   }
 
   const trimmed = content.trim();
 
   if (isMindMappJson(trimmed)) return 'mindmapp-json';
   if (isObsidianContent(trimmed)) return 'obsidian';
+  if (isOpmlContent(trimmed)) return 'opml';
   if (isXMindContent(trimmed)) return 'xmind';
   if (isFreemindContent(trimmed)) return 'freemind';
 
@@ -88,7 +94,12 @@ export function parseImportContent(
     return { nodes, format: 'obsidian' };
   }
 
+  if (detected === 'opml') {
+    const nodes = parseOpml(content);
+    return { nodes, format: 'opml' };
+  }
+
   throw new Error(
-    `Unsupported file format. Supported formats: MindMapp JSON (.json), XMind (.xmind), FreeMind (.mm), Obsidian (.md)`
+    `Unsupported file format. Supported formats: MindMapp JSON (.json), OPML (.opml), XMind (.xmind), FreeMind (.mm), Obsidian (.md)`
   );
 }
