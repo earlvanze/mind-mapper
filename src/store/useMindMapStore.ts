@@ -186,6 +186,9 @@ const defaultState = {
   layoutMode: 'tree' as LayoutMode,
   activeTagFilters: [] as string[],
   matchMode: 'any' as 'any' | 'all',
+  styleFilterShapes: [] as string[],
+  styleFilterColors: [] as string[],
+  styleFilterIcons: [] as string[],
 };
 
 function loadState() {
@@ -302,10 +305,14 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
       const target = updated[newToId];
       if (!from || !child || !target) return {};
       // Check for circular reference
-      let checkId = newToId;
+      let checkId: string | undefined = newToId;
       while (checkId) {
         if (checkId === fromId) return {};
-        checkId = updated[checkId]?.parentId ?? null;
+        const nextId: string | null | undefined = updated[checkId]?.parentId;
+        if (nextId == null) { checkId = undefined; }
+        else if (typeof nextId === 'string') { checkId = nextId; }
+        else { checkId = undefined; }
+        if (!checkId) break;
       }
       // Remove from old parent
       updated[fromId] = { ...from, children: from.children.filter(c => c !== oldToId) };

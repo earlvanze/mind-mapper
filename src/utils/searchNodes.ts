@@ -193,7 +193,7 @@ function normalizeTokens(input: SearchQueryInput): readonly SearchToken[] {
   if (typeof input === 'string') return tokenizeSearchQuery(input);
   // Fast path: if already normalized, return as-is
   const arr = input as NormalizedSearchTokenArray;
-  // @ts-expect-error -- NormalizedSearchTokenArray has NORMALIZED_SEARCH_TOKEN_ARRAY property marker
+
   return buildNormalizedSearchTokens(arr as unknown as readonly SearchToken[]);
 }
 

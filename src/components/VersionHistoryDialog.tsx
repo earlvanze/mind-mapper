@@ -12,7 +12,7 @@ interface Props {
   open: boolean;
   onClose: () => void;
   onLoadSnapshot: (snapshot: NamedSnapshot) => void;
-  onSaveSnapshot: (name: string) => void;
+  onSaveSnapshot: (name: string) => { success: true } | { success: false; error: string };
 }
 
 export default function VersionHistoryDialog({ open, onClose, onLoadSnapshot, onSaveSnapshot }: Props) {
@@ -56,7 +56,7 @@ export default function VersionHistoryDialog({ open, onClose, onLoadSnapshot, on
     setSaving(true);
     setError(null);
 
-    const result = onSaveSnapshot(name) as { success: true } | { success: false; error: string };
+    const result = onSaveSnapshot(name);
     if (!result.success) {
       setError(result.error);
       setSaving(false);

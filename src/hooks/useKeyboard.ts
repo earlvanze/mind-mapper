@@ -213,9 +213,9 @@ export function useKeyboard({ onSearch, onFit, onFitSelection, onFitSubtree, onT
       if (e.key === 'ArrowRight') { e.preventDefault(); onFocusChild(); return; }
       if (e.key === 'PageUp') { e.preventDefault(); onFocusPrevSibling(); return; }
       if (e.key === 'PageDown') { e.preventDefault(); onFocusNextSibling(); return; }
-      if (e.key === 'Tab' && !e.shiftKey) { e.preventDefault(); addSibling(); return; }
-      if (e.key === 'Enter') { e.preventDefault(); addChild(); return; }
-      if (e.key === 'Tab' && e.shiftKey) { e.preventDefault(); promoteNode(); return; }
+      if (e.key === 'Tab' && !e.shiftKey) { e.preventDefault(); addSibling(focusId); return; }
+      if (e.key === 'Enter') { e.preventDefault(); addChild(focusId); return; }
+      if (e.key === 'Tab' && e.shiftKey) { e.preventDefault(); promoteNode(focusId); return; }
       if (e.key === 'Delete' || e.key === 'Backspace') {
         e.preventDefault();
         if (selectedEdgeId) {

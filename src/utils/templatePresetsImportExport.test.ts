@@ -183,7 +183,8 @@ describe('exportTemplatesToJson', () => {
     exportTemplatesToJson();
 
     expect(createObjectURL).toHaveBeenCalled();
-    const blobArg = createObjectURL.mock.calls[0]![0]! as Blob;
+    const calls = createObjectURL.mock.calls as unknown as Array<[Blob]>;
+    const blobArg: Blob = calls[0]![0]!;
     const text = await blobArg.text();
     const parsed = JSON.parse(text);
     expect(parsed.version).toBe(1);

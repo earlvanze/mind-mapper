@@ -92,7 +92,7 @@ describe('attachments utility', () => {
       Object.defineProperty(file, 'size', { value: 6 * 1024 * 1024 });
       const result = validateAttachment(file);
       expect(result.ok).toBe(false);
-      expect(result.error).toContain('File too large');
+      expect((result as { ok: false; error: string }).error).toContain('File too large');
     });
 
     it('rejects disallowed mime type', () => {
@@ -100,7 +100,7 @@ describe('attachments utility', () => {
       Object.defineProperty(file, 'size', { value: 1024 });
       const result = validateAttachment(file);
       expect(result.ok).toBe(false);
-      expect(result.error).toContain('not supported');
+      expect((result as { ok: false; error: string }).error).toContain('not supported');
     });
   });
 });

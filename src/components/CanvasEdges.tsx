@@ -9,7 +9,7 @@ type Props = {
   connectMode?: boolean;
   pendingConnection?: { fromId: string; toId: string | null } | null;
   onEdgeClick?: (fromId: string, toId: string) => void;
-  onEdgeHover?: (fromId: string, toId: string | null) => void;
+  onEdgeHover?: (fromId: string | null, toId: string | null) => void;
 };
 
 /**
@@ -227,7 +227,7 @@ function CanvasEdges({ nodes, viewport = { x: 0, y: 0, scale: 1 }, selectedEdgeI
   }, [getViewport, hitTestNodes]);
 
   const handlePointerLeave = useCallback(() => {
-    if (onEdgeHover) onEdgeHover(null);
+    if (onEdgeHover) onEdgeHover(null, null);
   }, [onEdgeHover]);
 
   useEffect(() => {

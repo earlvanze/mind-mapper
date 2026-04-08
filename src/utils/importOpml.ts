@@ -86,9 +86,9 @@ function rawToNodes(rawRoot: RawOutline): Record<string, Node> {
     if (raw._backgroundColor) style.backgroundColor = raw._backgroundColor;
     if (raw._textColor) style.textColor = raw._textColor;
     if (raw._borderColor) style.borderColor = raw._borderColor;
-    if (raw._shape && raw._shape !== 'rounded') style.shape = raw._shape;
+    if (raw._shape && raw._shape !== 'rounded' && ['ellipse','rectangle','rounded','diamond'].includes(raw._shape)) style.shape = raw._shape as 'ellipse' | 'rectangle' | 'rounded' | 'diamond';
     if (raw._icon) style.icon = raw._icon;
-    if (raw._fontSize) style.fontSize = raw._fontSize;
+    if (raw._fontSize) style.fontSize = raw._fontSize as 'small' | 'medium' | 'large';
     if (raw._bold) style.bold = true;
     if (raw._italic) style.italic = true;
 

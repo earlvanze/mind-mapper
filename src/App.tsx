@@ -23,8 +23,8 @@ const SearchDialog = lazy(() => import('./components/SearchDialog'));
 const HelpDialog = lazy(() => import('./components/HelpDialog'));
 const VersionHistoryDialogLazy = lazy(() => import('./components/VersionHistoryDialog'));
 const ThemeDialog = lazy(() => import('./components/ThemeDialog'));
-const TagPickerDialog = lazy(() => import('./components/TagPickerDialog'));
-const CommentDialog = lazy(() => import('./components/CommentDialog'));
+const TagPickerDialog = lazy(() => import('./components/TagPickerDialog') as any);
+const CommentDialog = lazy(() => import('./components/CommentDialog') as any);
 import HandwritingCanvas from './components/HandwritingCanvas';
 import CloudMenu from './components/CloudMenu';
 const ShortcutSettingsDialog = lazy(() => import('./components/ShortcutSettingsDialog'));
@@ -1037,7 +1037,11 @@ const toggleTagPicker = () => {
             mapName="Mind Mapp"
             mapData={{ nodes, focusId }}
             cloudProjectId={cloudProjectId}
-            onLoadProject={(data) => { importState(data.nodes as Record<string, Node>); setFocus(data.focusId); resetFocusHistoryTo('n_root', 'Loaded cloud project.'); }}
+            onLoadProject={(data) => {
+              importState(data.nodes as any);
+              setFocus(data.focusId);
+              resetFocusHistoryTo('n_root', 'Loaded cloud project.');
+            }}
             onSaveProject={(id) => { if (id) setCloudProjectId(id); else setCloudProjectId(undefined); }}
           />
           <button
@@ -1180,7 +1184,7 @@ const toggleTagPicker = () => {
         <TemplateDialog
             open={templateDialogOpen}
             onClose={() => setTemplateDialogOpen(false)}
-            theme={theme === 'dark' ? 'dark' : 'light'}
+            theme={getPresetById(themePresetId)?.isDark ? 'dark' : 'light'}
           />
           <ShortcutSettingsDialog open={shortcutSettingsOpen} onClose={() => setShortcutSettingsOpen(false)} />
         <HandwritingCanvas open={handwritingOpen} onClose={() => setHandwritingOpen(false)} />

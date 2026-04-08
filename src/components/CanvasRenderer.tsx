@@ -60,7 +60,7 @@ function CanvasRenderer({
       ctx.scale(viewport.scale, viewport.scale);
 
       drawEdges(ctx, nodes, hiddenIds);
-      drawNodes(ctx, nodes, focusId, selectedIds, editingId, hitMapRef.current, theme, hiddenIds);
+      drawNodes(ctx, nodes, focusId, selectedIds, editingId, hitMapRef.current, theme, hiddenIds, linkHitMapRef.current);
 
       ctx.restore();
     };
@@ -272,6 +272,7 @@ function drawNodes(
   hitMap: Map<string, { x: number; y: number; width: number; height: number }>,
   theme: 'light' | 'dark',
   hiddenIds: Set<string>,
+  linkHitMap: Map<string, { x: number; y: number; width: number; height: number; url: string }>,
 ) {
   const focusColor = getComputedStyle(document.documentElement).getPropertyValue('--color-accent').trim() || '#4f46e5';
 
@@ -318,7 +319,7 @@ function drawNodes(
       const linkIconW = ctx.measureText(linkIcon).width + 4;
       const linkAreaX = node.x + width - linkIconW - 4;
       const linkAreaY = node.y + 4;
-      linkHitMapRef.current.set(node.id, {
+      linkHitMap.set(node.id, {
         x: linkAreaX,
         y: linkAreaY,
         width: linkIconW + 4,
@@ -326,7 +327,7 @@ function drawNodes(
         url: node.style.linkUrl,
       });
     } else {
-      linkHitMapRef.current.delete(node.id);
+      linkHitMap.delete(node.id);
     }
 
     const borderColor = isFocused || isSelected ? focusColor : resolved.border;

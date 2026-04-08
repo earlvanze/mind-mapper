@@ -479,7 +479,7 @@ export default function StyleToolbar({ theme }: Props) {
 
   const renderPicker = (picker: typeof openPicker, ariaLabel: string, renderFn: () => JSX.Element) => {
     if (openPicker !== picker) return null;
-    const id = PICKER_IDS[picker];
+    const id = picker ? PICKER_IDS[picker] : undefined;
     return (
       <div
         id={id}

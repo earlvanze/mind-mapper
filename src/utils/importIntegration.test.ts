@@ -221,7 +221,7 @@ describe('Import Error Handling', () => {
   it('throws with helpful error message', () => {
     try {
       parseImportContent('not a known format');
-      fail('Should have thrown');
+      throw new Error('Should have thrown');
     } catch (e) {
       expect((e as Error).message).toContain('Unsupported');
       expect((e as Error).message).toContain('MindMapp JSON');
