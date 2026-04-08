@@ -3,8 +3,9 @@
 ## Mind Mapp
 - **Canonical source path:** `/home/umbrel/umbrel/app-data/nextcloud/data/nextcloud/data/umbrel/files/Dropbox/Projects/mind-mapp`
 - v1.2 complete, deployed to mindmap.earlco.in
-- 67 test files, 739 tests all passing
-- All backlog items done; only "Future" items remain (collab, mobile, plugins, cloud sync — all require backend)
+- 69 test files, 747 tests all passing
+- P1: edge click-select + Delete removal done (canvas mode); drag/drop edges pending
+- All P0 backlog items done; P1/P2/P3 pending (require backend: Supabase, CRDT sync, collab)
 - GitHub: `earlvanze/mind-mapper` (SSH)
 - Netlify auto-deploys from main branch
 
