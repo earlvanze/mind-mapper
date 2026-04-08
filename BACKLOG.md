@@ -19,10 +19,10 @@
 - [ ] Realtime collaboration
 - [x] Template library (save/load/apply named node styles, import/export JSON)
 - [x] Keyboard shortcuts (rebindable shortcuts dialog, import/export, conflict detection)
-- [ ] OPML import (export done)
+- [x] OPML import + export (standard outline interchange format, preserves tags, comments, styles, collapse state, cyclesafe)
 
-## Future / Unstarted
-- OPML import
+## Future
+- (none currently — all backlog items shipped! 🎉)
 
 ## Done
 - [x] Project scaffold (Vite + React + Zustand)
@@ -39,4 +39,4 @@
 - [x] connectNodes store action (cycle-safe edge creation, for drag-drop scaffolding)
 - [x] Template library — save/load/apply named node styles, import/export as JSON, rename/delete custom templates
 - [x] Keyboard shortcuts — fully rebindable shortcuts dialog with conflict detection, import/export/reset, numeric tuning for nudge/zoom
-- [x] OPML export — standard outline interchange format, preserves tags, comments, styles, collapse state, cyclesafe
+- [x] OPML export + import — standard outline interchange format, preserves tags, comments, styles, collapse state, cyclesafe
