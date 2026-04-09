@@ -198,6 +198,20 @@ function loadState() {
   return { ...defaultState, nodes: parsed.nodes, focusId: parsed.focusId, selectedIds: [parsed.focusId], selectedEdgeId: undefined };
 }
 
+// Cloud project ID for realtime collaboration broadcast
+let _cloudProjectId: string | null = null;
+export function setCloudProjectIdRef(id: string | null) { _cloudProjectId = id; }
+export function getCloudProjectIdRef() { return _cloudProjectId; }
+
+// Map of store actions to their broadcast operation types
+const ACTION_BROADCAST_MAP: Record<string, 'UPSERT' | 'DELETE' | 'EDGE_UPSERT' | 'EDGE_DELETE'> = {
+  setText: 'UPSERT', addChild: 'UPSERT', addSibling: 'UPSERT',
+  deleteNode: 'DELETE', deleteSelected: 'DELETE', duplicateSelected: 'UPSERT',
+  setNodeStyle: 'UPSERT', setNodeComment: 'UPSERT', addTag: 'UPSERT',
+  removeTag: 'UPSERT', addTagToSelected: 'UPSERT', moveNode: 'UPSERT',
+  moveNodes: 'UPSERT', toggleNodeCollapsed: 'UPSERT', connectNodes: 'EDGE_UPSERT',
+};
+
 export const useMindMapStore = create<MindMapState>((set, get) => ({
   ...(typeof window !== 'undefined' ? loadState() : defaultState),
   setText: (id, text) =>
@@ -1397,6 +1411,36 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
         return { nodes };
       }),
   }));
+
+// Realtime broadcast: subscribe to nodes changes and broadcast to collaborators
+const _doBroadcast = async (op: 'UPSERT' | 'DELETE' | 'EDGE_UPSERT' | 'EDGE_DELETE', payload: any) => {
+  const pid = _cloudProjectId;
+  if (!pid) return;
+  try {
+    const { broadcastChange } = await import('../lib/realtime');
+    await broadcastChange(pid, { operation: op, payload });
+  } catch { /* non-fatal */ }
+};
+
+let _prevNodes: Record<string, Node> | null = null;
+useMindMapStore.subscribe(
+  (state: typeof useMindMapStore.getState) => state.nodes,
+  (nodes: Record<string, Node>) => {
+    if (!_prevNodes) { _prevNodes = nodes; return; }
+    const changed: string[] = [];
+    const allIds = new Set([...Object.keys(nodes), ...Object.keys(_prevNodes)]);
+    for (const id of allIds) {
+      const b = _prevNodes[id], a = nodes[id];
+      if (!b || !a) { changed.push(id); continue; }
+      if (JSON.stringify(b) !== JSON.stringify(a)) changed.push(id);
+    }
+    for (const id of changed) {
+      if (nodes[id]) _doBroadcast('UPSERT', { node: nodes[id] });
+      else if (_prevNodes[id]) _doBroadcast('DELETE', { node: _prevNodes[id] });
+    }
+    _prevNodes = nodes;
+  }
+);
 
 // autosave is triggered from hook to debounce localStorage writes
 export function saveState() {
