@@ -1423,24 +1423,22 @@ const _doBroadcast = async (op: 'UPSERT' | 'DELETE' | 'EDGE_UPSERT' | 'EDGE_DELE
 };
 
 let _prevNodes: Record<string, Node> | null = null;
-useMindMapStore.subscribe(
-  (state: typeof useMindMapStore.getState) => state.nodes,
-  (nodes: Record<string, Node>) => {
-    if (!_prevNodes) { _prevNodes = nodes; return; }
-    const changed: string[] = [];
-    const allIds = new Set([...Object.keys(nodes), ...Object.keys(_prevNodes)]);
-    for (const id of allIds) {
-      const b = _prevNodes[id], a = nodes[id];
-      if (!b || !a) { changed.push(id); continue; }
-      if (JSON.stringify(b) !== JSON.stringify(a)) changed.push(id);
-    }
-    for (const id of changed) {
-      if (nodes[id]) _doBroadcast('UPSERT', { node: nodes[id] });
-      else if (_prevNodes[id]) _doBroadcast('DELETE', { node: _prevNodes[id] });
-    }
-    _prevNodes = nodes;
+useMindMapStore.subscribe((state) => {
+  const nodes = state.nodes;
+  if (!_prevNodes) { _prevNodes = nodes; return; }
+  const changed: string[] = [];
+  const allIds = new Set([...Object.keys(nodes), ...Object.keys(_prevNodes)]);
+  for (const id of allIds) {
+    const b = _prevNodes[id], a = nodes[id];
+    if (!b || !a) { changed.push(id); continue; }
+    if (JSON.stringify(b) !== JSON.stringify(a)) changed.push(id);
   }
-);
+  for (const id of changed) {
+    if (nodes[id]) _doBroadcast('UPSERT', { node: nodes[id] });
+    else if (_prevNodes[id]) _doBroadcast('DELETE', { node: _prevNodes[id] });
+  }
+  _prevNodes = nodes;
+});
 
 // autosave is triggered from hook to debounce localStorage writes
 export function saveState() {

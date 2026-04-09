@@ -30,7 +30,7 @@ describe('realtime module', () => {
     const { supabase } = await import('../lib/supabase');
     const handler = vi.fn();
     subscribeToProject('proj-abc', 'user-1', handler)();
-    expect(supabase.channel).toHaveBeenCalledWith('project-proj-abc', {
+    expect(supabase!.channel).toHaveBeenCalledWith('project-proj-abc', {
       config: { broadcast: { self: false } },
     });
   });
