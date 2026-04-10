@@ -5,6 +5,7 @@ import { loadTheme } from '../utils/theme';
 import { getNodeAnimationStyle } from '../utils/nodeAnimations';
 import { TagBadge } from './TagBadge';
 import { TagInput } from './TagInput';
+import { parseMathSegments, renderNodeTextForDisplay } from '../utils/mathRender';
 
 type Props = { 
   node: NodeType;
@@ -103,6 +104,8 @@ function Node({ node, isFocused, isSelected, isEditing, isFaded = false }: Props
 
   const theme = loadTheme();
   const resolved = resolveStyle(node.style, theme);
+  // Compute display text: render math expressions with KaTeX (view mode only)
+  const mathDisplayHtml = !isEditing && node.text ? renderNodeTextForDisplay(node.text) : undefined;
   const focusColor = getComputedStyle(document.documentElement).getPropertyValue('--color-accent').trim() || '#4f46e5';
 
   // Get entry/exit animation styles if node is new or deleting
@@ -391,7 +394,7 @@ function Node({ node, isFocused, isSelected, isEditing, isFaded = false }: Props
                 setText(node.id, html.trim() || 'New');
                 el.contentEditable = 'false';
               }}
-              dangerouslySetInnerHTML={{ __html: node.text || '' }}
+              dangerouslySetInnerHTML={{ __html: mathDisplayHtml ?? node.text ?? '' }}
             />
           </div>
           {node.tags && node.tags.length > 0 && (

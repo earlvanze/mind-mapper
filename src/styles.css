@@ -1109,3 +1109,13 @@ body, html, #root {
   color: #16a34a;
   font-size: 12px;
 }
+
+
+/* KaTeX math rendering */
+.katex-wrapper.katex-display {
+  display: block;
+  margin: 4px 0;
+  text-align: center;
+  overflow-x: auto;
+}
+
