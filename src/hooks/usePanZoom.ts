@@ -36,6 +36,17 @@ export function usePanZoom({ selector }: Options) {
     let originY = 0;
     let scale = 1;
 
+    let rafId = 0;
+    let isAnimating = false;
+    let animationStartTime = 0;
+    let animationStartOriginX = 0;
+    let animationStartOriginY = 0;
+    let animationStartScale = 1;
+    let animationTargetOriginX = 0;
+    let animationTargetOriginY = 0;
+    let animationTargetScale = 1;
+    const ANIMATION_DURATION = 550; // ms
+
     const emitViewChange = () => {
       window.dispatchEvent(
         new CustomEvent('mindmapp:viewchange', {
@@ -58,6 +69,49 @@ export function usePanZoom({ selector }: Options) {
 
     const getView = (): ViewState => ({ originX, originY, scale });
 
+    // Smooth ease-out cubic: ease-out-cubic easing
+    const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
+
+    const animateToView = (target: ViewState, duration = ANIMATION_DURATION) => {
+      // Cancel any running animation
+      if (rafId) cancelAnimationFrame(rafId);
+      isAnimating = true;
+
+      animationStartOriginX = originX;
+      animationStartOriginY = originY;
+      animationStartScale = scale;
+      animationTargetOriginX = target.originX;
+      animationTargetOriginY = target.originY;
+      animationTargetScale = clampScale(target.scale);
+      animationStartTime = performance.now();
+
+      const tick = (now: number) => {
+        const elapsed = now - animationStartTime;
+        const t = Math.min(1, elapsed / duration);
+        const eased = easeOutCubic(t);
+
+        originX = animationStartOriginX + (animationTargetOriginX - animationStartOriginX) * eased;
+        originY = animationStartOriginY + (animationTargetOriginY - animationStartOriginY) * eased;
+        scale = animationStartScale + (animationTargetScale - animationStartScale) * eased;
+
+        applyTransform();
+
+        if (t < 1) {
+          rafId = requestAnimationFrame(tick);
+        } else {
+          isAnimating = false;
+          rafId = 0;
+          // Snap to exact target at end
+          originX = animationTargetOriginX;
+          originY = animationTargetOriginY;
+          scale = animationTargetScale;
+          applyTransform();
+        }
+      };
+
+      rafId = requestAnimationFrame(tick);
+    };
+
     const onWheel = (e: WheelEvent) => {
       if (!e.ctrlKey && !e.metaKey) return;
       e.preventDefault();
@@ -66,13 +120,13 @@ export function usePanZoom({ selector }: Options) {
     };
 
     const resetView = () => {
-      setView({ scale: 1, originX: 0, originY: 0 });
+      animateToView({ originX: 0, originY: 0, scale: 1 });
     };
 
     const onDoubleClick = () => resetView();
 
     (window as any).__mindmappResetView = resetView;
-    (window as any).__mindmappPanZoom = { setView, getView, resetView };
+    (window as any).__mindmappPanZoom = { setView, getView, resetView, animateToView };
 
     const onMouseDown = (e: MouseEvent) => {
       if (!e.shiftKey) return;
@@ -190,6 +244,7 @@ export function usePanZoom({ selector }: Options) {
     window.addEventListener('keyup', onKeyUp);
 
     return () => {
+      if (rafId) cancelAnimationFrame(rafId);
       window.removeEventListener('wheel', onWheel);
       window.removeEventListener('dblclick', onDoubleClick);
       window.removeEventListener('mousedown', onMouseDown);

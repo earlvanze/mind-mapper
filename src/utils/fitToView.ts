@@ -10,6 +10,12 @@ export function fitToView() {
   const view = computeFitView(nodes, { width: rect.width, height: rect.height });
 
   const panZoom = (window as any).__mindmappPanZoom;
+  if (panZoom?.animateToView) {
+    panZoom.animateToView(view);
+    return;
+  }
+
+  // Fallback: instant set
   if (panZoom?.setView) {
     panZoom.setView(view);
     return;

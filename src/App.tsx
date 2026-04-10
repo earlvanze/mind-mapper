@@ -406,6 +406,11 @@ export default function App() {
     const rect = el.getBoundingClientRect();
     const view = computeFitView(targetNodes, { width: rect.width, height: rect.height }, { padding: 140, maxScale: 2 });
 
+    if (panZoom?.animateToView) {
+      panZoom.animateToView(view);
+      return;
+    }
+
     if (panZoom?.setView) {
       panZoom.setView(view);
       return;
