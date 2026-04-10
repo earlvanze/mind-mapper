@@ -16,6 +16,7 @@
 - [x] Tablet/phablet optimization
 
 ## Future
+- [x] Animated fit-to-view (ease-out-cubic, 550ms, all three fit operations)
 - (none currently — all backlog items shipped! 🎉)
 
 ## Done
