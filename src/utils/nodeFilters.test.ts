@@ -302,4 +302,81 @@ describe('nodeFilters', () => {
       expect(icons.sort()).toEqual(['🔴', '🟢']);
     });
   });
+
+  describe('focus mode', () => {
+    it('returns false when focusModeActive is false', () => {
+      const node = makeNode({ id: 'n1' });
+      expect(shouldFadeNode(node, {
+        activeTagFilters: [],
+        matchMode: 'any',
+        styleFilterShapes: [],
+        styleFilterColors: [],
+        styleFilterIcons: [],
+        focusModeActive: false,
+        focusedSubtreeIds: new Set(['n1']),
+      })).toBe(false);
+    });
+
+    it('dims node outside focused subtree when focusModeActive is true', () => {
+      const root = makeNode({ id: 'root' });
+      const child = makeNode({ id: 'child' });
+      const unrelated = makeNode({ id: 'unrelated' });
+      const subtree = new Set(['root', 'child']);
+      expect(shouldFadeNode(root, {
+        activeTagFilters: [],
+        matchMode: 'any',
+        styleFilterShapes: [],
+        styleFilterColors: [],
+        styleFilterIcons: [],
+        focusModeActive: true,
+        focusedSubtreeIds: subtree,
+      })).toBe(false);
+      expect(shouldFadeNode(child, {
+        activeTagFilters: [],
+        matchMode: 'any',
+        styleFilterShapes: [],
+        styleFilterColors: [],
+        styleFilterIcons: [],
+        focusModeActive: true,
+        focusedSubtreeIds: subtree,
+      })).toBe(false);
+      expect(shouldFadeNode(unrelated, {
+        activeTagFilters: [],
+        matchMode: 'any',
+        styleFilterShapes: [],
+        styleFilterColors: [],
+        styleFilterIcons: [],
+        focusModeActive: true,
+        focusedSubtreeIds: subtree,
+      })).toBe(true);
+    });
+
+    it('dims all nodes when focusedSubtreeIds is undefined but focusModeActive is true', () => {
+      const node = makeNode({ id: 'n1' });
+      expect(shouldFadeNode(node, {
+        activeTagFilters: [],
+        matchMode: 'any',
+        styleFilterShapes: [],
+        styleFilterColors: [],
+        styleFilterIcons: [],
+        focusModeActive: true,
+        focusedSubtreeIds: undefined,
+      })).toBe(true);
+    });
+
+    it('combines focus mode dim with tag filter dim (union)', () => {
+      const nodeInSubtree = makeNode({ id: 'n1', tags: ['work'] });
+      const subtree = new Set(['n1']);
+      // nodeInSubtree is in subtree so not dimmed by focus mode, but it doesn't match tag filter
+      expect(shouldFadeNode(nodeInSubtree, {
+        activeTagFilters: ['urgent'],
+        matchMode: 'any',
+        styleFilterShapes: [],
+        styleFilterColors: [],
+        styleFilterIcons: [],
+        focusModeActive: true,
+        focusedSubtreeIds: subtree,
+      })).toBe(true); // faded: tag filter fails (work != urgent)
+    });
+  });
 });

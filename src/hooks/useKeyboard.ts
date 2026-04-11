@@ -55,6 +55,7 @@ type Props = {
   onExpandAll: () => void;
   onVersionHistory: () => void;
   onPresentation: () => void;
+  onFocusMode: () => void;
   suspended?: boolean;
   /** Map of handler callback props, e.g. { onSearch: fn, onFit: fn } */
   handlers?: Partial<Record<string, () => void>>;

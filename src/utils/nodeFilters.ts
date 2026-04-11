@@ -16,6 +16,8 @@ export function shouldFadeNode(
     styleFilterDateMode?: 'created' | 'updated';
     styleFilterDateFrom?: number;
     styleFilterDateTo?: number;
+    focusModeActive?: boolean;
+    focusedSubtreeIds?: Set<string>;
   }
 ): boolean {
   const {
@@ -36,7 +38,7 @@ export function shouldFadeNode(
   const hasDateFilters = styleFilterDateMode != null && (styleFilterDateFrom != null || styleFilterDateTo != null);
 
   // No filters → no fading
-  if (!hasTagFilters && !hasShapeFilters && !hasColorFilters && !hasIconFilters && !hasDateFilters) {
+  if (!hasTagFilters && !hasShapeFilters && !hasColorFilters && !hasIconFilters && !hasDateFilters && !options.focusModeActive) {
     return false;
   }
 
@@ -47,8 +49,10 @@ export function shouldFadeNode(
   const iconPass = !hasIconFilters || checkIconFilter(node, styleFilterIcons);
   const datePass = !hasDateFilters || checkDateFilter(node, styleFilterDateMode!, styleFilterDateFrom, styleFilterDateTo);
 
-  // Node is faded if ANY category fails
-  return !(tagPass && shapePass && colorPass && iconPass && datePass);
+  // Focus mode dim: nodes outside the focused subtree are dimmed
+  const focusModeDim = options.focusModeActive && (!options.focusedSubtreeIds || !options.focusedSubtreeIds.has(node.id));
+  // Node is faded if ANY category fails or if focus mode dims it
+  return focusModeDim || !(tagPass && shapePass && colorPass && iconPass && datePass);
 }
 
 function checkTagFilter(node: Node, filters: string[], mode: 'any' | 'all'): boolean {

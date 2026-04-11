@@ -63,6 +63,7 @@ export default function App() {
   const [showGrid, setShowGrid] = useState(false);
   const [showMiniMap, setShowMiniMap] = useState(true);
   const [showAdvancedActions, setShowAdvancedActions] = useState(false);
+  const [focusModeActive, setFocusModeActive] = useState(false);
   const currentPresentationNodeId = presentationNodes[presentationIndex];
   const currentPresentationNode = currentPresentationNodeId ? nodes[currentPresentationNodeId] : null;
   const [pdfLayout, setPdfLayout] = useState<'a4-portrait' | 'a4-landscape' | 'letter-portrait' | 'letter-landscape' | 'fit'>('a4-portrait');
@@ -597,6 +598,7 @@ const toggleTagPicker = () => {
     onToggleCollapse: () => toggleNodeCollapsed(focusId),
     onCollapseAll: () => collapseAll(),
     onExpandAll: () => expandAll(),
+    onFocusMode: () => setFocusModeActive(v => !v),
     onVersionHistory: () => toggleVersionHistory(),
     handlers: {
       // Passthrough for custom shortcut dispatch — mirrors the named props above
@@ -644,6 +646,7 @@ const toggleTagPicker = () => {
       onCollapseAll: () => collapseAll(),
       onExpandAll: () => expandAll(),
       onVersionHistory: () => toggleVersionHistory(),
+      onFocusMode: () => setFocusModeActive(v => !v),
     },
     suspended: searchOpen || helpOpen || presentationOpen,
   });
@@ -651,6 +654,21 @@ const toggleTagPicker = () => {
   useAutosave(() => saveState(), 600);
 
   const selectedBounds = computeSelectionBounds(nodes, selectedIds);
+  // Compute focused subtree IDs for focus mode dimming
+  const focusedSubtreeIds = (() => {
+    const focused = nodes[focusId];
+    if (!focused) return new Set<string>();
+    const ids = new Set<string>();
+    const stack = [focused.id];
+    while (stack.length) {
+      const id = stack.pop()!;
+      if (ids.has(id)) continue;
+      ids.add(id);
+      const node = nodes[id];
+      if (node) stack.push(...node.children);
+    }
+    return ids;
+  })();
   const focusPathSegments = getFocusPathSegments(nodes, focusId);
   const focusedPath = focusPathSegments.map(segment => segment.label).join(' / ');
   const parentFocusId = getParentFocusId(nodes, focusId);
@@ -872,6 +890,7 @@ const toggleTagPicker = () => {
           <button title="Fit to view (F)" aria-keyshortcuts="F" onClick={() => fitToView()}>Fit</button>
           <button title="Fit selected nodes (Alt+F)" aria-keyshortcuts="Alt+F" onClick={fitSelection}>Fit Sel</button>
           <button title="Fit focused subtree (Alt+Shift+F)" aria-keyshortcuts="Alt+Shift+F" onClick={fitFocusedSubtree}>Fit Sub</button>
+          <button title="Toggle focus mode — dim all nodes outside focused subtree (Shift+F)" aria-pressed={focusModeActive} aria-keyshortcuts="Shift+F" onClick={() => setFocusModeActive(v => !v)}>{focusModeActive ? "Focus: ON" : "Focus: OFF"}</button>
           <button title="Collapse focused node (/)" aria-keyshortcuts="/" onClick={() => toggleNodeCollapsed(focusId)}>▾ Coll</button>
           <button title="Expand all nodes" onClick={expandAll}>▸ Expand All</button>
           <button title="Collapse all nodes" onClick={collapseAll}>▾ Collapse All</button>
@@ -1166,6 +1185,8 @@ const toggleTagPicker = () => {
             styleFilterDateMode: filterState.styleFilterDateMode,
             styleFilterDateFrom: filterState.styleFilterDateFrom,
             styleFilterDateTo: filterState.styleFilterDateTo,
+            focusModeActive: focusModeActive,
+            focusedSubtreeIds: focusModeActive ? focusedSubtreeIds : undefined,
           });
           return <Node key={n.id} node={n} isFocused={focusId === n.id} isSelected={selectedIds.includes(n.id)} isEditing={editingId === n.id} isFaded={isFaded} />;
         })}
