@@ -6,8 +6,9 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./src/vitest.setup.ts'],
-    pool: 'threads',
-    // Reduce from 600s to 120s — tests run in ~60s, plenty of buffer
+    // Use forks pool for reliability — threads pool times out on worker startup
+    // for certain test files on this machine.
+    pool: 'forks',
     testTimeout: 120000,
   },
 });
