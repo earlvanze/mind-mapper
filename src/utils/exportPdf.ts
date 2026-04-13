@@ -12,11 +12,11 @@ const LAYOUT_DIMS: Record<Exclude<PdfLayout, 'fit'>, { w: number; h: number }> =
 
 const MARGIN = 15;
 
-function cleanText(text: string) {
+export function cleanText(text: string) {
   return text.trim().replace(/\n+/g, ' ');
 }
 
-function sortIds(ids: string[], nodes: Record<string, Node>) {
+export function sortIds(ids: string[], nodes: Record<string, Node>) {
   return [...ids].sort((a, b) => {
     const na = nodes[a];
     const nb = nodes[b];
@@ -29,7 +29,7 @@ function sortIds(ids: string[], nodes: Record<string, Node>) {
   });
 }
 
-function estimateNodeHeight(text: string, fontSize: number): number {
+export function estimateNodeHeight(text: string, fontSize: number): number {
   const charsPerLine = 40;
   const lines = Math.ceil(text.length / charsPerLine);
   return lines * (fontSize * 0.45) + 10;
