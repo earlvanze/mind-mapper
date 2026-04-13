@@ -1,3 +1,7 @@
-export function confirmAction(message: string) {
-  return window.confirm(message);
+export function confirmAction(message: string): boolean {
+  try {
+    return window.confirm(message) ?? false;
+  } catch {
+    return false;
+  }
 }
