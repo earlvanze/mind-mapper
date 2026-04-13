@@ -318,6 +318,11 @@ body, html, #root {
   box-shadow: 0 0 0 2px var(--color-accent-bg);
 }
 
+.node.drag-over {
+  outline: 2px dashed var(--color-accent);
+  background: var(--color-accent-bg);
+}
+
 .search-overlay {
   position: fixed;
   inset: 0;

@@ -102,6 +102,7 @@ type MindMapState = {
   addSibling: (id: string) => void;
   addChild: (id: string) => void;
   promoteNode: (id: string) => void;
+  setNodeParent: (id: string, newParentId: string | null) => void;
   importState: (nodes: Record<string, Node>) => void;
   resetMap: () => void;
   deleteNode: (id: string) => void;
@@ -941,6 +942,38 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
     }
     updated[id] = { ...node, parentId: newParentId, x: node.x + 120 };
     set(s => ({ ...withHistory(s), nodes: updated, focusId: id, selectedIds: [id] }));
+  },
+  setNodeParent: (id, newParentId) => {
+    const state = get();
+    const node = state.nodes[id];
+    if (!node || id === rootId) return;
+    // Prevent creating cycles: new parent cannot be a descendant of id
+    if (newParentId !== null) {
+      let ancestor = newParentId;
+      while (ancestor) {
+        if (ancestor === id) return; // cycle detected
+        ancestor = state.nodes[ancestor]?.parentId ?? null;
+      }
+    }
+    const oldParentId = node.parentId;
+    if (oldParentId === newParentId) return;
+    const updated: Record<string, Node> = { ...state.nodes };
+    // Remove from old parent
+    if (oldParentId && updated[oldParentId]) {
+      updated[oldParentId] = {
+        ...updated[oldParentId],
+        children: updated[oldParentId].children.filter(c => c !== id),
+      };
+    }
+    // Add to new parent
+    if (newParentId !== null && updated[newParentId]) {
+      updated[newParentId] = {
+        ...updated[newParentId],
+        children: [...updated[newParentId].children, id],
+      };
+    }
+    updated[id] = { ...node, parentId: newParentId };
+    set(s => ({ ...withHistory(s), nodes: updated }));
   },
   importState: nodes =>
     set(state => {

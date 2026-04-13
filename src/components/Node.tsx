@@ -103,6 +103,7 @@ function Node({ node, isFocused, isSelected, isEditing, isFaded = false }: Props
   };
 
   const theme = loadTheme();
+  const [isDragOver, setIsDragOver] = useState(false);
   const resolved = resolveStyle(node.style, theme);
   // Compute display text: render math expressions with KaTeX (view mode only)
   const mathDisplayHtml = !isEditing && node.text ? renderNodeTextForDisplay(node.text) : undefined;
@@ -228,8 +229,28 @@ function Node({ node, isFocused, isSelected, isEditing, isFaded = false }: Props
         data-node-id={node.id}
         aria-selected={isSelected}
         tabIndex={isFocused ? 0 : -1}
-        className={`node ${isFocused ? 'focused' : ''} ${isSelected ? 'selected' : ''} ${connectMode ? 'connect-target' : ''}`}
+        className={`node ${isFocused ? 'focused' : ''} ${isSelected ? 'selected' : ''} ${isDragOver ? 'drag-over' : ''}`}
         style={nodeStyle}
+        draggable
+        onDragStart={(e) => {
+          e.dataTransfer.setData('text/plain', node.id);
+          e.dataTransfer.effectAllowed = 'move';
+        }}
+        onDragOver={(e) => {
+          if (isEditing) return;
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'move';
+          setIsDragOver(true);
+        }}
+        onDragLeave={() => setIsDragOver(false)}
+        onDrop={(e) => {
+          e.preventDefault();
+          setIsDragOver(false);
+          if (isEditing) return;
+          const draggedId = e.dataTransfer.getData('text/plain');
+          if (!draggedId || draggedId === node.id) return;
+          useMindMapStore.getState().setNodeParent(draggedId, node.id);
+        }}
         onMouseDown={(e) => {
           if (e.shiftKey || e.metaKey || e.ctrlKey) return;
           if (isEditing) return;

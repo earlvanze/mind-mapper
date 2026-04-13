@@ -5,10 +5,10 @@
 - [x] Add handwriting.js integration for OCR input
 
 ## P1 — High Priority
-- [x] Supabase auth integration
-- [x] Add edge CRUD + drag/drop (click-select + Delete done; creation + drag-drop done)
-- [x] Save/load projects to Supabase
-- [x] Export JSON + PNG/SVG (already in UI)
+- [ ] Supabase auth integration
+- [x] Add edge CRUD + drag/drop (click-select + Delete done; creation + drag-drop pending)
+- [ ] Save/load projects to Supabase
+- [ ] Export JSON + PNG/SVG
 
 ## P2 — Medium Priority
 - [x] Prezi-style zoom into node (open sub-items)
