@@ -1,10 +1,11 @@
 {
   "lastChecks": {
-    "loftyBatch": "2026-04-14T13:08:00Z",
-    "git": "2026-04-14T13:08:00Z",
+    "loftyBatch": "2026-04-14T14:08:00Z",
+    "git": "2026-04-14T14:08:00Z",
     "memory": "2026-04-14T06:08:00Z",
     "calendar": null
   },
   "pendingLoftyEntries": 32,
-  "notes": "Batch update paused at 1/33 properties. Ohio distributions task ready."
+  "ohioDistributionsReady": true,
+  "notes": "Batch update: 32/33 pending. Ohio distributions: 16 properties ready to disable (except 918 Frederick Blvd)."
 }
