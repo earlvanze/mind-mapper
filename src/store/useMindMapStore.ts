@@ -949,7 +949,7 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
     if (!node || id === rootId) return;
     // Prevent creating cycles: new parent cannot be a descendant of id
     if (newParentId !== null) {
-      let ancestor = newParentId;
+      let ancestor: string | null = newParentId;
       while (ancestor) {
         if (ancestor === id) return; // cycle detected
         ancestor = state.nodes[ancestor]?.parentId ?? null;
