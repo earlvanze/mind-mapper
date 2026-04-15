@@ -41,6 +41,14 @@
 ## P2+ — Additional
 - [x] Find & Replace dialog (Cmd/Ctrl+H) — search all nodes, replace text with regex/case-sensitivity options, per-node replace via double-click
 
+## 2026-04-14 (12:20 UTC) — TypeScript fix, build clean, 866 tests green. Pushed to origin/main. Tag v0.14.0 released.
+
 ## 2026-04-14 — Node reparenting cherry-picked from local feature branch. 866 tests green. 🎉
 
 ## 2026-04-14 (07:32 UTC) — All clear. 866 tests green, no uncommitted changes.
+
+## 2026-04-14 (08:01 UTC) — All clear. 866 tests green, no uncommitted changes. Backlog empty.
+
+## 2026-04-15 (03:51 UTC) — All clear. 866 tests green, no uncommitted changes. Backlog empty. Nothing to add.
+
+## 2026-04-15 (04:53 UTC) — All clear. 866 tests green, no uncommitted changes. Backlog empty. Nothing to add.
