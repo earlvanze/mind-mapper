@@ -1,11 +1,12 @@
 {
   "lastChecks": {
-    "loftyBatch": "2026-04-15T01:08:00Z",
-    "git": "2026-04-15T01:08:00Z",
-    "memory": "2026-04-15T01:08:00Z",
-    "calendar": "2026-04-14T18:08:00Z"
+    "loftyBatch": "2026-04-15T06:08:00Z",
+    "git": "2026-04-15T06:08:00Z",
+    "memory": "2026-04-15T06:08:00Z",
+    "calendar": "2026-04-15T06:08:00Z"
   },
-  "pendingLoftyEntries": 33,
+  "pendingLoftyEntries": 32,
   "ohioDistributionsReady": true,
-  "notes": "Git clean. 33 Lofty entries pending with fresh cookies. Late night — no action needed."
+  "ohioDistributionsStatus": "16 properties already disabled, Bowmanville needs manual enable",
+  "notes": "Git clean. 32 Lofty entries remaining (1/33 done). Fresh cookies available. Calendar checked."
 }
