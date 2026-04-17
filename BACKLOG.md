@@ -61,3 +61,5 @@
 ## 2026-04-17 (21:17 UTC) — 1110 tests green, build clean, no uncommitted changes. Backlog empty. Heartbeat state synced. Nothing to add.
 
 ## 2026-04-17 (21:14 UTC) — 1110 tests green, build clean, no uncommitted changes. Backlog empty. Nothing to add.
+
+## 2026-04-17 (22:20 UTC) — 1110 tests green, build clean, no uncommitted changes. Backlog empty. Added `test-results/` to `.gitignore` (vitest creates this dir from --coverage runs; was generating untracked artifacts). Pushed to origin/main.
