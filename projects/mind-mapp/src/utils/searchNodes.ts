@@ -188,14 +188,14 @@ function getSearchIndex(nodes: Record<string, Node>): SearchIndexEntry[] {
 }
 
 function normalizeTokens(input: SearchQueryInput): readonly SearchToken[] {
-  if (!Array.isArray(input)) return tokenizeSearchQuery(input);
+  if (!Array.isArray(input)) return tokenizeSearchQuery(input as string);
 
   const maybeNormalizedTokens = input as readonly SearchToken[] & { [NORMALIZED_SEARCH_TOKEN_ARRAY]?: true };
   if (maybeNormalizedTokens[NORMALIZED_SEARCH_TOKEN_ARRAY] === true) {
     return input;
   }
 
-  return buildNormalizedSearchTokens(input);
+  return buildNormalizedSearchTokens(input as readonly SearchToken[]);
 }
 
 function includesAllTerms(haystack: string, terms: readonly string[]): boolean {

@@ -10,7 +10,7 @@ describe('isTypingTarget', () => {
     const target = {
       closest: (selector: string) => (selector.includes('input') ? {} : null),
       isContentEditable: false,
-    } as EventTarget;
+    } as unknown as EventTarget;
 
     expect(isTypingTarget(target)).toBe(true);
   });
@@ -19,7 +19,7 @@ describe('isTypingTarget', () => {
     const target = {
       closest: () => null,
       isContentEditable: true,
-    } as EventTarget;
+    } as unknown as EventTarget;
 
     expect(isTypingTarget(target)).toBe(true);
   });
@@ -28,7 +28,7 @@ describe('isTypingTarget', () => {
     const target = {
       closest: () => null,
       isContentEditable: false,
-    } as EventTarget;
+    } as unknown as EventTarget;
 
     expect(isTypingTarget(target)).toBe(false);
   });

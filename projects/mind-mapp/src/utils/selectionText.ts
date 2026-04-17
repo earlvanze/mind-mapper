@@ -68,7 +68,7 @@ export function getFocusPathSegments(nodes: Record<string, Node>, focusId?: stri
 
   while (currentId && !visited.has(currentId) && nodes[currentId]) {
     visited.add(currentId);
-    const current = nodes[currentId];
+    const current: Node | undefined = nodes[currentId];
     chain.push({ id: current.id, label: nodeLabel(current) });
     currentId = current.parentId;
   }
