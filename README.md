@@ -2,7 +2,7 @@
 
 Collaborative mind-mapping with canvas, offline sync, and multi-format export.
 
-**866 tests, all green.**  
+**1110 tests, all green.**  
 Live: https://mindmapp.deno.dev
 
 ## Features
@@ -32,7 +32,7 @@ Live: https://mindmapp.deno.dev
 npm install
 npm run dev    # dev server at localhost:5173
 npm run build  # production build
-npm test       # 866 tests
+npm test       # 1110 tests
 ```
 
 ## Tech Stack
