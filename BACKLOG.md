@@ -53,3 +53,5 @@
 ## 2026-04-16 (18:00 UTC) — 866 tests green, build clean, no uncommitted changes. Backlog empty. Nothing to add.
 
 ## 2026-04-17 (14:57 UTC) — 1110 tests green, build clean, no uncommitted changes. Backlog empty. Nothing to add.
+
+## 2026-04-17 (19:09 UTC) — 1110 tests green, build clean, 8 TypeScript strict-mode errors fixed in projects/mind-mapp: Boolean() casts for !! on optional booleans (dialogInputKeys, searchToggle), as unknown as EventTarget for mock test targets, explicit 'as string' cast in normalizeTokens, explicit Node type annotation on 'current'. Both workspaces now pass tsc --noEmit. Pushed to origin/main.
