@@ -6,8 +6,17 @@ class MindMap {
         this.dragOffset = { x: 0, y: 0 };
         this.nodeIdCounter = 0;
         
+        // Zoom and pan state
+        this.scale = 1;
+        this.translateX = 0;
+        this.translateY = 0;
+        this.isPanning = false;
+        this.panStartX = 0;
+        this.panStartY = 0;
+        
         this.nodesContainer = document.getElementById('nodes');
         this.connectionsContainer = document.getElementById('connections');
+        this.canvasContainer = document.getElementById('canvas-container');
         this.nodeEditor = document.getElementById('node-editor');
         this.nodeTextInput = document.getElementById('node-text');
         
@@ -23,6 +32,11 @@ class MindMap {
         document.getElementById('load').addEventListener('click', () => this.load());
         document.getElementById('clear').addEventListener('click', () => this.clear());
         
+        // Zoom controls
+        document.getElementById('zoomIn').addEventListener('click', () => this.zoom(1.2));
+        document.getElementById('zoomOut').addEventListener('click', () => this.zoom(0.8));
+        document.getElementById('zoomReset').addEventListener('click', () => this.resetView());
+        
         document.getElementById('save-text').addEventListener('click', () => this.saveNodeText());
         document.getElementById('cancel-edit').addEventListener('click', () => this.hideEditor());
         
@@ -32,7 +46,6 @@ class MindMap {
             if (e.target.tagName === 'INPUT' && e.target.id !== 'node-text') return;
             
             if (e.key === 'Delete' || e.key === 'Backspace') {
-                // Don't delete if editor is open (user might be typing)
                 if (this.selectedNode && !this.nodeEditor.classList.contains('hidden')) return;
                 this.deleteNode();
             }
@@ -47,19 +60,120 @@ class MindMap {
                     this.hideEditor();
                 }
             }
+            // Zoom with +/- keys
+            if (e.key === '+' || e.key === '=') {
+                this.zoom(1.2);
+            }
+            if (e.key === '-' || e.key === '_') {
+                this.zoom(0.8);
+            }
+            if (e.key === '0' && (e.ctrlKey || e.metaKey)) {
+                e.preventDefault();
+                this.resetView();
+            }
+        });
+        
+        // Mouse wheel zoom
+        this.canvasContainer.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const rect = this.canvasContainer.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+            
+            const zoomFactor = e.deltaY > 0 ? 0.9 : 1.1;
+            this.zoomAt(zoomFactor, mouseX, mouseY);
+        }, { passive: false });
+        
+        // Pan with middle mouse button or space+drag
+        let spacePressed = false;
+        
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' && !spacePressed) {
+                spacePressed = true;
+                this.canvasContainer.style.cursor = 'grab';
+            }
+        });
+        
+        document.addEventListener('keyup', (e) => {
+            if (e.code === 'Space') {
+                spacePressed = false;
+                this.canvasContainer.style.cursor = 'default';
+            }
+        });
+        
+        this.canvasContainer.addEventListener('mousedown', (e) => {
+            // Middle mouse button or space+left click to pan
+            if (e.button === 1 || (e.button === 0 && spacePressed)) {
+                e.preventDefault();
+                this.isPanning = true;
+                this.panStartX = e.clientX - this.translateX;
+                this.panStartY = e.clientY - this.translateY;
+                this.canvasContainer.style.cursor = 'grabbing';
+            }
+        });
+        
+        document.addEventListener('mousemove', (e) => {
+            if (this.isPanning) {
+                this.translateX = e.clientX - this.panStartX;
+                this.translateY = e.clientY - this.panStartY;
+                this.updateTransform();
+            }
+        });
+        
+        document.addEventListener('mouseup', (e) => {
+            if (this.isPanning) {
+                this.isPanning = false;
+                this.canvasContainer.style.cursor = spacePressed ? 'grab' : 'default';
+            }
         });
         
         document.addEventListener('click', (e) => {
-            if (!e.target.closest('.node') && !e.target.closest('#node-editor') && !e.target.closest('#toolbar button')) {
+            if (!e.target.closest('.node') && !e.target.closest('#node-editor') && !e.target.closest('#toolbar button') && !e.target.closest('.zoom-controls')) {
                 this.deselectAll();
             }
         });
     }
     
+    zoom(factor) {
+        this.scale = Math.max(0.1, Math.min(5, this.scale * factor));
+        this.updateTransform();
+    }
+    
+    zoomAt(factor, x, y) {
+        const newScale = Math.max(0.1, Math.min(5, this.scale * factor));
+        
+        // Adjust translation to zoom towards the mouse position
+        const scaleDiff = newScale / this.scale;
+        this.translateX = x - (x - this.translateX) * scaleDiff;
+        this.translateY = y - (y - this.translateY) * scaleDiff;
+        
+        this.scale = newScale;
+        this.updateTransform();
+    }
+    
+    resetView() {
+        this.scale = 1;
+        this.translateX = 0;
+        this.translateY = 0;
+        this.updateTransform();
+    }
+    
+    updateTransform() {
+        const content = document.getElementById('content-layer');
+        if (content) {
+            content.style.transform = `translate(${this.translateX}px, ${this.translateY}px) scale(${this.scale})`;
+        }
+        // Also update zoom display
+        const zoomDisplay = document.getElementById('zoom-level');
+        if (zoomDisplay) {
+            zoomDisplay.textContent = `${Math.round(this.scale * 100)}%`;
+        }
+    }
+    
     addNode() {
         const id = `node-${this.nodeIdCounter++}`;
-        const x = window.innerWidth / 2 - 50;
-        const y = window.innerHeight / 2 - 20;
+        const x = (window.innerWidth / 2 - this.translateX) / this.scale - 50;
+        const y = (window.innerHeight / 2 - this.translateY) / this.scale - 20;
         
         const node = {
             id,
@@ -134,7 +248,9 @@ class MindMap {
         div.style.left = `${node.x}px`;
         div.style.top = `${node.y}px`;
         
-        div.addEventListener('mousedown', (e) => this.startDrag(e, node.id));
+        div.addEventListener('mousedown', (e) => {
+            if (e.button === 0) this.startDrag(e, node.id);
+        });
         div.addEventListener('dblclick', () => this.showEditor(node.id));
         div.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -145,7 +261,7 @@ class MindMap {
     }
     
     startDrag(e, nodeId) {
-        if (e.detail === 2) return;
+        e.preventDefault();
         
         this.draggedNode = nodeId;
         const node = document.getElementById(nodeId);
@@ -163,8 +279,8 @@ class MindMap {
     drag(e) {
         if (!this.draggedNode) return;
         
-        const x = e.clientX - this.dragOffset.x;
-        const y = e.clientY - this.dragOffset.y;
+        const x = (e.clientX - this.dragOffset.x - this.translateX) / this.scale;
+        const y = (e.clientY - this.dragOffset.y - this.translateY) / this.scale;
         
         const node = this.nodes.find(n => n.id === this.draggedNode);
         if (node) {
@@ -240,17 +356,15 @@ class MindMap {
         
         this.hideEditor = () => {
             this.nodeEditor.classList.add('hidden');
-            document.getElementById('save-text').removeEventListener('click', this.saveNodeText);
-            document.getElementById('cancel-edit').removeEventListener('click', this.hideEditor);
         };
         
-        document.getElementById('save-text').addEventListener('click', () => this.saveNodeText());
-        document.getElementById('cancel-edit').addEventListener('click', () => this.hideEditor());
+        document.getElementById('save-text').onclick = () => this.saveNodeText();
+        document.getElementById('cancel-edit').onclick = () => this.hideEditor();
         
-        this.nodeTextInput.addEventListener('keydown', (e) => {
+        this.nodeTextInput.onkeydown = (e) => {
             if (e.key === 'Enter') this.saveNodeText();
             if (e.key === 'Escape') this.hideEditor();
-        });
+        };
     }
     
     saveNodeText() {
@@ -270,7 +384,10 @@ class MindMap {
     save() {
         localStorage.setItem('mindmap-data', JSON.stringify({
             nodes: this.nodes,
-            nodeIdCounter: this.nodeIdCounter
+            nodeIdCounter: this.nodeIdCounter,
+            scale: this.scale,
+            translateX: this.translateX,
+            translateY: this.translateY
         }));
     }
     
@@ -280,12 +397,16 @@ class MindMap {
             const parsed = JSON.parse(data);
             this.nodes = parsed.nodes || [];
             this.nodeIdCounter = parsed.nodeIdCounter || 0;
+            this.scale = parsed.scale || 1;
+            this.translateX = parsed.translateX || 0;
+            this.translateY = parsed.translateY || 0;
             
             this.nodesContainer.innerHTML = '';
             this.connectionsContainer.innerHTML = '';
             
             this.nodes.forEach(node => this.renderNode(node));
             this.renderConnections();
+            this.updateTransform();
         }
     }
     
@@ -294,6 +415,7 @@ class MindMap {
             this.nodes = [];
             this.selectedNode = null;
             this.nodeIdCounter = 0;
+            this.resetView();
             this.nodesContainer.innerHTML = '';
             this.connectionsContainer.innerHTML = '';
             localStorage.removeItem('mindmap-data');

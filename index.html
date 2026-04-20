@@ -15,14 +15,24 @@
         <button id="load">Load</button>
         <button id="clear">Clear</button>
     </div>
+    <div id="zoom-controls" class="zoom-controls">
+        <button id="zoomOut" title="Zoom Out (-)">−</button>
+        <span id="zoom-level">100%</span>
+        <button id="zoomIn" title="Zoom In (+)">+</button>
+        <button id="zoomReset" title="Reset View (Ctrl+0)">⟲</button>
+    </div>
     <div id="shortcuts-hint">
         <span title="Delete selected node"><kbd>Del</kbd> delete</span>
         <span title="Edit selected node"><kbd>Enter</kbd> edit</span>
         <span title="Close editor"><kbd>Esc</kbd> close</span>
+        <span title="Zoom"><kbd>+</kbd><kbd>−</kbd> zoom</span>
+        <span title="Pan"><kbd>Space</kbd>+drag</span>
     </div>
     <div id="canvas-container">
         <svg id="connections"></svg>
-        <div id="nodes"></div>
+        <div id="content-layer">
+            <div id="nodes"></div>
+        </div>
     </div>
     <div id="node-editor" class="hidden">
         <input type="text" id="node-text" placeholder="Node text...">
