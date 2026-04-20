@@ -26,6 +26,29 @@ class MindMap {
         document.getElementById('save-text').addEventListener('click', () => this.saveNodeText());
         document.getElementById('cancel-edit').addEventListener('click', () => this.hideEditor());
         
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            // Don't trigger shortcuts when typing in input (except node-text)
+            if (e.target.tagName === 'INPUT' && e.target.id !== 'node-text') return;
+            
+            if (e.key === 'Delete' || e.key === 'Backspace') {
+                // Don't delete if editor is open (user might be typing)
+                if (this.selectedNode && !this.nodeEditor.classList.contains('hidden')) return;
+                this.deleteNode();
+            }
+            if (e.key === 'Enter') {
+                if (this.selectedNode && this.nodeEditor.classList.contains('hidden')) {
+                    e.preventDefault();
+                    this.showEditor(this.selectedNode);
+                }
+            }
+            if (e.key === 'Escape') {
+                if (!this.nodeEditor.classList.contains('hidden')) {
+                    this.hideEditor();
+                }
+            }
+        });
+        
         document.addEventListener('click', (e) => {
             if (!e.target.closest('.node') && !e.target.closest('#node-editor') && !e.target.closest('#toolbar button')) {
                 this.deselectAll();
