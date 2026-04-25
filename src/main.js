@@ -82,7 +82,6 @@ app.innerHTML = `
   <span id="undo-redo-btns">
     <button id="btn-undo" title="Undo (Ctrl+Z)">↩ Undo</button>
     <button id="btn-redo" title="Redo (Ctrl+Y)">↪ Redo</button>
-    <span id="zoom-indicator">100%</span>
   </span>
   <span class="toolbar-hint">Double-click canvas to add node. Double-click node to edit. Drag to move.</span>
   <div id="minimap-container"><canvas id="minimap"></canvas></div>
@@ -99,7 +98,7 @@ const btnConnect = document.getElementById('btn-connect')
 const btnExport = document.getElementById('btn-export')
 const btnUndo = document.getElementById('btn-undo')
 const btnRedo = document.getElementById('btn-redo')
-const zoomIndicator = document.getElementById('zoom-indicator')
+
 
 // ─── Sizing ───────────────────────────────────────────────────────────────────
 function resize() {
@@ -687,10 +686,6 @@ minimapCanvas.addEventListener('click', e => {
   render()
 })
 
-function updateZoomIndicator() {
-  zoomIndicator.textContent = Math.round(state.view.scale * 100) + '%'
-}
-
 function drawMinimap() {
   mctx.clearRect(0, 0, MINIMAP_W, MINIMAP_H)
   mctx.fillStyle = '#f8f7f4'
@@ -749,12 +744,7 @@ function drawMinimap() {
 }
 
 // ─── Render wrapper ────────────────────────────────────────────────────────────
-let lastZoomScale = -1
 function render() {
-  if (Math.abs(state.view.scale - lastZoomScale) > 0.001) {
-    updateZoomIndicator()
-    lastZoomScale = state.view.scale
-  }
   requestAnimationFrame(draw)
 }
 
