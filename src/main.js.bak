@@ -4,7 +4,7 @@ import './style.css'
 const state = {
   nodes: [],
   edges: [],
-  selectedNodes: [],  // array of node ids (multi-select)
+  selected: null,
   connecting: null,
   dragging: null,
   panning: false,
@@ -16,10 +16,6 @@ const state = {
   hoveredEdge: null,
   lastId: 0,
   lastEdgeId: 0,
-  // box selection
-  boxSelecting: false,
-  boxStart: null,
-  boxEnd: null,
 }
 
 const STORAGE_KEY = 'mind-mapp-v1'
@@ -64,7 +60,7 @@ function applySnapshot(snap) {
     state.edges = data.edges
     state.lastId = data.lastId
     state.lastEdgeId = data.lastEdgeId
-    state.selectedNodes = []
+    state.selected = null
     state.connecting = null
     state.editing = null
     save()
@@ -120,15 +116,6 @@ function nodeAt(mx, my) {
         world.y >= n.y && world.y <= n.y + n.height) return n
   }
   return null
-}
-
-function nodesInBox(x1, y1, x2, y2) {
-  const minX = Math.min(x1, x2), maxX = Math.max(x1, x2)
-  const minY = Math.min(y1, y2), maxY = Math.max(y1, y2)
-  return state.nodes.filter(n => {
-    const cx = n.x + n.width / 2, cy = n.y + n.height / 2
-    return cx >= minX && cx <= maxX && cy >= minY && cy <= maxY
-  })
 }
 
 function edgeAt(mx, my) {
@@ -240,19 +227,6 @@ function renderScene(ctx) {
     drawNode(ctx, n)
   }
 
-  // draw selection box
-  if (state.boxSelecting && state.boxStart && state.boxEnd) {
-    ctx.strokeStyle = '#aa3bff'
-    ctx.lineWidth = 1 / state.view.scale
-    ctx.setLineDash([4 / state.view.scale, 4 / state.view.scale])
-    const x1 = state.boxStart.x, y1 = state.boxStart.y
-    const x2 = state.boxEnd.x, y2 = state.boxEnd.y
-    ctx.strokeRect(x1, y1, x2 - x1, y2 - y1)
-    ctx.setLineDash([])
-    ctx.fillStyle = 'rgba(170,59,255,0.08)'
-    ctx.fillRect(x1, y1, x2 - x1, y2 - y1)
-  }
-
   ctx.restore()
 }
 
@@ -312,7 +286,7 @@ function drawEdgeLine(ctx, ax, ay, bx, by, color, dashed, highlighted = false) {
 }
 
 function drawNode(ctx, n) {
-  const isSelected = state.selectedNodes.includes(n.id)
+  const isSelected = state.selected === n.id
   const isEditing = state.editing === n.id
   const isHovered = state.hoveredNode === n.id
   const isConnecting = state.connecting === n.id
@@ -424,7 +398,8 @@ function commitEdit() {
     node.width = size.width
     node.height = size.height
   }
-  if (editInput.parentNode) { try { editInput.remove() } catch(e) { /* already removed */ } }
+  // Guard: only remove if still in DOM (blur may have already removed it)
+  if (!editCommitting && editInput.parentNode) editInput.remove()
   editInput = null
   state.editing = null
   historyCommit()
@@ -435,7 +410,7 @@ function commitEdit() {
 
 function cancelEdit() {
   if (!editInput || editCommitting) return
-  if (editInput.parentNode) { try { editInput.remove() } catch(e) { /* already removed */ } }
+  if (editInput.parentNode) editInput.remove()
   editInput = null
   state.editing = null
   editCommitting = false
@@ -459,52 +434,28 @@ canvas.addEventListener('mousedown', e => {
 
   const node = nodeAt(mx, my)
   if (node) {
-    if (e.shiftKey) {
-      // Toggle in multi-selection
-      if (state.selectedNodes.includes(node.id)) {
-        state.selectedNodes = state.selectedNodes.filter(id => id !== node.id)
-      } else {
-        state.selectedNodes = [...state.selectedNodes, node.id]
-      }
-    } else if (!state.selectedNodes.includes(node.id)) {
-      state.selectedNodes = [node.id]
-    }
-
-    if (state.connecting && !state.selectedNodes.includes(state.connecting) && state.selectedNodes.length === 1) {
+    state.selected = node.id
+    if (state.connecting && state.connecting !== node.id) {
       const id = ++state.lastEdgeId
       state.edges.push({ id, from: state.connecting, to: node.id })
       state.connecting = null
       btnConnect.classList.remove('active')
       historyCommit()
       save()
-    } else if (state.connecting && state.selectedNodes.includes(state.connecting) && state.selectedNodes.length > 1) {
-      // connect first selected to this node
-      const fromNode = state.nodes.find(n => n.id === state.connecting)
-      if (fromNode && fromNode.id !== node.id) {
-        const id = ++state.lastEdgeId
-        state.edges.push({ id, from: state.connecting, to: node.id })
-        historyCommit()
-        save()
-      }
-      state.connecting = null
-      btnConnect.classList.remove('active')
     } else {
-      state.dragging = { ids: [...state.selectedNodes], offsetX: mx / state.view.scale - node.x, offsetY: my / state.view.scale - node.y }
+      state.dragging = { id: node.id, offsetX: mx / state.view.scale - node.x, offsetY: my / state.view.scale - node.y }
     }
   } else {
     const edge = edgeAt(mx, my)
     if (edge) {
-      state.selectedNodes = []
+      state.selected = null
       state.edges = state.edges.filter(e => e.id !== edge.id)
       historyCommit()
       save()
     } else {
-      if (!e.shiftKey) state.selectedNodes = []
-      // start box selection
-      const world = screenToWorld(mx, my)
-      state.boxSelecting = true
-      state.boxStart = { x: world.x, y: world.y }
-      state.boxEnd = { x: world.x, y: world.y }
+      state.selected = null
+      state.connecting = null
+      btnConnect.classList.remove('active')
       state.panning = true
       state.panStart = { x: mx - state.view.x, y: my - state.view.y }
     }
@@ -518,17 +469,12 @@ canvas.addEventListener('mousemove', e => {
   const my = e.clientY - rect.top
   lastMouse = { x: mx, y: my }
 
-  if (state.dragging && state.dragging.ids.length > 0) {
-    for (const id of state.dragging.ids) {
-      const node = state.nodes.find(n => n.id === id)
-      if (node) {
-        node.x = mx / state.view.scale - state.dragging.offsetX
-        node.y = my / state.view.scale - state.dragging.offsetY
-      }
+  if (state.dragging) {
+    const node = state.nodes.find(n => n.id === state.dragging.id)
+    if (node) {
+      node.x = mx / state.view.scale - state.dragging.offsetX
+      node.y = my / state.view.scale - state.dragging.offsetY
     }
-  } else if (state.panning && state.boxSelecting) {
-    const world = screenToWorld(mx, my)
-    state.boxEnd = { x: world.x, y: world.y }
   } else if (state.panning) {
     state.view.x = mx - state.panStart.x
     state.view.y = my - state.panStart.y
@@ -540,20 +486,6 @@ canvas.addEventListener('mousemove', e => {
 })
 
 canvas.addEventListener('mouseup', e => {
-  if (state.boxSelecting && state.boxStart && state.boxEnd) {
-    const x1 = Math.min(state.boxStart.x, state.boxEnd.x)
-    const y1 = Math.min(state.boxStart.y, state.boxEnd.y)
-    const x2 = Math.max(state.boxStart.x, state.boxEnd.x)
-    const y2 = Math.max(state.boxStart.y, state.boxEnd.y)
-    if (Math.abs(x2 - x1) > 5 || Math.abs(y2 - y1) > 5) {
-      const boxed = nodesInBox(x1, y1, x2, y2)
-      state.selectedNodes = [...new Set([...state.selectedNodes, ...boxed.map(n => n.id)])]
-    }
-    state.boxSelecting = false
-    state.boxStart = null
-    state.boxEnd = null
-  }
-
   if (state.dragging) {
     historyCommit()
     save()
@@ -577,7 +509,7 @@ canvas.addEventListener('dblclick', e => {
   } else {
     const node = newNode(world.x, world.y)
     state.nodes.push(node)
-    state.selectedNodes = [node.id]
+    state.selected = node.id
     historyCommit()
     save()
     render()
@@ -602,14 +534,6 @@ canvas.addEventListener('wheel', e => {
 document.addEventListener('keydown', e => {
   if (state.editing) return
 
-  // Ctrl+A: select all nodes
-  if ((e.ctrlKey || e.metaKey) && e.key === 'a' && state.nodes.length > 0) {
-    e.preventDefault()
-    state.selectedNodes = state.nodes.map(n => n.id)
-    render()
-    return
-  }
-
   // Undo: Ctrl+Z / Cmd+Z
   if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
     e.preventDefault()
@@ -624,18 +548,17 @@ document.addEventListener('keydown', e => {
   }
 
   if (e.key === 'Delete' || e.key === 'Backspace') {
-    if (state.selectedNodes.length > 0) {
-      const toDelete = [...state.selectedNodes]
-      state.nodes = state.nodes.filter(n => !toDelete.includes(n.id))
-      state.edges = state.edges.filter(e => !toDelete.includes(e.from) && !toDelete.includes(e.to))
-      state.selectedNodes = []
+    if (state.selected !== null) {
+      state.nodes = state.nodes.filter(n => n.id !== state.selected)
+      state.edges = state.edges.filter(e => e.from !== state.selected && e.to !== state.selected)
+      state.selected = null
       historyCommit()
       save()
       render()
     }
   }
   if (e.key === 'Escape') {
-    state.selectedNodes = []
+    state.selected = null
     state.connecting = null
     btnConnect.classList.remove('active')
     render()
@@ -645,7 +568,7 @@ document.addEventListener('keydown', e => {
     const world = screenToWorld(cx, cy)
     const node = newNode(world.x, world.y)
     state.nodes.push(node)
-    state.selectedNodes = [node.id]
+    state.selected = node.id
     historyCommit()
     save()
     render()
@@ -655,8 +578,8 @@ document.addEventListener('keydown', e => {
     if (state.connecting) {
       state.connecting = null
       btnConnect.classList.remove('active')
-    } else if (state.selectedNodes.length > 0) {
-      state.connecting = state.selectedNodes[state.selectedNodes.length - 1]
+    } else if (state.selected !== null) {
+      state.connecting = state.selected
       btnConnect.classList.add('active')
     }
     render()
@@ -672,7 +595,7 @@ btnAdd.addEventListener('click', () => {
   const world = screenToWorld(cx, cy)
   const node = newNode(world.x, world.y)
   state.nodes.push(node)
-  state.selectedNodes = [node.id]
+  state.selected = node.id
   historyCommit()
   save()
   render()
@@ -683,8 +606,8 @@ btnConnect.addEventListener('click', () => {
   if (state.connecting) {
     state.connecting = null
     btnConnect.classList.remove('active')
-  } else if (state.selectedNodes.length > 0) {
-    state.connecting = state.selectedNodes[state.selectedNodes.length - 1]
+  } else if (state.selected !== null) {
+    state.connecting = state.selected
     btnConnect.classList.add('active')
   }
   render()
@@ -802,7 +725,7 @@ function drawMinimap() {
   }
 
   for (const n of state.nodes) {
-    const isSelected = state.selectedNodes.includes(n.id)
+    const isSelected = state.selected === n.id
     mctx.fillStyle = isSelected ? '#aa3bff' : '#fff'
     mctx.strokeStyle = isSelected ? '#7c2db8' : '#c4bfcc'
     mctx.lineWidth = 1
