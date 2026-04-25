@@ -2,15 +2,15 @@ import './style.css'
 
 // ─── State ───────────────────────────────────────────────────────────────────
 const state = {
-  nodes: [],       // { id, x, y, text, width, height, color }
-  edges: [],       // { id, from, to }
-  selected: null,  // node id
-  connecting: null, // node id | null (in progress edge)
-  dragging: null,   // { id, offsetX, offsetY }
-  panning: false,   // mid-canvas mouse down
+  nodes: [],
+  edges: [],
+  selected: null,
+  connecting: null,
+  dragging: null,
+  panning: false,
   panStart: { x: 0, y: 0 },
   view: { x: 0, y: 0, scale: 1 },
-  editing: null,     // node id being edited
+  editing: null,
   editText: '',
   hoveredNode: null,
   hoveredEdge: null,
@@ -18,78 +18,72 @@ const state = {
   lastEdgeId: 0,
 }
 
-// ─── Node Colors ─────────────────────────────────────────────────────────────
-const NODE_COLORS = [
-  { bg: '#ffffff', border: '#e5e4e7', label: 'White' },
-  { bg: '#fee2e2', border: '#fca5a5', label: 'Red' },
-  { bg: '#ffedd5', border: '#fdba74', label: 'Orange' },
-  { bg: '#fef9c3', border: '#fde047', label: 'Yellow' },
-  { bg: '#dcfce7', border: '#86efac', label: 'Green' },
-  { bg: '#dbeafe', border: '#93c5fd', label: 'Blue' },
-  { bg: '#ede9fe', border: '#c4b5fd', label: 'Purple' },
-  { bg: '#fce7f3', border: '#f9a8d4', label: 'Pink' },
-]
+const STORAGE_KEY = 'mind-mapp-v1'
 
-// ─── Undo/Redo ────────────────────────────────────────────────────────────────
+// ─── History (undo/redo) ─────────────────────────────────────────────────────
 const MAX_HISTORY = 50
 const history = { stack: [], index: -1 }
 
-function snapshot() {
-  const data = {
-    nodes: state.nodes.map(n => ({ ...n })),
-    edges: state.edges.map(e => ({ ...e })),
+function historySnapshot() {
+  return JSON.stringify({
+    nodes: state.nodes,
+    edges: state.edges,
     lastId: state.lastId,
     lastEdgeId: state.lastEdgeId,
-  }
-  // truncate forward history
+  })
+}
+
+function historyPush() {
+  // trim forward history
   history.stack = history.stack.slice(0, history.index + 1)
-  history.stack.push(data)
+  history.stack.push(historySnapshot())
   if (history.stack.length > MAX_HISTORY) history.stack.shift()
   history.index = history.stack.length - 1
 }
 
-function undo() {
+function historyUndo() {
   if (history.index <= 0) return
   history.index--
-  restoreSnapshot(history.stack[history.index])
+  applySnapshot(history.stack[history.index])
 }
 
-function redo() {
+function historyRedo() {
   if (history.index >= history.stack.length - 1) return
   history.index++
-  restoreSnapshot(history.stack[history.index])
+  applySnapshot(history.stack[history.index])
 }
 
-function restoreSnapshot(data) {
-  state.nodes = data.nodes.map(n => ({ ...n }))
-  state.edges = data.edges.map(e => ({ ...e }))
-  state.lastId = data.lastId
-  state.lastEdgeId = data.lastEdgeId
-  state.selected = null
-  state.connecting = null
-  state.dragging = null
-  state.panning = false
-  state.editing = null
-  save()
-  render()
+function applySnapshot(snap) {
+  try {
+    const data = JSON.parse(snap)
+    state.nodes = data.nodes
+    state.edges = data.edges
+    state.lastId = data.lastId
+    state.lastEdgeId = data.lastEdgeId
+    state.selected = null
+    state.connecting = null
+    state.editing = null
+    save()
+    render()
+  } catch (e) { /* ignore */ }
 }
 
-const STORAGE_KEY = 'mind-mapp-v1'
+function historyCommit() {
+  historyPush()
+}
 
 // ─── DOM ─────────────────────────────────────────────────────────────────────
 const app = document.getElementById('app')
 app.innerHTML = `
 <div class="toolbar">
-  <button id="btn-undo" title="Undo (Ctrl+Z)">↩</button>
-  <button id="btn-redo" title="Redo (Ctrl+Y)">↪</button>
-  <span class="toolbar-sep"></span>
   <button id="btn-add" title="Add node (A)">+ Node</button>
-  <button id="btn-connect" title="Connect mode (C)">⬌</button>
-  <div id="color-picker" class="color-picker" style="display:none"></div>
-  <button id="btn-export" title="Export PNG (E)">📷</button>
-  <span class="toolbar-sep"></span>
-  <span id="zoom-indicator" class="zoom-indicator">100%</span>
-  <span class="toolbar-hint">dbl-click canvas to add node · dbl-click node to edit · Del to delete · Ctrl+Z/Y undo/redo</span>
+  <button id="btn-connect" title="Connect mode (C)">⬌ Connect</button>
+  <button id="btn-export" title="Export PNG (E)">📷 Export</button>
+  <span id="undo-redo-btns">
+    <button id="btn-undo" title="Undo (Ctrl+Z)">↩ Undo</button>
+    <button id="btn-redo" title="Redo (Ctrl+Y)">↪ Redo</button>
+  </span>
+  <span class="toolbar-hint">Double-click canvas to add node. Double-click node to edit. Drag to move.</span>
   <div id="minimap-container"><canvas id="minimap"></canvas></div>
 </div>
 <canvas id="canvas"></canvas>
@@ -104,19 +98,6 @@ const btnConnect = document.getElementById('btn-connect')
 const btnExport = document.getElementById('btn-export')
 const btnUndo = document.getElementById('btn-undo')
 const btnRedo = document.getElementById('btn-redo')
-const colorPicker = document.getElementById('color-picker')
-const zoomIndicator = document.getElementById('zoom-indicator')
-
-// Build color swatches
-NODE_COLORS.forEach((c, i) => {
-  const swatch = document.createElement('button')
-  swatch.className = 'color-swatch'
-  swatch.style.background = c.bg
-  swatch.style.borderColor = c.border
-  swatch.title = c.label
-  swatch.dataset.index = i
-  colorPicker.appendChild(swatch)
-})
 
 // ─── Sizing ───────────────────────────────────────────────────────────────────
 function resize() {
@@ -140,10 +121,10 @@ function nodeAt(mx, my) {
 function edgeAt(mx, my) {
   const world = screenToWorld(mx, my)
   for (const e of state.edges) {
-    const fromNode = state.nodes.find(n => n.id === fromId(e))
-    const toNode = state.nodes.find(n => n.id === toId(e))
-    if (!fromNode || !toNode) continue
-    const [ax, ay, bx, by] = endpoints(fromNode, toNode)
+    const from = state.nodes.find(n => n.id === fromId(e))
+    const to = state.nodes.find(n => n.id === toId(e))
+    if (!from || !to) continue
+    const [ax, ay, bx, by] = endpoints(from, to)
     const d = distPointToSegment(world.x, world.y, ax, ay, bx, by)
     if (d < 8) return e
   }
@@ -193,10 +174,10 @@ function measureText(text, fontSize = 16) {
   }
 }
 
-function newNode(x, y, text = 'New Node', color = 0) {
+function newNode(x, y, text = 'New Node') {
   const id = ++state.lastId
   const size = measureText(text)
-  return { id, x: x - size.width / 2, y: y - size.height / 2, text, width: size.width, height: size.height, color }
+  return { id, x: x - size.width / 2, y: y - size.height / 2, text, width: size.width, height: size.height }
 }
 
 function save() {
@@ -205,7 +186,6 @@ function save() {
     edges: state.edges,
     lastId: state.lastId,
     lastEdgeId: state.lastEdgeId,
-    history: { stack: history.stack, index: history.index },
   }))
 }
 
@@ -217,45 +197,20 @@ function load() {
       state.edges = data.edges || []
       state.lastId = data.lastId || 0
       state.lastEdgeId = data.lastEdgeId || 0
-      if (data.history) {
-        history.stack = data.history.stack || []
-        history.index = data.history.index ?? -1
-      }
     }
   } catch (e) { /* ignore */ }
 }
 
-function updateUndoButtons() {
-  btnUndo.disabled = history.index <= 0
-  btnRedo.disabled = history.index >= history.stack.length - 1
-}
-
-function updateZoomIndicator() {
-  zoomIndicator.textContent = Math.round(state.view.scale * 100) + '%'
-}
-
-function updateColorPicker() {
-  if (state.selected !== null) {
-    colorPicker.style.display = 'flex'
-    const node = state.nodes.find(n => n.id === state.selected)
-    document.querySelectorAll('.color-swatch').forEach((s, i) => {
-      s.classList.toggle('active', node && node.color === i)
-    })
-  } else {
-    colorPicker.style.display = 'none'
-  }
-}
-
 // ─── Drawing ─────────────────────────────────────────────────────────────────
-function draw() {
+function renderScene(ctx) {
   ctx.clearRect(0, 0, canvas.width, canvas.height)
   ctx.save()
   ctx.setTransform(state.view.scale, 0, 0, state.view.scale, state.view.x, state.view.y)
 
-  drawGrid()
+  drawGrid(ctx)
 
   for (const e of state.edges) {
-    drawEdge(e)
+    drawEdge(ctx, e)
   }
 
   if (state.connecting) {
@@ -264,21 +219,23 @@ function draw() {
       const sx = lastMouse.x, sy = lastMouse.y
       const world = screenToWorld(sx, sy)
       const [ax, ay] = [from.x + from.width / 2, from.y + from.height / 2]
-      drawEdgeLine(ax, ay, world.x, world.y, '#aa3bff', true)
+      drawEdgeLine(ctx, ax, ay, world.x, world.y, '#aa3bff', true)
     }
   }
 
   for (const n of state.nodes) {
-    drawNode(n)
+    drawNode(ctx, n)
   }
 
   ctx.restore()
-
-  drawMinimap()
-  updateZoomIndicator()
 }
 
-function drawGrid() {
+function draw() {
+  renderScene(ctx)
+  drawMinimap()
+}
+
+function drawGrid(ctx) {
   const gridSize = 40
   const world = screenToWorld(0, 0)
   const worldEnd = screenToWorld(canvas.width, canvas.height)
@@ -298,16 +255,16 @@ function drawGrid() {
   ctx.stroke()
 }
 
-function drawEdge(e) {
-  const fromNode = state.nodes.find(n => n.id === fromId(e))
-  const toNode = state.nodes.find(n => n.id === toId(e))
-  if (!fromNode || !toNode) return
-  const [ax, ay, bx, by] = endpoints(fromNode, toNode)
+function drawEdge(ctx, e) {
+  const from = state.nodes.find(n => n.id === fromId(e))
+  const to = state.nodes.find(n => n.id === toId(e))
+  if (!from || !to) return
+  const [ax, ay, bx, by] = endpoints(from, to)
   const isHovered = state.hoveredEdge && state.hoveredEdge.id === e.id
-  drawEdgeLine(ax, ay, bx, by, isHovered ? '#aa3bff' : '#6b6375', false, isHovered)
+  drawEdgeLine(ctx, ax, ay, bx, by, isHovered ? '#aa3bff' : '#6b6375', false, isHovered)
 }
 
-function drawEdgeLine(ax, ay, bx, by, color, dashed, highlighted = false) {
+function drawEdgeLine(ctx, ax, ay, bx, by, color, dashed, highlighted = false) {
   ctx.strokeStyle = color
   ctx.lineWidth = (highlighted ? 3 : 2) / state.view.scale
   ctx.setLineDash(dashed ? [6 / state.view.scale, 4 / state.view.scale] : [])
@@ -328,25 +285,17 @@ function drawEdgeLine(ax, ay, bx, by, color, dashed, highlighted = false) {
   ctx.fill()
 }
 
-function drawNode(n) {
+function drawNode(ctx, n) {
   const isSelected = state.selected === n.id
   const isEditing = state.editing === n.id
   const isHovered = state.hoveredNode === n.id
   const isConnecting = state.connecting === n.id
 
-  const colorDef = NODE_COLORS[n.color ?? 0]
-
   ctx.shadowColor = 'rgba(0,0,0,0.15)'
   ctx.shadowBlur = 8 / state.view.scale
   ctx.shadowOffsetY = 3 / state.view.scale
 
-  // Determine background
-  let bgColor
-  if (isSelected) bgColor = '#aa3bff'
-  else if (isConnecting) bgColor = '#c084fc'
-  else bgColor = colorDef.bg
-
-  ctx.fillStyle = bgColor
+  ctx.fillStyle = isSelected ? '#aa3bff' : isConnecting ? '#c084fc' : isHovered ? '#f4f3ec' : '#fff'
   roundRect(ctx, n.x, n.y, n.width, n.height, 8 / state.view.scale)
   ctx.fill()
 
@@ -354,15 +303,13 @@ function drawNode(n) {
   ctx.shadowBlur = 0
   ctx.shadowOffsetY = 0
 
-  // Border
-  ctx.strokeStyle = isSelected ? '#7c2db8' : isConnecting ? '#a855f7' : colorDef.border
+  ctx.strokeStyle = isSelected ? '#7c2db8' : '#e5e4e7'
   ctx.lineWidth = (isSelected || isHovered ? 2 : 1) / state.view.scale
   roundRect(ctx, n.x, n.y, n.width, n.height, 8 / state.view.scale)
   ctx.stroke()
 
-  // Text
   if (!isEditing) {
-    ctx.fillStyle = isSelected || isConnecting ? '#ffffff' : '#08060d'
+    ctx.fillStyle = isSelected ? '#fff' : '#08060d'
     ctx.font = `16px system-ui, sans-serif`
     const lines = n.text.split('\n')
     const lineHeight = 16 * 1.4
@@ -390,6 +337,7 @@ function roundRect(ctx, x, y, w, h, r) {
 
 // ─── In-place text editing ─────────────────────────────────────────────────────
 let editInput = null
+let editCommitting = false
 
 function startEditing(node) {
   state.editing = node.id
@@ -440,31 +388,33 @@ function startEditing(node) {
 }
 
 function commitEdit() {
-  if (!editInput) return
+  if (!editInput || editCommitting) return
+  editCommitting = true
   const node = state.nodes.find(n => n.id === state.editing)
   if (node) {
     const newText = editInput.value.trim() || 'Node'
-    if (newText !== node.text) {
-      node.text = newText
-      const size = measureText(newText)
-      node.width = size.width
-      node.height = size.height
-      snapshot()
-      save()
-    }
+    node.text = newText
+    const size = measureText(newText)
+    node.width = size.width
+    node.height = size.height
   }
+  editInput.removeEventListener('blur', commitEdit)
   editInput.remove()
   editInput = null
   state.editing = null
+  historyCommit()
+  save()
+  editCommitting = false
   render()
-  updateUndoButtons()
 }
 
 function cancelEdit() {
-  if (!editInput) return
+  if (!editInput || editCommitting) return
+  editInput.removeEventListener('blur', commitEdit)
   editInput.remove()
   editInput = null
   state.editing = null
+  editCommitting = false
   render()
 }
 
@@ -486,13 +436,12 @@ canvas.addEventListener('mousedown', e => {
   const node = nodeAt(mx, my)
   if (node) {
     state.selected = node.id
-    updateColorPicker()
     if (state.connecting && state.connecting !== node.id) {
       const id = ++state.lastEdgeId
       state.edges.push({ id, from: state.connecting, to: node.id })
       state.connecting = null
       btnConnect.classList.remove('active')
-      snapshot()
+      historyCommit()
       save()
     } else {
       state.dragging = { id: node.id, offsetX: mx / state.view.scale - node.x, offsetY: my / state.view.scale - node.y }
@@ -501,13 +450,11 @@ canvas.addEventListener('mousedown', e => {
     const edge = edgeAt(mx, my)
     if (edge) {
       state.selected = null
-      updateColorPicker()
       state.edges = state.edges.filter(e => e.id !== edge.id)
-      snapshot()
+      historyCommit()
       save()
     } else {
       state.selected = null
-      updateColorPicker()
       state.connecting = null
       btnConnect.classList.remove('active')
       state.panning = true
@@ -541,14 +488,13 @@ canvas.addEventListener('mousemove', e => {
 
 canvas.addEventListener('mouseup', e => {
   if (state.dragging) {
-    snapshot()
+    historyCommit()
     save()
   }
   state.dragging = null
   state.panning = false
   mouseState.down = false
   render()
-  updateUndoButtons()
 })
 
 canvas.addEventListener('dblclick', e => {
@@ -565,11 +511,9 @@ canvas.addEventListener('dblclick', e => {
     const node = newNode(world.x, world.y)
     state.nodes.push(node)
     state.selected = node.id
-    updateColorPicker()
-    snapshot()
+    historyCommit()
     save()
     render()
-    updateUndoButtons()
     setTimeout(() => startEditing(node), 50)
   }
 })
@@ -590,35 +534,32 @@ canvas.addEventListener('wheel', e => {
 // Keyboard
 document.addEventListener('keydown', e => {
   if (state.editing) return
+
+  // Undo: Ctrl+Z / Cmd+Z
   if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
     e.preventDefault()
-    undo()
-    updateUndoButtons()
-    updateColorPicker()
+    historyUndo()
     return
   }
+  // Redo: Ctrl+Y or Ctrl+Shift+Z
   if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) {
     e.preventDefault()
-    redo()
-    updateUndoButtons()
-    updateColorPicker()
+    historyRedo()
     return
   }
+
   if (e.key === 'Delete' || e.key === 'Backspace') {
     if (state.selected !== null) {
-      snapshot()
       state.nodes = state.nodes.filter(n => n.id !== state.selected)
       state.edges = state.edges.filter(e => e.from !== state.selected && e.to !== state.selected)
       state.selected = null
-      updateColorPicker()
+      historyCommit()
       save()
       render()
-      updateUndoButtons()
     }
   }
   if (e.key === 'Escape') {
     state.selected = null
-    updateColorPicker()
     state.connecting = null
     btnConnect.classList.remove('active')
     render()
@@ -629,11 +570,9 @@ document.addEventListener('keydown', e => {
     const node = newNode(world.x, world.y)
     state.nodes.push(node)
     state.selected = node.id
-    updateColorPicker()
-    snapshot()
+    historyCommit()
     save()
     render()
-    updateUndoButtons()
     setTimeout(() => startEditing(node), 50)
   }
   if (e.key === 'c' || e.key === 'C') {
@@ -652,29 +591,15 @@ document.addEventListener('keydown', e => {
 })
 
 // Buttons
-btnUndo.addEventListener('click', () => {
-  undo()
-  updateUndoButtons()
-  updateColorPicker()
-})
-
-btnRedo.addEventListener('click', () => {
-  redo()
-  updateUndoButtons()
-  updateColorPicker()
-})
-
 btnAdd.addEventListener('click', () => {
   const cx = canvas.width / 2, cy = canvas.height / 2
   const world = screenToWorld(cx, cy)
   const node = newNode(world.x, world.y)
   state.nodes.push(node)
   state.selected = node.id
-  updateColorPicker()
-  snapshot()
+  historyCommit()
   save()
   render()
-  updateUndoButtons()
   setTimeout(() => startEditing(node), 50)
 })
 
@@ -691,38 +616,29 @@ btnConnect.addEventListener('click', () => {
 
 btnExport.addEventListener('click', exportPNG)
 
-// Color picker swatches
-colorPicker.addEventListener('click', e => {
-  const swatch = e.target.closest('.color-swatch')
-  if (!swatch) return
-  const idx = parseInt(swatch.dataset.index, 10)
-  if (state.selected === null) return
-  const node = state.nodes.find(n => n.id === state.selected)
-  if (!node) return
-  if (node.color !== idx) {
-    node.color = idx
-    snapshot()
-    save()
-    render()
-  }
-  updateColorPicker()
+btnUndo.addEventListener('click', () => {
+  if (state.editing) return
+  historyUndo()
+})
+
+btnRedo.addEventListener('click', () => {
+  if (state.editing) return
+  historyRedo()
 })
 
 function exportPNG() {
   const savedView = { ...state.view }
   state.view = { x: 0, y: 0, scale: 1 }
+
   const tempCanvas = document.createElement('canvas')
   tempCanvas.width = canvas.width
   tempCanvas.height = canvas.height
   const tempCtx = tempCanvas.getContext('2d')
   tempCtx.fillStyle = '#fff'
   tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height)
-  tempCtx.save()
-  tempCtx.setTransform(1, 0, 0, 1, 0, 0)
-  state.view.x = 0; state.view.y = 0
-  draw()
-  tempCtx.restore()
-  tempCtx.drawImage(canvas, 0, 0)
+
+  renderScene(tempCtx)
+
   state.view = savedView
 
   const link = document.createElement('a')
@@ -799,10 +715,10 @@ function drawMinimap() {
   mctx.strokeStyle = '#c4bfcc'
   mctx.lineWidth = 1
   for (const e of state.edges) {
-    const fromNode = state.nodes.find(n => n.id === fromId(e))
-    const toNode = state.nodes.find(n => n.id === toId(e))
-    if (!fromNode || !toNode) continue
-    const [ax, ay, bx, by] = endpoints(fromNode, toNode)
+    const from = state.nodes.find(n => n.id === fromId(e))
+    const to = state.nodes.find(n => n.id === toId(e))
+    if (!from || !to) continue
+    const [ax, ay, bx, by] = endpoints(from, to)
     mctx.beginPath()
     mctx.moveTo(ax * scale + offsetX, ay * scale + offsetY)
     mctx.lineTo(bx * scale + offsetX, by * scale + offsetY)
@@ -811,9 +727,8 @@ function drawMinimap() {
 
   for (const n of state.nodes) {
     const isSelected = state.selected === n.id
-    const colorDef = NODE_COLORS[n.color ?? 0]
-    mctx.fillStyle = isSelected ? '#aa3bff' : colorDef.bg
-    mctx.strokeStyle = isSelected ? '#7c2db8' : colorDef.border
+    mctx.fillStyle = isSelected ? '#aa3bff' : '#fff'
+    mctx.strokeStyle = isSelected ? '#7c2db8' : '#c4bfcc'
     mctx.lineWidth = 1
     mctx.fillRect(n.x * scale + offsetX, n.y * scale + offsetY, n.width * scale, n.height * scale)
     mctx.strokeRect(n.x * scale + offsetX, n.y * scale + offsetY, n.width * scale, n.height * scale)
@@ -835,12 +750,12 @@ function render() {
 
 // ─── Boot ─────────────────────────────────────────────────────────────────────
 load()
-snapshot() // initial state for undo
+// Initialize history after load
+historyPush()
+
 if (state.nodes.length === 0) {
   const center = screenToWorld(canvas.width / 2, canvas.height / 2)
   state.nodes.push(newNode(center.x, center.y, 'Mind Map'))
+  historyCommit()
 }
 render()
-updateUndoButtons()
-updateColorPicker()
-updateZoomIndicator()
