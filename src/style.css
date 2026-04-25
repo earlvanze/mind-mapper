@@ -1,0 +1,88 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --text: #6b6375;
+  --text-h: #08060d;
+  --bg: #fff;
+  --border: #e5e4e7;
+  --accent: #aa3bff;
+  --accent-bg: rgba(170, 59, 255, 0.1);
+  color-scheme: light;
+  color: var(--text);
+  background: var(--bg);
+  font-family: system-ui, sans-serif;
+}
+
+body { overflow: hidden; }
+
+#app { width: 100vw; height: 100vh; display: flex; flex-direction: column; }
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+  flex-shrink: 0;
+}
+
+.toolbar button {
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: #fff;
+  font-size: 14px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color 0.2s, background 0.2s;
+}
+.toolbar button:hover { border-color: var(--accent); background: var(--accent-bg); }
+.toolbar button.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+.toolbar-hint {
+  margin-left: 12px;
+  font-size: 13px;
+  color: var(--text);
+  opacity: 0.7;
+}
+
+canvas { flex: 1; display: block; cursor: default; }
+canvas.grabbing { cursor: grabbing; }
+
+.node-edit-input {
+  position: fixed;
+  font-size: 16px;
+  font-family: system-ui, sans-serif;
+  padding: 6px;
+  border: 2px solid #aa3bff;
+  border-radius: 8px;
+  outline: none;
+  resize: none;
+  background: #fff;
+  z-index: 1000;
+}
+
+#minimap-container {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  z-index: 100;
+}
+
+#minimap {
+  display: block;
+  cursor: pointer;
+}
+
+#minimap-viewport {
+  position: absolute;
+  border: 1.5px solid var(--accent);
+  background: rgba(170, 59, 255, 0.08);
+  pointer-events: none;
+  border-radius: 2px;
+}
