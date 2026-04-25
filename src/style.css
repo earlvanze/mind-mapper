@@ -79,3 +79,17 @@ canvas.grabbing { cursor: grabbing; }
 }
 #minimap-container:hover { border-color: var(--accent); }
 #minimap { display: block; }
+
+#zoom-indicator {
+  font-size: 13px;
+  color: var(--text);
+  min-width: 44px;
+  text-align: center;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  font-variant-numeric: tabular-nums;
+  cursor: default;
+  user-select: none;
+}
