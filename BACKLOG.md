@@ -66,3 +66,5 @@
 
 
 ## 2026-04-20 (12:15 UTC) — 1110 tests green, build clean, no uncommitted changes. Backlog empty. Nothing to add.
+
+## 2026-04-25 (10:01 UTC) — 1354 tests green, build clean, no uncommitted changes. Backlog empty. 4 untracked legacy scaffold files noted (ARCHITECTURE.md, KEYBINDINGS.md, UX_FLOW.md, app/) — old v0.1 scaffold, not part of current codebase.
