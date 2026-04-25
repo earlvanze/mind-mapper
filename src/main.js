@@ -2,7 +2,7 @@ import './style.css'
 
 // ─── State ───────────────────────────────────────────────────────────────────
 const state = {
-  nodes: [],       // { id, x, y, text, width, height }
+  nodes: [],       // { id, x, y, text, width, height, color }
   edges: [],       // { id, from, to }
   selected: null,  // node id
   connecting: null, // node id | null (in progress edge)
@@ -17,6 +17,18 @@ const state = {
   lastId: 0,
   lastEdgeId: 0,
 }
+
+// ─── Node Colors ─────────────────────────────────────────────────────────────
+const NODE_COLORS = [
+  { bg: '#ffffff', border: '#e5e4e7', label: 'White' },
+  { bg: '#fee2e2', border: '#fca5a5', label: 'Red' },
+  { bg: '#ffedd5', border: '#fdba74', label: 'Orange' },
+  { bg: '#fef9c3', border: '#fde047', label: 'Yellow' },
+  { bg: '#dcfce7', border: '#86efac', label: 'Green' },
+  { bg: '#dbeafe', border: '#93c5fd', label: 'Blue' },
+  { bg: '#ede9fe', border: '#c4b5fd', label: 'Purple' },
+  { bg: '#fce7f3', border: '#f9a8d4', label: 'Pink' },
+]
 
 // ─── Undo/Redo ────────────────────────────────────────────────────────────────
 const MAX_HISTORY = 50
@@ -68,13 +80,16 @@ const STORAGE_KEY = 'mind-mapp-v1'
 const app = document.getElementById('app')
 app.innerHTML = `
 <div class="toolbar">
-  <button id="btn-undo" title="Undo (Ctrl+Z)">↩ Undo</button>
-  <button id="btn-redo" title="Redo (Ctrl+Y)">↪ Redo</button>
+  <button id="btn-undo" title="Undo (Ctrl+Z)">↩</button>
+  <button id="btn-redo" title="Redo (Ctrl+Y)">↪</button>
   <span class="toolbar-sep"></span>
   <button id="btn-add" title="Add node (A)">+ Node</button>
-  <button id="btn-connect" title="Connect mode (C)">⬌ Connect</button>
-  <button id="btn-export" title="Export PNG (E)">📷 Export</button>
-  <span class="toolbar-hint">Double-click canvas to add node. Double-click node to edit. Drag to move.</span>
+  <button id="btn-connect" title="Connect mode (C)">⬌</button>
+  <div id="color-picker" class="color-picker" style="display:none"></div>
+  <button id="btn-export" title="Export PNG (E)">📷</button>
+  <span class="toolbar-sep"></span>
+  <span id="zoom-indicator" class="zoom-indicator">100%</span>
+  <span class="toolbar-hint">dbl-click canvas to add node · dbl-click node to edit · Del to delete · Ctrl+Z/Y undo/redo</span>
   <div id="minimap-container"><canvas id="minimap"></canvas></div>
 </div>
 <canvas id="canvas"></canvas>
@@ -89,6 +104,19 @@ const btnConnect = document.getElementById('btn-connect')
 const btnExport = document.getElementById('btn-export')
 const btnUndo = document.getElementById('btn-undo')
 const btnRedo = document.getElementById('btn-redo')
+const colorPicker = document.getElementById('color-picker')
+const zoomIndicator = document.getElementById('zoom-indicator')
+
+// Build color swatches
+NODE_COLORS.forEach((c, i) => {
+  const swatch = document.createElement('button')
+  swatch.className = 'color-swatch'
+  swatch.style.background = c.bg
+  swatch.style.borderColor = c.border
+  swatch.title = c.label
+  swatch.dataset.index = i
+  colorPicker.appendChild(swatch)
+})
 
 // ─── Sizing ───────────────────────────────────────────────────────────────────
 function resize() {
@@ -165,10 +193,10 @@ function measureText(text, fontSize = 16) {
   }
 }
 
-function newNode(x, y, text = 'New Node') {
+function newNode(x, y, text = 'New Node', color = 0) {
   const id = ++state.lastId
   const size = measureText(text)
-  return { id, x: x - size.width / 2, y: y - size.height / 2, text, width: size.width, height: size.height }
+  return { id, x: x - size.width / 2, y: y - size.height / 2, text, width: size.width, height: size.height, color }
 }
 
 function save() {
@@ -202,6 +230,22 @@ function updateUndoButtons() {
   btnRedo.disabled = history.index >= history.stack.length - 1
 }
 
+function updateZoomIndicator() {
+  zoomIndicator.textContent = Math.round(state.view.scale * 100) + '%'
+}
+
+function updateColorPicker() {
+  if (state.selected !== null) {
+    colorPicker.style.display = 'flex'
+    const node = state.nodes.find(n => n.id === state.selected)
+    document.querySelectorAll('.color-swatch').forEach((s, i) => {
+      s.classList.toggle('active', node && node.color === i)
+    })
+  } else {
+    colorPicker.style.display = 'none'
+  }
+}
+
 // ─── Drawing ─────────────────────────────────────────────────────────────────
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height)
@@ -231,6 +275,7 @@ function draw() {
   ctx.restore()
 
   drawMinimap()
+  updateZoomIndicator()
 }
 
 function drawGrid() {
@@ -289,11 +334,19 @@ function drawNode(n) {
   const isHovered = state.hoveredNode === n.id
   const isConnecting = state.connecting === n.id
 
+  const colorDef = NODE_COLORS[n.color ?? 0]
+
   ctx.shadowColor = 'rgba(0,0,0,0.15)'
   ctx.shadowBlur = 8 / state.view.scale
   ctx.shadowOffsetY = 3 / state.view.scale
 
-  ctx.fillStyle = isSelected ? '#aa3bff' : isConnecting ? '#c084fc' : isHovered ? '#f4f3ec' : '#fff'
+  // Determine background
+  let bgColor
+  if (isSelected) bgColor = '#aa3bff'
+  else if (isConnecting) bgColor = '#c084fc'
+  else bgColor = colorDef.bg
+
+  ctx.fillStyle = bgColor
   roundRect(ctx, n.x, n.y, n.width, n.height, 8 / state.view.scale)
   ctx.fill()
 
@@ -301,13 +354,15 @@ function drawNode(n) {
   ctx.shadowBlur = 0
   ctx.shadowOffsetY = 0
 
-  ctx.strokeStyle = isSelected ? '#7c2db8' : '#e5e4e7'
+  // Border
+  ctx.strokeStyle = isSelected ? '#7c2db8' : isConnecting ? '#a855f7' : colorDef.border
   ctx.lineWidth = (isSelected || isHovered ? 2 : 1) / state.view.scale
   roundRect(ctx, n.x, n.y, n.width, n.height, 8 / state.view.scale)
   ctx.stroke()
 
+  // Text
   if (!isEditing) {
-    ctx.fillStyle = isSelected ? '#fff' : '#08060d'
+    ctx.fillStyle = isSelected || isConnecting ? '#ffffff' : '#08060d'
     ctx.font = `16px system-ui, sans-serif`
     const lines = n.text.split('\n')
     const lineHeight = 16 * 1.4
@@ -431,6 +486,7 @@ canvas.addEventListener('mousedown', e => {
   const node = nodeAt(mx, my)
   if (node) {
     state.selected = node.id
+    updateColorPicker()
     if (state.connecting && state.connecting !== node.id) {
       const id = ++state.lastEdgeId
       state.edges.push({ id, from: state.connecting, to: node.id })
@@ -445,11 +501,13 @@ canvas.addEventListener('mousedown', e => {
     const edge = edgeAt(mx, my)
     if (edge) {
       state.selected = null
+      updateColorPicker()
       state.edges = state.edges.filter(e => e.id !== edge.id)
       snapshot()
       save()
     } else {
       state.selected = null
+      updateColorPicker()
       state.connecting = null
       btnConnect.classList.remove('active')
       state.panning = true
@@ -507,6 +565,7 @@ canvas.addEventListener('dblclick', e => {
     const node = newNode(world.x, world.y)
     state.nodes.push(node)
     state.selected = node.id
+    updateColorPicker()
     snapshot()
     save()
     render()
@@ -531,17 +590,18 @@ canvas.addEventListener('wheel', e => {
 // Keyboard
 document.addEventListener('keydown', e => {
   if (state.editing) return
-  // Ctrl+Z = undo, Ctrl+Y / Ctrl+Shift+Z = redo
   if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
     e.preventDefault()
     undo()
     updateUndoButtons()
+    updateColorPicker()
     return
   }
   if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) {
     e.preventDefault()
     redo()
     updateUndoButtons()
+    updateColorPicker()
     return
   }
   if (e.key === 'Delete' || e.key === 'Backspace') {
@@ -550,6 +610,7 @@ document.addEventListener('keydown', e => {
       state.nodes = state.nodes.filter(n => n.id !== state.selected)
       state.edges = state.edges.filter(e => e.from !== state.selected && e.to !== state.selected)
       state.selected = null
+      updateColorPicker()
       save()
       render()
       updateUndoButtons()
@@ -557,6 +618,7 @@ document.addEventListener('keydown', e => {
   }
   if (e.key === 'Escape') {
     state.selected = null
+    updateColorPicker()
     state.connecting = null
     btnConnect.classList.remove('active')
     render()
@@ -567,6 +629,7 @@ document.addEventListener('keydown', e => {
     const node = newNode(world.x, world.y)
     state.nodes.push(node)
     state.selected = node.id
+    updateColorPicker()
     snapshot()
     save()
     render()
@@ -592,11 +655,13 @@ document.addEventListener('keydown', e => {
 btnUndo.addEventListener('click', () => {
   undo()
   updateUndoButtons()
+  updateColorPicker()
 })
 
 btnRedo.addEventListener('click', () => {
   redo()
   updateUndoButtons()
+  updateColorPicker()
 })
 
 btnAdd.addEventListener('click', () => {
@@ -605,6 +670,7 @@ btnAdd.addEventListener('click', () => {
   const node = newNode(world.x, world.y)
   state.nodes.push(node)
   state.selected = node.id
+  updateColorPicker()
   snapshot()
   save()
   render()
@@ -624,6 +690,23 @@ btnConnect.addEventListener('click', () => {
 })
 
 btnExport.addEventListener('click', exportPNG)
+
+// Color picker swatches
+colorPicker.addEventListener('click', e => {
+  const swatch = e.target.closest('.color-swatch')
+  if (!swatch) return
+  const idx = parseInt(swatch.dataset.index, 10)
+  if (state.selected === null) return
+  const node = state.nodes.find(n => n.id === state.selected)
+  if (!node) return
+  if (node.color !== idx) {
+    node.color = idx
+    snapshot()
+    save()
+    render()
+  }
+  updateColorPicker()
+})
 
 function exportPNG() {
   const savedView = { ...state.view }
@@ -728,8 +811,9 @@ function drawMinimap() {
 
   for (const n of state.nodes) {
     const isSelected = state.selected === n.id
-    mctx.fillStyle = isSelected ? '#aa3bff' : '#fff'
-    mctx.strokeStyle = isSelected ? '#7c2db8' : '#c4bfcc'
+    const colorDef = NODE_COLORS[n.color ?? 0]
+    mctx.fillStyle = isSelected ? '#aa3bff' : colorDef.bg
+    mctx.strokeStyle = isSelected ? '#7c2db8' : colorDef.border
     mctx.lineWidth = 1
     mctx.fillRect(n.x * scale + offsetX, n.y * scale + offsetY, n.width * scale, n.height * scale)
     mctx.strokeRect(n.x * scale + offsetX, n.y * scale + offsetY, n.width * scale, n.height * scale)
@@ -758,3 +842,5 @@ if (state.nodes.length === 0) {
 }
 render()
 updateUndoButtons()
+updateColorPicker()
+updateZoomIndicator()
