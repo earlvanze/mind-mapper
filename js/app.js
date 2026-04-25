@@ -31,6 +31,8 @@ class MindMap {
         document.getElementById('save').addEventListener('click', () => this.save());
         document.getElementById('load').addEventListener('click', () => this.load());
         document.getElementById('clear').addEventListener('click', () => this.clear());
+        document.getElementById('exportPNG').addEventListener('click', () => this.exportPNG());
+        document.getElementById('exportJSON').addEventListener('click', () => this.exportJSON());
         
         // Zoom controls
         document.getElementById('zoomIn').addEventListener('click', () => this.zoom(1.2));
@@ -508,6 +510,82 @@ class MindMap {
             this.connectionsContainer.innerHTML = '';
             localStorage.removeItem('mindmap-data');
         }
+    }
+    
+    exportPNG() {
+        if (this.nodes.length === 0) {
+            alert('Nothing to export. Create some nodes first!');
+            return;
+        }
+        
+        // Calculate bounds
+        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+        this.nodes.forEach(node => {
+            minX = Math.min(minX, node.x);
+            minY = Math.min(minY, node.y);
+            maxX = Math.max(maxX, node.x + 100);
+            maxY = Math.max(maxY, node.y + 40);
+        });
+        
+        const padding = 40;
+        const width = maxX - minX + padding * 2;
+        const height = maxY - minY + padding * 2;
+        
+        // Temporarily reset transform for clean export
+        const originalScale = this.scale;
+        const originalTranslateX = this.translateX;
+        const originalTranslateY = this.translateY;
+        
+        this.scale = 1;
+        this.translateX = padding - minX;
+        this.translateY = padding - minY;
+        this.updateTransform();
+        
+        // Use html2canvas on the canvas container
+        html2canvas(this.canvasContainer, {
+            backgroundColor: '#f5f5f5',
+            scale: 2,
+            useCORS: true
+        }).then(canvas => {
+            const link = document.createElement('a');
+            link.download = `mindmap-${Date.now()}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+            
+            // Restore transform
+            this.scale = originalScale;
+            this.translateX = originalTranslateX;
+            this.translateY = originalTranslateY;
+            this.updateTransform();
+        }).catch(err => {
+            alert('Export failed: ' + err.message);
+            // Restore transform on error too
+            this.scale = originalScale;
+            this.translateX = originalTranslateX;
+            this.translateY = originalTranslateY;
+            this.updateTransform();
+        });
+    }
+    
+    exportJSON() {
+        if (this.nodes.length === 0) {
+            alert('Nothing to export. Create some nodes first!');
+            return;
+        }
+        
+        const data = {
+            version: '1.0',
+            exportedAt: new Date().toISOString(),
+            nodes: this.nodes,
+            nodeIdCounter: this.nodeIdCounter
+        };
+        
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const link = document.createElement('a');
+        link.download = `mindmap-${Date.now()}.json`;
+        link.href = URL.createObjectURL(blob);
+        link.click();
+        URL.revokeObjectURL(link.href);
     }
 }
 

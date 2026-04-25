@@ -90,4 +90,30 @@ test.describe('Mind Mapp', () => {
         // Node should still be red
         await expect(page.locator('.node.color-red')).toBeVisible();
     });
+
+    test('export PNG button exists', async ({ page }) => {
+        await expect(page.locator('#exportPNG')).toBeVisible();
+        await expect(page.locator('#exportPNG')).toHaveText('PNG');
+    });
+
+    test('export JSON button exists', async ({ page }) => {
+        await expect(page.locator('#exportJSON')).toBeVisible();
+        await expect(page.locator('#exportJSON')).toHaveText('JSON');
+    });
+
+    test('export JSON shows alert when no nodes', async ({ page }) => {
+        page.on('dialog', async dialog => {
+            expect(dialog.message()).toContain('Nothing to export');
+            await dialog.accept();
+        });
+        await page.click('#exportJSON');
+    });
+
+    test('export PNG shows alert when no nodes', async ({ page }) => {
+        page.on('dialog', async dialog => {
+            expect(dialog.message()).toContain('Nothing to export');
+            await dialog.accept();
+        });
+        await page.click('#exportPNG');
+    });
 });
