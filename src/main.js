@@ -398,8 +398,8 @@ function commitEdit() {
     node.width = size.width
     node.height = size.height
   }
-  editInput.removeEventListener('blur', commitEdit)
-  editInput.remove()
+  // Guard: only remove if still in DOM (blur may have already removed it)
+  if (!editCommitting && editInput.parentNode) editInput.remove()
   editInput = null
   state.editing = null
   historyCommit()
@@ -410,8 +410,7 @@ function commitEdit() {
 
 function cancelEdit() {
   if (!editInput || editCommitting) return
-  editInput.removeEventListener('blur', commitEdit)
-  editInput.remove()
+  if (editInput.parentNode) editInput.remove()
   editInput = null
   state.editing = null
   editCommitting = false
