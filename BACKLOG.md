@@ -165,3 +165,11 @@ _Mind Mapp fully implemented. Project complete._ ✓
 - Ran full Playwright test suite: 6/6 passed ✓
 - Ran production build: passed ✓
 - Left unrelated workspace change `../AGENTS.md` untouched.
+
+## Session Log — 2026-04-27 12:20 UTC
+- Reviewed BACKLOG.md: all P0–P4 backlog items remain complete; no next backlog item was available.
+- Found and fixed a minimap transform bug where far-away or negative-coordinate content could render outside the overview and minimap clicks recentered incorrectly.
+- Added Playwright coverage for minimap rendering and click-to-recenter behavior.
+- Preserved existing edge labels, selected-edge deletion, and node/edge ID collision behavior while applying the minimap fix.
+- Ran full Playwright test suite: 8/8 passed ✓
+- Ran production build: passed ✓

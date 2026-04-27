@@ -810,40 +810,8 @@ function minimapResize() {
 }
 minimapResize()
 
-minimapCanvas.addEventListener('click', e => {
-  if (state.nodes.length === 0) return
-  const rect = minimapCanvas.getBoundingClientRect()
-  const mx = e.clientX - rect.left
-  const my = e.clientY - rect.top
-
-  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity
-  for (const n of state.nodes) {
-    minX = Math.min(minX, n.x); minY = Math.min(minY, n.y)
-    maxX = Math.max(maxX, n.x + n.width); maxY = Math.max(maxY, n.y + n.height)
-  }
-  const pad = 40
-  minX -= pad; minY -= pad; maxX += pad; maxY += pad
-  const worldW = maxX - minX || 1
-  const worldH = maxY - minY || 1
-  const scaleX = MINIMAP_W / worldW
-  const scaleY = MINIMAP_H / worldH
-  const scale = Math.min(scaleX, scaleY, 1)
-  const offsetX = (MINIMAP_W - worldW * scale) / 2
-  const offsetY = (MINIMAP_H - worldH * scale) / 2
-
-  const worldX = (mx - offsetX) / scale
-  const worldY = (my - offsetY) / scale
-  state.view.x = canvas.width / 2 - worldX * state.view.scale
-  state.view.y = canvas.height / 2 - worldY * state.view.scale
-  render()
-})
-
-function drawMinimap() {
-  mctx.clearRect(0, 0, MINIMAP_W, MINIMAP_H)
-  mctx.fillStyle = '#f8f7f4'
-  mctx.fillRect(0, 0, MINIMAP_W, MINIMAP_H)
-
-  if (state.nodes.length === 0) return
+function minimapMetrics() {
+  if (state.nodes.length === 0) return null
 
   let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity
   for (const n of state.nodes) {
@@ -852,17 +820,52 @@ function drawMinimap() {
     maxX = Math.max(maxX, n.x + n.width)
     maxY = Math.max(maxY, n.y + n.height)
   }
+
   const pad = 40
   minX -= pad; minY -= pad; maxX += pad; maxY += pad
   const worldW = maxX - minX || 1
   const worldH = maxY - minY || 1
-
   const scaleX = MINIMAP_W / worldW
   const scaleY = MINIMAP_H / worldH
   const scale = Math.min(scaleX, scaleY, 1)
-
   const offsetX = (MINIMAP_W - worldW * scale) / 2
   const offsetY = (MINIMAP_H - worldH * scale) / 2
+
+  return { minX, minY, scale, offsetX, offsetY }
+}
+
+function worldToMinimap(x, y, metrics) {
+  return {
+    x: (x - metrics.minX) * metrics.scale + metrics.offsetX,
+    y: (y - metrics.minY) * metrics.scale + metrics.offsetY,
+  }
+}
+
+function minimapToWorld(x, y, metrics) {
+  return {
+    x: (x - metrics.offsetX) / metrics.scale + metrics.minX,
+    y: (y - metrics.offsetY) / metrics.scale + metrics.minY,
+  }
+}
+
+minimapCanvas.addEventListener('click', e => {
+  const metrics = minimapMetrics()
+  if (!metrics) return
+
+  const rect = minimapCanvas.getBoundingClientRect()
+  const world = minimapToWorld(e.clientX - rect.left, e.clientY - rect.top, metrics)
+  state.view.x = canvas.width / 2 - world.x * state.view.scale
+  state.view.y = canvas.height / 2 - world.y * state.view.scale
+  render()
+})
+
+function drawMinimap() {
+  mctx.clearRect(0, 0, MINIMAP_W, MINIMAP_H)
+  mctx.fillStyle = '#f8f7f4'
+  mctx.fillRect(0, 0, MINIMAP_W, MINIMAP_H)
+
+  const metrics = minimapMetrics()
+  if (!metrics) return
 
   mctx.strokeStyle = '#c4bfcc'
   mctx.lineWidth = 1
@@ -872,8 +875,10 @@ function drawMinimap() {
     if (!from || !to) continue
     const [ax, ay, bx, by] = endpoints(from, to)
     mctx.beginPath()
-    mctx.moveTo(ax * scale + offsetX, ay * scale + offsetY)
-    mctx.lineTo(bx * scale + offsetX, by * scale + offsetY)
+    const a = worldToMinimap(ax, ay, metrics)
+    const b = worldToMinimap(bx, by, metrics)
+    mctx.moveTo(a.x, a.y)
+    mctx.lineTo(b.x, b.y)
     mctx.stroke()
   }
 
@@ -882,14 +887,16 @@ function drawMinimap() {
     mctx.fillStyle = isSelected ? '#aa3bff' : '#fff'
     mctx.strokeStyle = isSelected ? '#7c2db8' : '#c4bfcc'
     mctx.lineWidth = 1
-    mctx.fillRect(n.x * scale + offsetX, n.y * scale + offsetY, n.width * scale, n.height * scale)
-    mctx.strokeRect(n.x * scale + offsetX, n.y * scale + offsetY, n.width * scale, n.height * scale)
+    const pos = worldToMinimap(n.x, n.y, metrics)
+    mctx.fillRect(pos.x, pos.y, n.width * metrics.scale, n.height * metrics.scale)
+    mctx.strokeRect(pos.x, pos.y, n.width * metrics.scale, n.height * metrics.scale)
   }
 
-  const vpX = (-state.view.x / state.view.scale) * scale + offsetX
-  const vpY = (-state.view.y / state.view.scale) * scale + offsetY
-  const vpW = (canvas.width / state.view.scale) * scale
-  const vpH = (canvas.height / state.view.scale) * scale
+  const viewport = worldToMinimap(-state.view.x / state.view.scale, -state.view.y / state.view.scale, metrics)
+  const vpX = viewport.x
+  const vpY = viewport.y
+  const vpW = (canvas.width / state.view.scale) * metrics.scale
+  const vpH = (canvas.height / state.view.scale) * metrics.scale
   mctx.strokeStyle = '#aa3bff'
   mctx.lineWidth = 1.5
   mctx.strokeRect(vpX, vpY, vpW, vpH)
