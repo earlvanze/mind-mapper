@@ -1,14 +1,39 @@
 import { createServer } from 'node:http'
 import { readFile } from 'node:fs/promises'
-import { existsSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import path from 'node:path'
+import os from 'node:os'
 import { fileURLToPath } from 'node:url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const distDir = path.join(__dirname, 'dist')
 const port = Number(process.env.PORT || 4173)
 const host = process.env.HOST || '127.0.0.1'
-const ollamaUrl = (process.env.OLLAMA_URL || 'http://127.0.0.1:11434').replace(/\/$/, '')
+const ollamaProvider = process.env.OLLAMA_PROVIDER || 'ollama-cyber'
+
+function ollamaProviderUrl(providerName) {
+  try {
+    const configPath = process.env.OPENCLAW_CONFIG || path.join(os.homedir(), '.openclaw', 'openclaw.json')
+    const config = JSON.parse(awaitableReadFileSync(configPath))
+    return config?.models?.providers?.[providerName]?.baseUrl
+  } catch {
+    return null
+  }
+}
+
+function awaitableReadFileSync(filePath) {
+  return readFileSync(filePath, 'utf8')
+}
+
+function uniqueUrls(urls) {
+  return [...new Set(urls.filter(Boolean).map(url => String(url).replace(/\/$/, '')))]
+}
+
+const ollamaUrls = uniqueUrls([
+  process.env.OLLAMA_URL,
+  ollamaProviderUrl(ollamaProvider),
+  'http://127.0.0.1:11434',
+])
 const ollamaModel = process.env.OLLAMA_VISION_MODEL || 'qwen2.5vl:7b'
 const maxBodyBytes = Number(process.env.MAX_RECOGNITION_BYTES || 8 * 1024 * 1024)
 
@@ -59,7 +84,7 @@ function imageBase64FromDataUrl(image) {
   return match ? match[1] : image
 }
 
-async function recognizeWithOllama({ image, strokes }) {
+async function recognizeWithOllamaAt(recognitionOllamaUrl, { image, strokes }) {
   const base64 = imageBase64FromDataUrl(image)
   if (!base64) throw Object.assign(new Error('Missing drawing image'), { status: 400 })
 
@@ -74,7 +99,7 @@ async function recognizeWithOllama({ image, strokes }) {
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), Number(process.env.OLLAMA_TIMEOUT_MS || 90000))
   try {
-    const response = await fetch(`${ollamaUrl}/api/generate`, {
+    const response = await fetch(`${recognitionOllamaUrl}/api/generate`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({
@@ -107,13 +132,22 @@ async function recognizeWithOllama({ image, strokes }) {
 async function handleRecognition(req, res) {
   try {
     const body = await readRequestJson(req)
-    const text = await recognizeWithOllama(body)
-    sendJson(res, 200, { text, provider: 'ollama', model: ollamaModel })
+    let lastError = null
+    for (const url of ollamaUrls) {
+      try {
+        const text = await recognizeWithOllamaAt(url, body)
+        return sendJson(res, 200, { text, provider: 'ollama', model: ollamaModel, endpoint: url })
+      } catch (error) {
+        lastError = error
+      }
+    }
+    throw lastError || new Error('No Ollama endpoints configured')
   } catch (error) {
     sendJson(res, error.status || 500, {
       error: error.message || 'Recognition failed',
       provider: 'ollama',
       model: ollamaModel,
+      endpoints: ollamaUrls,
     })
   }
 }
@@ -146,5 +180,5 @@ const server = createServer((req, res) => {
 
 server.listen(port, host, () => {
   console.log(`Mind Mapp server listening on http://${host}:${port}`)
-  console.log(`Handwriting provider: Ollama ${ollamaModel} at ${ollamaUrl}`)
+  console.log(`Handwriting provider: Ollama ${ollamaModel} via ${ollamaProvider}: ${ollamaUrls.join(', ')}`)
 })
