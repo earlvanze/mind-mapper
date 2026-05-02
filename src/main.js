@@ -519,14 +519,69 @@ function cancelEdit() {
 // ─── Events ───────────────────────────────────────────────────────────────────
 let lastMouse = { x: 0, y: 0 }
 let mouseState = { down: false, clickTime: 0, clickX: 0, clickY: 0 }
+const activePointers = new Map()
+let pinchStart = null
+
+function pointerCanvasPoint(e) {
+  const rect = canvas.getBoundingClientRect()
+  return { x: e.clientX - rect.left, y: e.clientY - rect.top }
+}
+
+function updatePointer(e) {
+  activePointers.set(e.pointerId, pointerCanvasPoint(e))
+}
+
+function pinchMetrics() {
+  const points = [...activePointers.values()]
+  if (points.length < 2) return null
+  const [a, b] = points
+  return {
+    cx: (a.x + b.x) / 2,
+    cy: (a.y + b.y) / 2,
+    dist: Math.max(1, Math.hypot(b.x - a.x, b.y - a.y)),
+  }
+}
+
+function startPinch() {
+  const metrics = pinchMetrics()
+  if (!metrics) return
+  state.dragging = null
+  state.panning = false
+  pinchStart = {
+    ...metrics,
+    viewX: state.view.x,
+    viewY: state.view.y,
+    scale: state.view.scale,
+  }
+}
+
+function applyPinchZoom() {
+  if (!pinchStart) return
+  const metrics = pinchMetrics()
+  if (!metrics) return
+  const worldAtStart = {
+    x: (pinchStart.cx - pinchStart.viewX) / pinchStart.scale,
+    y: (pinchStart.cy - pinchStart.viewY) / pinchStart.scale,
+  }
+  const newScale = Math.max(0.1, Math.min(5, pinchStart.scale * (metrics.dist / pinchStart.dist)))
+  state.view.scale = newScale
+  state.view.x = metrics.cx - worldAtStart.x * newScale
+  state.view.y = metrics.cy - worldAtStart.y * newScale
+}
 
 canvas.addEventListener('pointerdown', e => {
   if (e.button !== 0) return
   e.preventDefault()
   canvas.setPointerCapture?.(e.pointerId)
-  const rect = canvas.getBoundingClientRect()
-  const mx = e.clientX - rect.left
-  const my = e.clientY - rect.top
+  updatePointer(e)
+
+  if (activePointers.size >= 2) {
+    startPinch()
+    render()
+    return
+  }
+
+  const { x: mx, y: my } = pointerCanvasPoint(e)
 
   mouseState = { down: true, clickTime: Date.now(), clickX: mx, clickY: my }
   lastMouse = { x: mx, y: my }
@@ -567,12 +622,13 @@ canvas.addEventListener('pointerdown', e => {
 })
 
 canvas.addEventListener('pointermove', e => {
-  const rect = canvas.getBoundingClientRect()
-  const mx = e.clientX - rect.left
-  const my = e.clientY - rect.top
+  if (activePointers.has(e.pointerId)) updatePointer(e)
+  const { x: mx, y: my } = pointerCanvasPoint(e)
   lastMouse = { x: mx, y: my }
 
-  if (state.dragging) {
+  if (pinchStart && activePointers.size >= 2) {
+    applyPinchZoom()
+  } else if (state.dragging) {
     const node = state.nodes.find(n => n.id === state.dragging.id)
     if (node) {
       const world = screenToWorld(mx, my)
@@ -591,6 +647,11 @@ canvas.addEventListener('pointermove', e => {
 
 canvas.addEventListener('pointerup', e => {
   canvas.releasePointerCapture?.(e.pointerId)
+  activePointers.delete(e.pointerId)
+  if (pinchStart) {
+    pinchStart = null
+    if (activePointers.size >= 2) startPinch()
+  }
   if (state.dragging) {
     historyCommit()
     save()
@@ -603,6 +664,8 @@ canvas.addEventListener('pointerup', e => {
 
 canvas.addEventListener('pointercancel', e => {
   canvas.releasePointerCapture?.(e.pointerId)
+  activePointers.delete(e.pointerId)
+  pinchStart = null
   state.dragging = null
   state.panning = false
   mouseState.down = false
