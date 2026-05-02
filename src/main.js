@@ -80,6 +80,7 @@ function renderPageTabs() {
 
 function switchPage(pageId) {
   if (pageId === state.notebook.activePageId) return
+  persistDetailsText({ commitHistory: false })
   if (state.editing) commitEdit()
   if (edgeEditInput) commitEdgeLabel()
   syncCurrentPage()
@@ -96,6 +97,7 @@ function switchPage(pageId) {
 
 function addNotebookPage() {
   btnNewPage?.blur()
+  persistDetailsText({ commitHistory: false })
   if (state.editing) commitEdit()
   if (edgeEditInput) commitEdgeLabel()
   syncCurrentPage()
@@ -717,6 +719,7 @@ function showDetailsForNode(node) {
 }
 
 function hideDetails() {
+  if (!detailsPanel.classList.contains('hidden')) persistDetailsText({ commitHistory: false })
   detailsPanel.classList.add('hidden')
   resize()
 }
@@ -727,12 +730,23 @@ function refreshDetailsPanel() {
   else hideDetails()
 }
 
-function persistDetailsText() {
+let detailsTextSaveTimer = null
+
+function persistDetailsText({ commitHistory = true } = {}) {
   const node = selectedNode()
   if (!node) return
   ensureNodeDetails(node).text = detailsText.value
-  historyCommit()
+  if (commitHistory) historyCommit()
   save()
+}
+
+function scheduleDetailsTextSave() {
+  const node = selectedNode()
+  if (!node) return
+  ensureNodeDetails(node).text = detailsText.value
+  save()
+  clearTimeout(detailsTextSaveTimer)
+  detailsTextSaveTimer = setTimeout(() => persistDetailsText({ commitHistory: false }), 250)
 }
 
 function persistDetailsDrawing() {
@@ -859,6 +873,7 @@ canvas.addEventListener('pointerdown', e => {
 
   const node = nodeAt(mx, my)
   if (node) {
+    if (state.selected !== node.id || state.selectedType !== 'node') persistDetailsText({ commitHistory: false })
     state.selected = node.id
     state.selectedType = 'node'
     showDetailsForNode(node)
@@ -1068,8 +1083,9 @@ document.addEventListener('keydown', e => {
 })
 
 // Buttons
-detailsText.addEventListener('change', persistDetailsText)
-detailsText.addEventListener('blur', persistDetailsText)
+detailsText.addEventListener('input', scheduleDetailsTextSave)
+detailsText.addEventListener('change', () => persistDetailsText({ commitHistory: false }))
+detailsText.addEventListener('blur', () => persistDetailsText({ commitHistory: false }))
 btnCloseDetails.addEventListener('click', () => { state.selected = null; state.selectedType = null; hideDetails(); render() })
 btnClearDrawing.addEventListener('click', () => { drawDetailsBackground(); persistDetailsDrawing() })
 detailsDrawing.addEventListener('pointerdown', beginDetailsDrawing)
