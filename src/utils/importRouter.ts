@@ -1,6 +1,6 @@
 /**
  * Unified import router — detects file format and routes to the correct parser.
- * Supports: MindMapp JSON, XMind (8/9), FreeMind (.mm), Obsidian markdown, OPML
+ * Supports: MindMapp JSON, XMind (8/9), FreeMind (.mm), Obsidian markdown, OPML, Kanban tables
  */
 
 import type { Node } from '../store/useMindMapStore';
@@ -8,8 +8,9 @@ import { parseImportPayload } from './importValidation';
 import { parseXMind, isXMindContent } from './importXMind';
 import { parseObsidian, isObsidianContent } from './importObsidian';
 import { parseOpml, isOpmlContent } from './importOpml';
+import { parseKanbanTable, isKanbanTableContent } from './importKanbanTable';
 
-export type ImportFormat = 'mindmapp-json' | 'xmind' | 'freemind' | 'obsidian' | 'opml' | 'unknown';
+export type ImportFormat = 'mindmapp-json' | 'xmind' | 'freemind' | 'obsidian' | 'opml' | 'kanban-table' | 'unknown';
 
 export interface ImportResult {
   nodes: Record<string, Node>;
@@ -39,6 +40,11 @@ function isMindMappJson(content: string): boolean {
 }
 
 export function detectImportFormat(content: string, filename?: string): ImportFormat {
+  const trimmed = content.trim();
+
+  // Check for kanban table format first (tables with | Project | Status | columns)
+  if (isKanbanTableContent(trimmed)) return 'kanban-table';
+
   // Extension-based quick path
   if (filename) {
     const ext = filename.toLowerCase();
@@ -51,8 +57,6 @@ export function detectImportFormat(content: string, filename?: string): ImportFo
       // .xml could be XMind, FreeMind, or OPML — detect based on content
     }
   }
-
-  const trimmed = content.trim();
 
   if (isMindMappJson(trimmed)) return 'mindmapp-json';
   if (isObsidianContent(trimmed)) return 'obsidian';
@@ -99,7 +103,13 @@ export function parseImportContent(
     return { nodes, format: 'opml' };
   }
 
+  if (detected === 'kanban-table') {
+    const boardName = filename?.replace(/\.md$/i, '') || 'Kanban Board';
+    const nodes = parseKanbanTable(content, boardName);
+    return { nodes, format: 'kanban-table' };
+  }
+
   throw new Error(
-    `Unsupported file format. Supported formats: MindMapp JSON (.json), OPML (.opml), XMind (.xmind), FreeMind (.mm), Obsidian (.md)`
+    `Unsupported file format. Supported formats: MindMapp JSON (.json), OPML (.opml), XMind (.xmind), FreeMind (.mm), Obsidian (.md), Kanban tables`
   );
 }

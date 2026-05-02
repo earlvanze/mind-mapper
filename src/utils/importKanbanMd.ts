@@ -2,7 +2,9 @@
  * Obsidian Kanban.md parser.
  * 
  * Converts Obsidian Kanban markdown boards into MindMapp trees.
- * Format: ## Column Name followed by - [ ] task items (nested supported)
+ * Supports two formats:
+ * 1. Checkbox lists: ## Column followed by - [ ] task items
+ * 2. Markdown tables: ## Column followed by | tables where first col is project/item
  */
 
 import type { Node } from '../store/useMindMapStore';
@@ -11,7 +13,7 @@ import {
   type KanbanCard,
   type KanbanTransformTemplate,
   transformKanbanToMindMap,
-} from './kanbanTransforms';
+} from './kanbanTransforms.js';
 
 interface RawColumn {
   name: string;
@@ -28,9 +30,11 @@ function parseKanbanMarkdown(content: string): RawColumn[] {
   const lines = content.replace(/^\uFEFF/, '').split('\n');
   const columns: RawColumn[] = [];
   let currentColumn: RawColumn | null = null;
-  const cardStack: { card: RawCard; indent: number }[] = [];
+  let inTable = false;
 
-  for (const line of lines) {
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+
     // Column header: ## Name or ### Name
     const columnMatch = line.match(/^#{2,6}\s+(.+)$/);
     if (columnMatch) {
@@ -39,65 +43,80 @@ function parseKanbanMarkdown(content: string): RawColumn[] {
         columns.push(currentColumn);
       }
       currentColumn = { name: columnMatch[1].trim(), cards: [] };
-      cardStack.length = 0;
+      inTable = false;
       continue;
     }
 
     if (!currentColumn) continue;
 
+    // Skip frontmatter
+    if (line.trim() === '---' && i < 5) continue;
+
+    // Table detection: starts with | and has |
+    if (line.includes('|') && line.trim().startsWith('|')) {
+      // Skip header separator row (|---|---|)
+      if (line.match(/^\|[\s\-:|]+\|$/)) continue;
+      
+      inTable = true;
+      const cells = line.split('|').map(c => c.trim()).filter(c => c);
+      if (cells.length === 0) continue;
+      
+      // First cell is the item name, rest become tags/notes
+      const [name, ...rest] = cells;
+      if (!name || name === 'Project' || name === 'Status' || name === 'Owner') continue;
+      
+      const card: RawCard = {
+        text: name,
+        completed: false,
+        children: [],
+      };
+      
+      // Remaining columns become child notes
+      for (const extra of rest) {
+        if (extra && !extra.match(/^-+$/)) {
+          card.children.push({
+            text: extra,
+            completed: false,
+            children: [],
+          });
+        }
+      }
+      
+      currentColumn.cards.push(card);
+      continue;
+    }
+
+    // End table mode on blank or non-table line
+    if (inTable && !line.includes('|')) {
+      inTable = false;
+    }
+
+    if (inTable) continue;
+
     // Task item: - [ ] or - [x] with optional indentation
     const taskMatch = line.match(/^(\s*)-\s*\[([ xX])\]\s+(.+)$/);
     if (taskMatch) {
-      const [, indent, status, text] = taskMatch;
-      const indentLevel = indent.length;
+      const [, , status, text] = taskMatch;
       const completed = status.toLowerCase() === 'x';
-
       const card: RawCard = {
         text: text.trim(),
         completed,
         children: [],
       };
-
-      // Pop stack until we find parent at lower indent
-      while (cardStack.length > 0 && cardStack[cardStack.length - 1].indent >= indentLevel) {
-        cardStack.pop();
-      }
-
-      if (cardStack.length === 0) {
-        // Top-level card
-        currentColumn.cards.push(card);
-      } else {
-        // Nested card - add to parent
-        cardStack[cardStack.length - 1].card.children.push(card);
-      }
-
-      cardStack.push({ card, indent: indentLevel });
+      currentColumn.cards.push(card);
       continue;
     }
 
     // Bullet item (non-task): - text
     const bulletMatch = line.match(/^(\s*)-\s+(.+)$/);
     if (bulletMatch) {
-      const [, indent, text] = bulletMatch;
-      const indentLevel = indent.length;
-
+      const [, , text] = bulletMatch;
       const card: RawCard = {
         text: text.trim(),
         completed: false,
         children: [],
       };
-
-      while (cardStack.length > 0 && cardStack[cardStack.length - 1].indent >= indentLevel) {
-        cardStack.pop();
-      }
-
-      if (cardStack.length === 0) {
-        currentColumn.cards.push(card);
-      } else {
-        cardStack[cardStack.length - 1].card.children.push(card);
-      }
-
-      cardStack.push({ card, indent: indentLevel });
+      currentColumn.cards.push(card);
     }
   }
 
@@ -142,9 +161,11 @@ export function parseKanbanMd(
 export function isKanbanMdContent(content: string): boolean {
   const trimmed = content.trim();
   
-  // Must have column headers with task lists
-  const hasColumn = /^#{2,6}\s+.+$/m.test(trimmed);
-  const hasTasks = /^(\s*)-\s*\[[ xX]\]\s+.+$/m.test(trimmed);
+  // Checkbox format: column headers with task lists
+  const hasColumnTasks = /^#{2,6}\s+.+$/m.test(trimmed) && /^(\s*)-\s*\[[ xX]\]\s+.+$/m.test(trimmed);
   
-  return hasColumn && hasTasks;
+  // Table format: column headers with tables
+  const hasColumnTable = /^#{2,6}\s+.+$/m.test(trimmed) && /\|.+\|/.test(trimmed);
+  
+  return hasColumnTasks || hasColumnTable;
 }
