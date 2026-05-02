@@ -1,6 +1,9 @@
 export function confirmAction(message: string): boolean {
   try {
-    return window.confirm(message) ?? false;
+    if (typeof window?.confirm !== 'function') {
+      return false;
+    }
+    return window.confirm(message);
   } catch {
     return false;
   }
