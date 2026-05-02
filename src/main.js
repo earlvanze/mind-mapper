@@ -112,7 +112,7 @@ function buildProjectKanbanPage(page) {
   page.lastEdgeId = 0
   page.title = 'Project Kanban'
   page.kanbanSeedVersion = PROJECT_KANBAN_VERSION
-  page.view = { x: 265, y: 190, scale: 0.55 }
+  page.view = { x: 330, y: 220, scale: 0.4 }
 
   const centerX = 760
   const centerY = 560
@@ -128,9 +128,10 @@ function buildProjectKanbanPage(page) {
   page.nodes.push(root)
 
   const angles = [-Math.PI * 0.78, -Math.PI * 0.25, Math.PI * 0.25, Math.PI * 0.78]
-  const headerRadius = 340
-  const cardRadiusStep = 145
-  const fanStep = Math.PI / 28
+  const headerRadius = 430
+  const cardRadiusBase = 270
+  const cardRadiusStep = 115
+  const fanStep = Math.PI / 16
 
   PROJECT_KANBAN_COLUMNS.forEach((column, columnIndex) => {
     const angle = angles[columnIndex] ?? (-Math.PI + columnIndex * (Math.PI * 2 / PROJECT_KANBAN_COLUMNS.length))
@@ -143,7 +144,7 @@ function buildProjectKanbanPage(page) {
 
     column.items.forEach((item, itemIndex) => {
       const sideOffset = (itemIndex - (column.items.length - 1) / 2) * fanStep
-      const radius = headerRadius + cardRadiusStep + (itemIndex % 4) * 92
+      const radius = headerRadius + cardRadiusBase + (itemIndex % 3) * cardRadiusStep
       const cardPos = branchPoint(centerX, centerY, angle + sideOffset, radius)
       const card = makeNodeForPage(page, cardPos.x, cardPos.y, item, `Kanban branch: ${column.title}`)
       card.width = Math.max(card.width, 235)
