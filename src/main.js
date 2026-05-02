@@ -90,36 +90,56 @@ function pageHasContent(page) {
   return Boolean(page?.nodes?.length || page?.edges?.length || Object.keys(page?.edgeLabels || {}).length)
 }
 
+function addPageEdge(page, from, to, label = '') {
+  const edge = { id: ++page.lastEdgeId, from: from.id, to: to.id }
+  page.edges.push(edge)
+  if (label) page.edgeLabels[edge.id] = label
+  return edge
+}
+
 function buildProjectKanbanPage(page) {
-  const nodes = []
-  const edges = []
-  const edgeLabels = {}
-  page.nodes = nodes
-  page.edges = edges
-  page.edgeLabels = edgeLabels
+  page.nodes = []
+  page.edges = []
+  page.edgeLabels = {}
   page.lastId = 0
   page.lastEdgeId = 0
   page.title = 'Project Kanban'
   page.kanbanSeedVersion = PROJECT_KANBAN_VERSION
-  page.view = { x: 80, y: 70, scale: 0.82 }
+  page.view = { x: 70, y: 62, scale: 0.76 }
 
-  const columnWidth = 270
-  const rowGap = 76
+  const columnWidth = 300
+  const rowGap = 82
   const startX = 80
-  const startY = 90
+  const startY = 168
+
+  const root = makeNodeForPage(
+    page,
+    startX + ((PROJECT_KANBAN_COLUMNS.length - 1) * columnWidth) / 2 + 90,
+    52,
+    'Mind Mapp Project Kanban',
+    'Project root. Connected to every kanban column and card.',
+  )
+  root.width = Math.max(root.width, 250)
+  root.height = Math.max(root.height, 54)
+  page.nodes.push(root)
 
   PROJECT_KANBAN_COLUMNS.forEach((column, columnIndex) => {
     const x = startX + columnIndex * columnWidth
-    const header = makeNodeForPage(page, x + 85, startY - 52, column.title, `${column.items.length} cards`)
-    header.width = Math.max(header.width, 170)
-    header.height = Math.max(header.height, 48)
-    nodes.push(header)
+    const header = makeNodeForPage(page, x + 95, startY - 56, column.title, `${column.items.length} cards`)
+    header.width = Math.max(header.width, 190)
+    header.height = Math.max(header.height, 50)
+    page.nodes.push(header)
+    addPageEdge(page, root, header, column.title)
 
+    let previous = header
     column.items.forEach((item, itemIndex) => {
-      const card = makeNodeForPage(page, x + 85, startY + itemIndex * rowGap, item, `Kanban column: ${column.title}`)
-      card.width = Math.max(card.width, 210)
-      card.height = Math.max(card.height, 48)
-      nodes.push(card)
+      const card = makeNodeForPage(page, x + 95, startY + itemIndex * rowGap, item, `Kanban column: ${column.title}`)
+      card.width = Math.max(card.width, 235)
+      card.height = Math.max(card.height, 52)
+      page.nodes.push(card)
+      addPageEdge(page, header, card)
+      if (itemIndex > 0) addPageEdge(page, previous, card)
+      previous = card
     })
   })
 }

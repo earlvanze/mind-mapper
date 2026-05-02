@@ -29,6 +29,7 @@ test('project kanban button puts the full kanban on page 1 and preserves old pag
   expect(saved.notebook.pages[0].title).toBe('Project Kanban')
   expect(saved.notebook.pages[0].kanbanSeedVersion).toBe(1)
   expect(saved.notebook.pages[0].nodes.map(node => node.text)).toEqual(expect.arrayContaining([
+    'Mind Mapp Project Kanban',
     'Done',
     'In Progress',
     'Blocked / Risk',
@@ -36,6 +37,8 @@ test('project kanban button puts the full kanban on page 1 and preserves old pag
     'Notebook pages with isolated maps',
     'Dual-brain deployment: app currently served from Cyber WSL, canonical host should be Umbrel',
   ]))
+  expect(saved.notebook.pages[0].edges.length).toBeGreaterThan(saved.notebook.pages[0].nodes.length)
+  expect(Object.values(saved.notebook.pages[0].edgeLabels)).toEqual(expect.arrayContaining(['Done', 'Next']))
   expect(saved.notebook.pages[1].title).toBe('Original Page (saved)')
   expect(saved.notebook.pages[1].nodes[0].text).toBe('Keep me')
   expect(saved.notebook.activePageId).toBe(saved.notebook.pages[0].id)
