@@ -331,6 +331,164 @@ async function importTrelloFile(file) {
   }
 }
 
+function splitMarkdownTableRow(line) {
+  return line.trim().replace(/^\|/, '').replace(/\|$/, '').split('|').map(cell => cell.trim())
+}
+
+function isMarkdownTableSeparator(line) {
+  return /^\s*\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?\s*$/.test(line)
+}
+
+function cleanMarkdownInline(text) {
+  return compactText(String(text || '')
+    .replace(/!\[([^\]]*)\]\([^)]+\)/g, '$1')
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '$1 ($2)')
+    .replace(/\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g, '$2$1')
+    .replace(/`([^`]+)`/g, '$1')
+    .replace(/\*\*([^*]+)\*\*/g, '$1')
+    .replace(/__([^_]+)__/g, '$1'))
+}
+
+function parseObsidianKanbanMarkdown(markdown, fileName = 'Obsidian Kanban.md') {
+  const lines = String(markdown || '').replace(/\r\n?/g, '\n').split('\n')
+  const titleLine = lines.find(line => /^#\s+/.test(line))
+  const title = cleanMarkdownInline(titleLine?.replace(/^#\s+/, '') || fileName.replace(/\.[^.]+$/, '') || 'Obsidian Kanban')
+  const columns = []
+  const columnByTitle = new Map()
+  let currentSection = 'Cards'
+
+  function getColumn(name) {
+    const title = cleanMarkdownInline(name || 'Cards') || 'Cards'
+    if (!columnByTitle.has(title)) {
+      const column = { title, items: [] }
+      columnByTitle.set(title, column)
+      columns.push(column)
+    }
+    return columnByTitle.get(title)
+  }
+
+  function addItem(section, title, details = '') {
+    const cleanTitle = cleanMarkdownInline(title)
+    if (!cleanTitle) return
+    getColumn(section).items.push({ title: cleanTitle, details })
+  }
+
+  for (let i = 0; i < lines.length; i += 1) {
+    const line = lines[i]
+    const heading = line.match(/^(#{2,6})\s+(.+)$/)
+    if (heading) {
+      currentSection = cleanMarkdownInline(heading[2]) || currentSection
+      continue
+    }
+
+    if (line.includes('|') && lines[i + 1] && isMarkdownTableSeparator(lines[i + 1])) {
+      const headers = splitMarkdownTableRow(line).map(cleanMarkdownInline)
+      i += 2
+      while (i < lines.length && lines[i].includes('|') && lines[i].trim()) {
+        const cells = splitMarkdownTableRow(lines[i])
+        const row = Object.fromEntries(headers.map((header, index) => [header || `Column ${index + 1}`, cleanMarkdownInline(cells[index] || '')]))
+        const titleKey = ['Project', 'Task', 'Card', 'Name', 'Item', 'Title'].find(key => row[key]) || headers.find(header => row[header])
+        const itemTitle = row[titleKey]
+        const details = headers
+          .filter(header => header && header !== titleKey && row[header])
+          .map(header => `${header}: ${row[header]}`)
+          .join('\n')
+        addItem(currentSection, itemTitle, details)
+        i += 1
+      }
+      i -= 1
+      continue
+    }
+
+    const bullet = line.match(/^\s*[-*+]\s+(?:\[[ xX-]\]\s*)?(.+)$/)
+    if (bullet && !bullet[1].startsWith('|')) {
+      addItem(currentSection, bullet[1])
+    }
+  }
+
+  return { title, columns: columns.filter(column => column.items.length) }
+}
+
+function buildObsidianKanbanPage(page, parsed) {
+  if (!parsed?.columns?.length) throw new Error('No markdown tables or task bullets found.')
+
+  page.nodes = []
+  page.edges = []
+  page.edgeLabels = {}
+  page.lastId = 0
+  page.lastEdgeId = 0
+  page.title = parsed.title || 'Obsidian Kanban'
+  page.obsidianKanbanImportVersion = 1
+  page.view = { x: 330, y: 220, scale: 0.38 }
+
+  const centerX = 760
+  const centerY = 560
+  const root = makeNodeForPage(page, centerX, centerY, page.title, 'Imported from Obsidian Markdown/Kanban file.')
+  root.width = Math.max(root.width, 270)
+  root.height = Math.max(root.height, 58)
+  page.nodes.push(root)
+
+  const branchCount = Math.max(1, parsed.columns.length)
+  const headerRadius = 455
+  const cardRadiusBase = 300
+  const cardRadiusStep = 125
+  const fanStep = Math.PI / Math.max(20, branchCount * 5)
+
+  parsed.columns.forEach((column, columnIndex) => {
+    const angle = -Math.PI / 2 + columnIndex * (Math.PI * 2 / branchCount)
+    const headerPos = branchPoint(centerX, centerY, angle, headerRadius)
+    const header = makeNodeForPage(page, headerPos.x, headerPos.y, column.title, `${column.items.length} Obsidian items`)
+    header.width = Math.max(header.width, 205)
+    header.height = Math.max(header.height, 52)
+    page.nodes.push(header)
+    addPageEdge(page, root, header, column.title)
+
+    column.items.forEach((item, itemIndex) => {
+      const sideOffset = (itemIndex - (column.items.length - 1) / 2) * fanStep
+      const radius = headerRadius + cardRadiusBase + (itemIndex % 4) * cardRadiusStep
+      const cardPos = branchPoint(centerX, centerY, angle + sideOffset, radius)
+      const node = makeNodeForPage(page, cardPos.x, cardPos.y, item.title, item.details)
+      node.width = Math.max(node.width, 245)
+      node.height = Math.max(node.height, 52)
+      page.nodes.push(node)
+      addPageEdge(page, header, node)
+    })
+  })
+}
+
+function importObsidianKanbanMarkdown(markdown, fileName) {
+  persistDetailsText({ commitHistory: false })
+  if (state.editing) commitEdit()
+  if (edgeEditInput) commitEdgeLabel()
+  syncCurrentPage()
+
+  const parsed = parseObsidianKanbanMarkdown(markdown, fileName)
+  const page = createPage(parsed.title || 'Obsidian Kanban')
+  buildObsidianKanbanPage(page, parsed)
+  state.notebook.pages.push(page)
+  state.notebook.activePageId = page.id
+  loadPageIntoState(page)
+  hideDetails()
+  resetHistoryForCurrentPage()
+  save()
+  renderPageTabs()
+  resize()
+  return true
+}
+
+async function importObsidianKanbanFile(file) {
+  if (!file) return false
+  try {
+    importObsidianKanbanMarkdown(await file.text(), file.name)
+    return true
+  } catch (error) {
+    window.alert(`Could not import Obsidian Kanban: ${error.message}`)
+    return false
+  } finally {
+    if (obsidianFileInput) obsidianFileInput.value = ''
+  }
+}
+
 function activePage() {
   return state.notebook.pages.find(page => page.id === state.notebook.activePageId) || null
 }
@@ -511,6 +669,8 @@ app.innerHTML = `
     <button id="btn-project-kanban" title="Create a project kanban page">Kanban</button>
     <button id="btn-import-trello" title="Import a Trello board JSON export">Import Trello</button>
     <input id="trello-file-input" type="file" accept="application/json,.json" hidden>
+    <button id="btn-import-obsidian" title="Import an Obsidian Kanban Markdown file">Import Obsidian</button>
+    <input id="obsidian-file-input" type="file" accept="text/markdown,text/plain,.md,.markdown" hidden>
   </span>
   <button id="btn-add" title="Add node (A)">+ Node</button>
   <button id="btn-connect" title="Connect mode (C)">⬌ Connect</button>
@@ -562,6 +722,8 @@ const btnDeletePage = document.getElementById('btn-delete-page')
 const btnProjectKanban = document.getElementById('btn-project-kanban')
 const btnImportTrello = document.getElementById('btn-import-trello')
 const trelloFileInput = document.getElementById('trello-file-input')
+const btnImportObsidian = document.getElementById('btn-import-obsidian')
+const obsidianFileInput = document.getElementById('obsidian-file-input')
 const btnAdd = document.getElementById('btn-add')
 const btnConnect = document.getElementById('btn-connect')
 const btnDelete = document.getElementById('btn-delete')
@@ -1616,6 +1778,8 @@ btnDeletePage.addEventListener('click', deleteCurrentPage)
 btnProjectKanban.addEventListener('click', applyProjectKanbanToNewPage)
 btnImportTrello.addEventListener('click', () => trelloFileInput.click())
 trelloFileInput.addEventListener('change', () => importTrelloFile(trelloFileInput.files?.[0]))
+btnImportObsidian.addEventListener('click', () => obsidianFileInput.click())
+obsidianFileInput.addEventListener('change', () => importObsidianKanbanFile(obsidianFileInput.files?.[0]))
 
 btnDelete.addEventListener('click', deleteSelected)
 btnEraser.addEventListener('click', () => setEraserMode(!state.eraserMode))
