@@ -24,10 +24,140 @@ const state = {
 
 const STORAGE_KEY = 'mind-mapp-v1'
 
+const PROJECT_KANBAN_VERSION = 1
+const PROJECT_KANBAN_COLUMNS = [
+  {
+    title: 'Done',
+    items: [
+      'Initialize Vite + vanilla JS project',
+      'Canvas pan/zoom and resize redraw',
+      'Node create, edit, drag, delete',
+      'Edge create, label, select, delete',
+      'localStorage persistence and legacy migration',
+      'PNG export, minimap, fit view',
+      'Keyboard shortcuts and undo/redo',
+      'Notebook pages with isolated maps',
+      'Node details panel: description + drawing',
+      'Autosave node descriptions while typing',
+      'Map delete button and eraser mode',
+      'Drawing pen/eraser tools',
+      'Ollama handwriting API wiring',
+    ],
+  },
+  {
+    title: 'In Progress',
+    items: [
+      'Tune handwriting recognition quality on qwen2.5vl',
+      'Validate live Cloudflare/Tailscale route from canonical host',
+    ],
+  },
+  {
+    title: 'Blocked / Risk',
+    items: [
+      'Dual-brain deployment: app currently served from Cyber WSL, canonical host should be Umbrel',
+      'Keep Ollama on Cyber CUDA only, do not expose Ollama directly to public internet',
+    ],
+  },
+  {
+    title: 'Next',
+    items: [
+      'Move Mind Mapp serving to Umbrel',
+      'Route Umbrel app/API to Cyber Ollama over tailnet provider URL',
+      'Add durable service config for Mind Mapp server/tunnel',
+      'Add provider fallback or stronger OCR if Ollama handwriting is weak',
+    ],
+  },
+]
+
 // ─── Notebook pages ──────────────────────────────────────────────────────────
 function createPage(title = null) {
   const id = ++state.notebook.lastPageId
   return { id, title: title || `Page ${id}`, nodes: [], edges: [], lastId: 0, lastEdgeId: 0, edgeLabels: {}, view: { x: 0, y: 0, scale: 1 } }
+}
+
+
+function makeNodeForPage(page, x, y, text, detailsText = '') {
+  const previousLastId = state.lastId
+  state.lastId = page.lastId || 0
+  const node = newNode(x, y, text)
+  node.details.text = detailsText
+  page.lastId = state.lastId
+  state.lastId = previousLastId
+  return node
+}
+
+function pageHasContent(page) {
+  return Boolean(page?.nodes?.length || page?.edges?.length || Object.keys(page?.edgeLabels || {}).length)
+}
+
+function buildProjectKanbanPage(page) {
+  const nodes = []
+  const edges = []
+  const edgeLabels = {}
+  page.nodes = nodes
+  page.edges = edges
+  page.edgeLabels = edgeLabels
+  page.lastId = 0
+  page.lastEdgeId = 0
+  page.title = 'Project Kanban'
+  page.kanbanSeedVersion = PROJECT_KANBAN_VERSION
+  page.view = { x: 80, y: 70, scale: 0.82 }
+
+  const columnWidth = 270
+  const rowGap = 76
+  const startX = 80
+  const startY = 90
+
+  PROJECT_KANBAN_COLUMNS.forEach((column, columnIndex) => {
+    const x = startX + columnIndex * columnWidth
+    const header = makeNodeForPage(page, x + 85, startY - 52, column.title, `${column.items.length} cards`)
+    header.width = Math.max(header.width, 170)
+    header.height = Math.max(header.height, 48)
+    nodes.push(header)
+
+    column.items.forEach((item, itemIndex) => {
+      const card = makeNodeForPage(page, x + 85, startY + itemIndex * rowGap, item, `Kanban column: ${column.title}`)
+      card.width = Math.max(card.width, 210)
+      card.height = Math.max(card.height, 48)
+      nodes.push(card)
+    })
+  })
+}
+
+function applyProjectKanbanToPageOne() {
+  persistDetailsText({ commitHistory: false })
+  if (state.editing) commitEdit()
+  if (edgeEditInput) commitEdgeLabel()
+  syncCurrentPage()
+
+  let page = state.notebook.pages[0]
+  if (!page) {
+    page = createPage('Project Kanban')
+    state.notebook.pages.push(page)
+  } else if (pageHasContent(page) && page.kanbanSeedVersion !== PROJECT_KANBAN_VERSION) {
+    const keepExisting = window.confirm('Replace Page 1 with the project kanban? Your current Page 1 will be preserved as a new page.')
+    if (!keepExisting) return false
+    const backup = {
+      ...page,
+      id: ++state.notebook.lastPageId,
+      title: page.title === 'Project Kanban' ? 'Previous Page 1' : `${page.title || 'Page 1'} (saved)`,
+      nodes: [...(page.nodes || [])],
+      edges: [...(page.edges || [])],
+      edgeLabels: { ...(page.edgeLabels || {}) },
+      view: page.view ? { ...page.view } : { x: 0, y: 0, scale: 1 },
+    }
+    state.notebook.pages.splice(1, 0, backup)
+  }
+
+  buildProjectKanbanPage(page)
+  state.notebook.activePageId = page.id
+  loadPageIntoState(page)
+  hideDetails()
+  resetHistoryForCurrentPage()
+  save()
+  renderPageTabs()
+  resize()
+  return true
 }
 
 function activePage() {
@@ -115,6 +245,30 @@ function addNotebookPage() {
   render()
 }
 
+function deleteCurrentPage() {
+  btnDeletePage?.blur()
+  if (state.notebook.pages.length <= 1) {
+    window.alert('A notebook needs at least one page.')
+    return false
+  }
+  const page = activePage()
+  if (!page) return false
+  const confirmed = window.confirm(`Delete “${page.title}”? This cannot be undone.`)
+  if (!confirmed) return false
+
+  const index = state.notebook.pages.findIndex(p => p.id === page.id)
+  state.notebook.pages.splice(index, 1)
+  const nextPage = state.notebook.pages[Math.max(0, index - 1)] || state.notebook.pages[0]
+  state.notebook.activePageId = nextPage.id
+  loadPageIntoState(nextPage)
+  hideDetails()
+  resetHistoryForCurrentPage()
+  save()
+  renderPageTabs()
+  resize()
+  return true
+}
+
 // ─── History (undo/redo) ─────────────────────────────────────────────────────
 const MAX_HISTORY = 50
 const history = { stack: [], index: -1 }
@@ -182,6 +336,8 @@ app.innerHTML = `
     <strong>Notebook</strong>
     <select id="page-select" title="Current page"></select>
     <button id="btn-new-page" title="New notebook page">+ Page</button>
+    <button id="btn-delete-page" title="Delete current notebook page">Delete Page</button>
+    <button id="btn-project-kanban" title="Put the project kanban on Page 1">Kanban</button>
   </span>
   <button id="btn-add" title="Add node (A)">+ Node</button>
   <button id="btn-connect" title="Connect mode (C)">⬌ Connect</button>
@@ -229,6 +385,8 @@ const minimapCanvas = document.getElementById('minimap')
 const mctx = minimapCanvas.getContext('2d')
 const pageSelect = document.getElementById('page-select')
 const btnNewPage = document.getElementById('btn-new-page')
+const btnDeletePage = document.getElementById('btn-delete-page')
+const btnProjectKanban = document.getElementById('btn-project-kanban')
 const btnAdd = document.getElementById('btn-add')
 const btnConnect = document.getElementById('btn-connect')
 const btnDelete = document.getElementById('btn-delete')
@@ -388,7 +546,7 @@ function newNode(x, y, text = 'New Node') {
     text,
     width: size.width,
     height: size.height,
-    details: { text: '', drawing: null },
+    details: { text: '', drawing: null, strokes: [] },
   }
 }
 
@@ -1279,6 +1437,8 @@ detailsDrawing.addEventListener('pointercancel', endDetailsDrawing)
 
 pageSelect.addEventListener('change', () => switchPage(Number(pageSelect.value)))
 btnNewPage.addEventListener('click', addNotebookPage)
+btnDeletePage.addEventListener('click', deleteCurrentPage)
+btnProjectKanban.addEventListener('click', applyProjectKanbanToPageOne)
 
 btnDelete.addEventListener('click', deleteSelected)
 btnEraser.addEventListener('click', () => setEraserMode(!state.eraserMode))
