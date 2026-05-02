@@ -111,6 +111,7 @@ const btnRedo = document.getElementById('btn-redo')
 function resize() {
   canvas.width = window.innerWidth
   canvas.height = window.innerHeight
+  render()
 }
 window.addEventListener('resize', resize)
 resize()

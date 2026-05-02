@@ -173,3 +173,10 @@ _Mind Mapp fully implemented. Project complete._ ✓
 - Preserved existing edge labels, selected-edge deletion, and node/edge ID collision behavior while applying the minimap fix.
 - Ran full Playwright test suite: 8/8 passed ✓
 - Ran production build: passed ✓
+
+## Session Log — 2026-05-02 10:25 UTC
+- Applied ALP-RIVER review workflow: audited the worktree, located stale uncommitted changes, protected shipped edge-label/edge-selection behavior, reproduced validation, and documented release readiness.
+- Found a real regression risk in the uncommitted worktree: it would have removed edge labels, selected-edge deletion, and node/edge ID collision coverage. Restored those shipped behaviors from HEAD.
+- Kept the new resize repaint fix and added Playwright coverage for it.
+- Ran final `npm test`: 9/9 passed ✓
+
