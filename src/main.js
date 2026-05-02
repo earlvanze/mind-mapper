@@ -97,6 +97,13 @@ function addPageEdge(page, from, to, label = '') {
   return edge
 }
 
+function branchPoint(centerX, centerY, angle, radius) {
+  return {
+    x: centerX + Math.cos(angle) * radius,
+    y: centerY + Math.sin(angle) * radius,
+  }
+}
+
 function buildProjectKanbanPage(page) {
   page.nodes = []
   page.edges = []
@@ -105,41 +112,44 @@ function buildProjectKanbanPage(page) {
   page.lastEdgeId = 0
   page.title = 'Project Kanban'
   page.kanbanSeedVersion = PROJECT_KANBAN_VERSION
-  page.view = { x: 70, y: 62, scale: 0.76 }
+  page.view = { x: 265, y: 190, scale: 0.55 }
 
-  const columnWidth = 300
-  const rowGap = 82
-  const startX = 80
-  const startY = 168
-
+  const centerX = 760
+  const centerY = 560
   const root = makeNodeForPage(
     page,
-    startX + ((PROJECT_KANBAN_COLUMNS.length - 1) * columnWidth) / 2 + 90,
-    52,
+    centerX,
+    centerY,
     'Mind Mapp Project Kanban',
-    'Project root. Connected to every kanban column and card.',
+    'Central project map. Branches show status, each leaf is a card.',
   )
-  root.width = Math.max(root.width, 250)
-  root.height = Math.max(root.height, 54)
+  root.width = Math.max(root.width, 270)
+  root.height = Math.max(root.height, 58)
   page.nodes.push(root)
 
+  const angles = [-Math.PI * 0.78, -Math.PI * 0.25, Math.PI * 0.25, Math.PI * 0.78]
+  const headerRadius = 340
+  const cardRadiusStep = 145
+  const fanStep = Math.PI / 28
+
   PROJECT_KANBAN_COLUMNS.forEach((column, columnIndex) => {
-    const x = startX + columnIndex * columnWidth
-    const header = makeNodeForPage(page, x + 95, startY - 56, column.title, `${column.items.length} cards`)
+    const angle = angles[columnIndex] ?? (-Math.PI + columnIndex * (Math.PI * 2 / PROJECT_KANBAN_COLUMNS.length))
+    const headerPos = branchPoint(centerX, centerY, angle, headerRadius)
+    const header = makeNodeForPage(page, headerPos.x, headerPos.y, column.title, `${column.items.length} cards`)
     header.width = Math.max(header.width, 190)
-    header.height = Math.max(header.height, 50)
+    header.height = Math.max(header.height, 52)
     page.nodes.push(header)
     addPageEdge(page, root, header, column.title)
 
-    let previous = header
     column.items.forEach((item, itemIndex) => {
-      const card = makeNodeForPage(page, x + 95, startY + itemIndex * rowGap, item, `Kanban column: ${column.title}`)
+      const sideOffset = (itemIndex - (column.items.length - 1) / 2) * fanStep
+      const radius = headerRadius + cardRadiusStep + (itemIndex % 4) * 92
+      const cardPos = branchPoint(centerX, centerY, angle + sideOffset, radius)
+      const card = makeNodeForPage(page, cardPos.x, cardPos.y, item, `Kanban branch: ${column.title}`)
       card.width = Math.max(card.width, 235)
       card.height = Math.max(card.height, 52)
       page.nodes.push(card)
       addPageEdge(page, header, card)
-      if (itemIndex > 0) addPageEdge(page, previous, card)
-      previous = card
     })
   })
 }
