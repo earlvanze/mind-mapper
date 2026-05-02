@@ -209,6 +209,128 @@ function applyProjectKanbanToNewPage() {
   return true
 }
 
+function compactText(value) {
+  return String(value || '').replace(/\s+/g, ' ').trim()
+}
+
+function trelloCardDetails(card, board) {
+  const labels = (card.labels || []).map(label => label.name || label.color).filter(Boolean)
+  const checkItems = (board.checklists || [])
+    .filter(checklist => checklist.idCard === card.id)
+    .flatMap(checklist => (checklist.checkItems || []).map(item => `${item.state === 'complete' ? '☑' : '☐'} ${item.name}`))
+  return [
+    card.desc ? `Description:\n${card.desc}` : '',
+    card.url || card.shortUrl ? `Trello URL: ${card.url || card.shortUrl}` : '',
+    labels.length ? `Labels: ${labels.join(', ')}` : '',
+    card.due ? `Due: ${card.due}` : '',
+    checkItems.length ? `Checklist:\n${checkItems.join('\n')}` : '',
+  ].filter(Boolean).join('\n\n')
+}
+
+function buildTrelloBoardPage(page, board) {
+  if (!board || !Array.isArray(board.lists) || !Array.isArray(board.cards)) {
+    throw new Error('Expected a Trello board JSON export with lists and cards.')
+  }
+
+  page.nodes = []
+  page.edges = []
+  page.edgeLabels = {}
+  page.lastId = 0
+  page.lastEdgeId = 0
+  page.title = compactText(board.name) || 'Trello Board'
+  page.trelloImportVersion = 1
+  page.trelloBoardId = board.id || null
+  page.view = { x: 330, y: 220, scale: 0.42 }
+
+  const openLists = board.lists.filter(list => !list.closed)
+  const cardsByList = new Map()
+  for (const card of board.cards.filter(card => !card.closed)) {
+    if (!cardsByList.has(card.idList)) cardsByList.set(card.idList, [])
+    cardsByList.get(card.idList).push(card)
+  }
+  for (const cards of cardsByList.values()) cards.sort((a, b) => (a.pos || 0) - (b.pos || 0))
+
+  const centerX = 760
+  const centerY = 560
+  const root = makeNodeForPage(
+    page,
+    centerX,
+    centerY,
+    page.title,
+    [
+      'Imported from Trello board JSON.',
+      board.url ? `Trello URL: ${board.url}` : '',
+      board.desc ? `Description:\n${board.desc}` : '',
+    ].filter(Boolean).join('\n\n'),
+  )
+  root.width = Math.max(root.width, 260)
+  root.height = Math.max(root.height, 58)
+  page.nodes.push(root)
+
+  const branchCount = Math.max(1, openLists.length)
+  const headerRadius = 430
+  const cardRadiusBase = 285
+  const cardRadiusStep = 120
+  const fanStep = Math.PI / Math.max(18, branchCount * 5)
+
+  openLists.forEach((list, listIndex) => {
+    const angle = -Math.PI / 2 + listIndex * (Math.PI * 2 / branchCount)
+    const headerPos = branchPoint(centerX, centerY, angle, headerRadius)
+    const cards = cardsByList.get(list.id) || []
+    const header = makeNodeForPage(page, headerPos.x, headerPos.y, list.name, `${cards.length} Trello cards`)
+    header.width = Math.max(header.width, 190)
+    header.height = Math.max(header.height, 52)
+    page.nodes.push(header)
+    addPageEdge(page, root, header, list.name)
+
+    cards.forEach((card, cardIndex) => {
+      const sideOffset = (cardIndex - (cards.length - 1) / 2) * fanStep
+      const radius = headerRadius + cardRadiusBase + (cardIndex % 4) * cardRadiusStep
+      const cardPos = branchPoint(centerX, centerY, angle + sideOffset, radius)
+      const title = compactText(card.name) || 'Untitled Trello card'
+      const node = makeNodeForPage(page, cardPos.x, cardPos.y, title, trelloCardDetails(card, board))
+      node.width = Math.max(node.width, 235)
+      node.height = Math.max(node.height, 52)
+      node.trelloCardId = card.id || null
+      page.nodes.push(node)
+      addPageEdge(page, header, node)
+    })
+  })
+}
+
+function importTrelloBoard(board) {
+  persistDetailsText({ commitHistory: false })
+  if (state.editing) commitEdit()
+  if (edgeEditInput) commitEdgeLabel()
+  syncCurrentPage()
+
+  const page = createPage(compactText(board?.name) || 'Trello Board')
+  buildTrelloBoardPage(page, board)
+  state.notebook.pages.push(page)
+  state.notebook.activePageId = page.id
+  loadPageIntoState(page)
+  hideDetails()
+  resetHistoryForCurrentPage()
+  save()
+  renderPageTabs()
+  resize()
+  return true
+}
+
+async function importTrelloFile(file) {
+  if (!file) return false
+  try {
+    const text = await file.text()
+    importTrelloBoard(JSON.parse(text))
+    return true
+  } catch (error) {
+    window.alert(`Could not import Trello board: ${error.message}`)
+    return false
+  } finally {
+    if (trelloFileInput) trelloFileInput.value = ''
+  }
+}
+
 function activePage() {
   return state.notebook.pages.find(page => page.id === state.notebook.activePageId) || null
 }
@@ -387,6 +509,8 @@ app.innerHTML = `
     <button id="btn-new-page" title="New notebook page">+ Page</button>
     <button id="btn-delete-page" title="Delete current notebook page">Delete Page</button>
     <button id="btn-project-kanban" title="Create a project kanban page">Kanban</button>
+    <button id="btn-import-trello" title="Import a Trello board JSON export">Import Trello</button>
+    <input id="trello-file-input" type="file" accept="application/json,.json" hidden>
   </span>
   <button id="btn-add" title="Add node (A)">+ Node</button>
   <button id="btn-connect" title="Connect mode (C)">⬌ Connect</button>
@@ -436,6 +560,8 @@ const pageSelect = document.getElementById('page-select')
 const btnNewPage = document.getElementById('btn-new-page')
 const btnDeletePage = document.getElementById('btn-delete-page')
 const btnProjectKanban = document.getElementById('btn-project-kanban')
+const btnImportTrello = document.getElementById('btn-import-trello')
+const trelloFileInput = document.getElementById('trello-file-input')
 const btnAdd = document.getElementById('btn-add')
 const btnConnect = document.getElementById('btn-connect')
 const btnDelete = document.getElementById('btn-delete')
@@ -1488,6 +1614,8 @@ pageSelect.addEventListener('change', () => switchPage(Number(pageSelect.value))
 btnNewPage.addEventListener('click', addNotebookPage)
 btnDeletePage.addEventListener('click', deleteCurrentPage)
 btnProjectKanban.addEventListener('click', applyProjectKanbanToNewPage)
+btnImportTrello.addEventListener('click', () => trelloFileInput.click())
+trelloFileInput.addEventListener('change', () => importTrelloFile(trelloFileInput.files?.[0]))
 
 btnDelete.addEventListener('click', deleteSelected)
 btnEraser.addEventListener('click', () => setEraserMode(!state.eraserMode))
