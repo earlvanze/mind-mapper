@@ -77,6 +77,7 @@ body { overflow: hidden; }
 
 canvas { flex: 1; display: block; cursor: default; touch-action: none; user-select: none; }
 canvas.grabbing { cursor: grabbing; }
+canvas.eraser-mode { cursor: not-allowed; }
 
 .node-edit-input {
   position: fixed;
@@ -150,7 +151,10 @@ canvas.grabbing { cursor: grabbing; }
 #details-subtitle { display: block; font-size: 12px; opacity: 0.7; }
 
 #btn-close-details,
-#btn-clear-drawing {
+#btn-clear-drawing,
+#btn-recognize-handwriting,
+#btn-draw-pen,
+#btn-draw-eraser {
   padding: 4px 8px;
   border-radius: 6px;
   border: 1px solid var(--border);
@@ -183,6 +187,14 @@ canvas.grabbing { cursor: grabbing; }
   background: #fff;
   cursor: crosshair;
   touch-action: none;
+}
+
+#details-drawing.drawing-eraser { cursor: not-allowed; }
+
+.details-draw-actions button.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
 }
 
 .details-draw-actions {

@@ -18,6 +18,7 @@ const state = {
   lastId: 0,
   lastEdgeId: 0,
   edgeLabels: {},
+  eraserMode: false,
   notebook: { pages: [], activePageId: null, lastPageId: 0 },
 }
 
@@ -184,6 +185,8 @@ app.innerHTML = `
   </span>
   <button id="btn-add" title="Add node (A)">+ Node</button>
   <button id="btn-connect" title="Connect mode (C)">⬌ Connect</button>
+  <button id="btn-delete" title="Delete selected node or edge (Delete)">🗑 Delete</button>
+  <button id="btn-eraser" title="Eraser mode: click nodes or edges to delete">⌫ Eraser</button>
   <button id="btn-export" title="Export PNG (E)">📷 Export</button>
   <button id="btn-fit" title="Fit view (F)">⛶ Fit</button>
   <span id="undo-redo-btns">
@@ -208,6 +211,8 @@ app.innerHTML = `
     <div class="details-draw-header">
       <span class="details-label">Drawing</span>
       <span class="details-draw-actions">
+        <button id="btn-draw-pen" class="active" title="Draw with pen">Pen</button>
+        <button id="btn-draw-eraser" title="Erase drawing strokes">Eraser</button>
         <button id="btn-recognize-handwriting" title="Recognize handwriting from drawing">Recognize</button>
         <button id="btn-clear-drawing" title="Clear drawing">Clear</button>
       </span>
@@ -226,6 +231,8 @@ const pageSelect = document.getElementById('page-select')
 const btnNewPage = document.getElementById('btn-new-page')
 const btnAdd = document.getElementById('btn-add')
 const btnConnect = document.getElementById('btn-connect')
+const btnDelete = document.getElementById('btn-delete')
+const btnEraser = document.getElementById('btn-eraser')
 const btnExport = document.getElementById('btn-export')
 const btnFit = document.getElementById('btn-fit')
 const btnUndo = document.getElementById('btn-undo')
@@ -237,6 +244,8 @@ const detailsDrawing = document.getElementById('details-drawing')
 const detailsCtx = detailsDrawing.getContext('2d')
 const btnCloseDetails = document.getElementById('btn-close-details')
 const btnClearDrawing = document.getElementById('btn-clear-drawing')
+const btnDrawPen = document.getElementById('btn-draw-pen')
+const btnDrawEraser = document.getElementById('btn-draw-eraser')
 const btnRecognizeHandwriting = document.getElementById('btn-recognize-handwriting')
 const recognitionStatus = document.getElementById('recognition-status')
 
@@ -282,6 +291,57 @@ function endpoints(a, b) {
   const ax = a.x + a.width / 2, ay = a.y + a.height / 2
   const bx = b.x + b.width / 2, by = b.y + b.height / 2
   return [ax, ay, bx, by]
+}
+
+
+function setEraserMode(active) {
+  state.eraserMode = active
+  btnEraser?.classList.toggle('active', active)
+  canvas?.classList.toggle('eraser-mode', active)
+  if (active) {
+    state.connecting = null
+    btnConnect?.classList.remove('active')
+  }
+}
+
+function deleteSelected() {
+  if (state.selected === null) return false
+  const selectedId = state.selected
+  if (state.selectedType === 'edge') {
+    delete state.edgeLabels[selectedId]
+    state.edges = state.edges.filter(e => e.id !== selectedId)
+  } else if (state.selectedType === 'node') {
+    for (const edge of state.edges) {
+      if (fromId(edge) === selectedId || toId(edge) === selectedId) delete state.edgeLabels[edge.id]
+    }
+    state.nodes = state.nodes.filter(n => n.id !== selectedId)
+    state.edges = state.edges.filter(e => fromId(e) !== selectedId && toId(e) !== selectedId)
+  } else {
+    return false
+  }
+  state.selected = null
+  state.selectedType = null
+  hideDetails()
+  historyCommit()
+  save()
+  render()
+  return true
+}
+
+function eraseAt(mx, my) {
+  const node = nodeAt(mx, my)
+  if (node) {
+    state.selected = node.id
+    state.selectedType = 'node'
+    return deleteSelected()
+  }
+  const edge = edgeAt(mx, my)
+  if (edge) {
+    state.selected = edge.id
+    state.selectedType = 'edge'
+    return deleteSelected()
+  }
+  return false
 }
 
 function distPointToSegment(px, py, ax, ay, bx, by) {
@@ -768,6 +828,14 @@ function persistDetailsDrawing() {
 let drawingDetails = false
 let lastDetailsPoint = null
 let currentDetailsStroke = null
+let detailsDrawMode = 'pen'
+
+function setDetailsDrawMode(mode) {
+  detailsDrawMode = mode
+  btnDrawPen.classList.toggle('active', mode === 'pen')
+  btnDrawEraser.classList.toggle('active', mode === 'eraser')
+  detailsDrawing.classList.toggle('drawing-eraser', mode === 'eraser')
+}
 
 function detailsPoint(e) {
   const rect = detailsDrawing.getBoundingClientRect()
@@ -783,21 +851,30 @@ function beginDetailsDrawing(e) {
   detailsDrawing.setPointerCapture?.(e.pointerId)
   drawingDetails = true
   lastDetailsPoint = detailsPoint(e)
-  currentDetailsStroke = [{ ...lastDetailsPoint, t: Date.now() }]
+  currentDetailsStroke = detailsDrawMode === 'pen' ? [{ ...lastDetailsPoint, t: Date.now() }] : null
 }
 
 function moveDetailsDrawing(e) {
   if (!drawingDetails) return
   e.preventDefault()
   const point = detailsPoint(e)
-  detailsCtx.strokeStyle = '#08060d'
-  detailsCtx.lineWidth = 3
+  detailsCtx.save()
+  if (detailsDrawMode === 'eraser') {
+    detailsCtx.globalCompositeOperation = 'destination-out'
+    detailsCtx.strokeStyle = 'rgba(0,0,0,1)'
+    detailsCtx.lineWidth = 18
+  } else {
+    detailsCtx.globalCompositeOperation = 'source-over'
+    detailsCtx.strokeStyle = '#08060d'
+    detailsCtx.lineWidth = 3
+  }
   detailsCtx.lineCap = 'round'
   detailsCtx.lineJoin = 'round'
   detailsCtx.beginPath()
   detailsCtx.moveTo(lastDetailsPoint.x, lastDetailsPoint.y)
   detailsCtx.lineTo(point.x, point.y)
   detailsCtx.stroke()
+  detailsCtx.restore()
   currentDetailsStroke?.push({ ...point, t: Date.now() })
   lastDetailsPoint = point
 }
@@ -808,6 +885,7 @@ function endDetailsDrawing(e) {
   drawingDetails = false
   const node = selectedNode()
   if (node && currentDetailsStroke?.length) ensureNodeDetails(node).strokes.push(currentDetailsStroke)
+  if (node && detailsDrawMode === 'eraser') ensureNodeDetails(node).strokes = []
   currentDetailsStroke = null
   lastDetailsPoint = null
   persistDetailsDrawing()
@@ -947,6 +1025,11 @@ canvas.addEventListener('pointerdown', e => {
   }
 
   const { x: mx, y: my } = pointerCanvasPoint(e)
+
+  if (state.eraserMode) {
+    eraseAt(mx, my)
+    return
+  }
 
   mouseState = { down: true, clickTime: Date.now(), clickX: mx, clickY: my }
   lastMouse = { x: mx, y: my }
@@ -1107,30 +1190,14 @@ document.addEventListener('keydown', e => {
   }
 
   if (e.key === 'Delete' || e.key === 'Backspace') {
-    if (state.selected !== null) {
-      const selectedId = state.selected
-      if (state.selectedType === 'edge') {
-        delete state.edgeLabels[selectedId]
-        state.edges = state.edges.filter(e => e.id !== selectedId)
-      } else {
-        for (const edge of state.edges) {
-          if (fromId(edge) === selectedId || toId(edge) === selectedId) delete state.edgeLabels[edge.id]
-        }
-        state.nodes = state.nodes.filter(n => n.id !== selectedId)
-        state.edges = state.edges.filter(e => fromId(e) !== selectedId && toId(e) !== selectedId)
-      }
-      state.selected = null
-      hideDetails()
-      historyCommit()
-      save()
-      render()
-    }
+    deleteSelected()
   }
   if (e.key === 'Escape') {
     state.selected = null
     state.selectedType = null
     state.connecting = null
     hideDetails()
+    setEraserMode(false)
     btnConnect.classList.remove('active')
     render()
   }
@@ -1147,6 +1214,7 @@ document.addEventListener('keydown', e => {
     setTimeout(() => startEditing(node), 50)
   }
   if (e.key === 'c' || e.key === 'C') {
+    setEraserMode(false)
     if (state.connecting) {
       state.connecting = null
       btnConnect.classList.remove('active')
@@ -1169,6 +1237,8 @@ detailsText.addEventListener('input', scheduleDetailsTextSave)
 detailsText.addEventListener('change', () => persistDetailsText({ commitHistory: false }))
 detailsText.addEventListener('blur', () => persistDetailsText({ commitHistory: false }))
 btnCloseDetails.addEventListener('click', () => { state.selected = null; state.selectedType = null; hideDetails(); render() })
+btnDrawPen.addEventListener('click', () => setDetailsDrawMode('pen'))
+btnDrawEraser.addEventListener('click', () => setDetailsDrawMode('eraser'))
 btnClearDrawing.addEventListener('click', () => {
   const node = selectedNode()
   if (node) {
@@ -1189,8 +1259,12 @@ detailsDrawing.addEventListener('pointercancel', endDetailsDrawing)
 pageSelect.addEventListener('change', () => switchPage(Number(pageSelect.value)))
 btnNewPage.addEventListener('click', addNotebookPage)
 
+btnDelete.addEventListener('click', deleteSelected)
+btnEraser.addEventListener('click', () => setEraserMode(!state.eraserMode))
+
 btnAdd.addEventListener('click', () => {
   btnAdd.blur()
+  setEraserMode(false)
   const cx = canvas.width / 2, cy = canvas.height / 2
   const world = screenToWorld(cx, cy)
   const node = newNode(world.x, world.y)
@@ -1205,6 +1279,7 @@ btnAdd.addEventListener('click', () => {
 })
 
 btnConnect.addEventListener('click', () => {
+  setEraserMode(false)
   if (state.connecting) {
     state.connecting = null
     btnConnect.classList.remove('active')
