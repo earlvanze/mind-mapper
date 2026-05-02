@@ -47,5 +47,7 @@ test('imports a Trello board JSON export as a new mind-map page', async ({ page 
   expect(card.details.text).toContain('Labels: Marketing')
   expect(card.details.text).toContain('☑ Draft')
   expect(card.details.text).toContain('☐ Review')
+  expect(card.details.text).not.toContain('Git commit:')
+  expect(card.details.text).not.toContain('Commit URL:')
   expect(saved.notebook.activePageId).toBe(imported.id)
 })

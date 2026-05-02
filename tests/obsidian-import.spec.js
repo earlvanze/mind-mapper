@@ -40,6 +40,8 @@ test('imports an Obsidian Kanban markdown file as a new mind-map page', async ({
   expect(mindMapp.details.text).toContain('Status: Active')
   expect(mindMapp.details.text).toContain('Owner agent(s): tech-mvp')
   expect(mindMapp.details.text).toContain('Dropbox/Projects/mind-mapp')
+  expect(mindMapp.details.text).not.toContain('Git commit:')
+  expect(mindMapp.details.text).not.toContain('Commit URL:')
   expect(saved.notebook.activePageId).toBe(imported.id)
 })
 

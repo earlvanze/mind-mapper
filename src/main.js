@@ -111,11 +111,13 @@ function commitDetailsFor(text) {
   return `Git commit: ${hash} (${label})\nCommit URL: ${url}`
 }
 
-function makeNodeForPage(page, x, y, text, detailsText = '') {
+function makeNodeForPage(page, x, y, text, detailsText = '', options = {}) {
   const previousLastId = state.lastId
   state.lastId = page.lastId || 0
   const node = newNode(x, y, text)
-  node.details.text = [detailsText, commitDetailsFor(text)].filter(Boolean).join('\n\n')
+  const details = [detailsText]
+  if (options.includeGitDetails) details.push(commitDetailsFor(text))
+  node.details.text = details.filter(Boolean).join('\n\n')
   page.lastId = state.lastId
   state.lastId = previousLastId
   return node
@@ -157,6 +159,7 @@ function buildProjectKanbanPage(page) {
     centerY,
     'Mind Mapp Project Kanban',
     'Central project map. Branches show status, each leaf is a card.',
+    { includeGitDetails: true },
   )
   root.width = Math.max(root.width, 270)
   root.height = Math.max(root.height, 58)
@@ -171,7 +174,7 @@ function buildProjectKanbanPage(page) {
   PROJECT_KANBAN_COLUMNS.forEach((column, columnIndex) => {
     const angle = angles[columnIndex] ?? (-Math.PI + columnIndex * (Math.PI * 2 / PROJECT_KANBAN_COLUMNS.length))
     const headerPos = branchPoint(centerX, centerY, angle, headerRadius)
-    const header = makeNodeForPage(page, headerPos.x, headerPos.y, column.title, `${column.items.length} cards`)
+    const header = makeNodeForPage(page, headerPos.x, headerPos.y, column.title, `${column.items.length} cards`, { includeGitDetails: true })
     header.width = Math.max(header.width, 190)
     header.height = Math.max(header.height, 52)
     page.nodes.push(header)
@@ -181,7 +184,7 @@ function buildProjectKanbanPage(page) {
       const sideOffset = (itemIndex - (column.items.length - 1) / 2) * fanStep
       const radius = headerRadius + cardRadiusBase + (itemIndex % 3) * cardRadiusStep
       const cardPos = branchPoint(centerX, centerY, angle + sideOffset, radius)
-      const card = makeNodeForPage(page, cardPos.x, cardPos.y, item, `Kanban branch: ${column.title}`)
+      const card = makeNodeForPage(page, cardPos.x, cardPos.y, item, `Kanban branch: ${column.title}`, { includeGitDetails: true })
       card.width = Math.max(card.width, 235)
       card.height = Math.max(card.height, 52)
       page.nodes.push(card)
