@@ -109,8 +109,9 @@ const btnRedo = document.getElementById('btn-redo')
 
 // ─── Sizing ───────────────────────────────────────────────────────────────────
 function resize() {
-  canvas.width = window.innerWidth
-  canvas.height = window.innerHeight
+  const rect = canvas.getBoundingClientRect()
+  canvas.width = Math.max(1, Math.floor(rect.width || window.innerWidth))
+  canvas.height = Math.max(1, Math.floor(rect.height || window.innerHeight))
   render()
 }
 window.addEventListener('resize', resize)
@@ -519,8 +520,10 @@ function cancelEdit() {
 let lastMouse = { x: 0, y: 0 }
 let mouseState = { down: false, clickTime: 0, clickX: 0, clickY: 0 }
 
-canvas.addEventListener('mousedown', e => {
+canvas.addEventListener('pointerdown', e => {
   if (e.button !== 0) return
+  e.preventDefault()
+  canvas.setPointerCapture?.(e.pointerId)
   const rect = canvas.getBoundingClientRect()
   const mx = e.clientX - rect.left
   const my = e.clientY - rect.top
@@ -563,7 +566,7 @@ canvas.addEventListener('mousedown', e => {
   render()
 })
 
-canvas.addEventListener('mousemove', e => {
+canvas.addEventListener('pointermove', e => {
   const rect = canvas.getBoundingClientRect()
   const mx = e.clientX - rect.left
   const my = e.clientY - rect.top
@@ -586,11 +589,20 @@ canvas.addEventListener('mousemove', e => {
   render()
 })
 
-canvas.addEventListener('mouseup', e => {
+canvas.addEventListener('pointerup', e => {
+  canvas.releasePointerCapture?.(e.pointerId)
   if (state.dragging) {
     historyCommit()
     save()
   }
+  state.dragging = null
+  state.panning = false
+  mouseState.down = false
+  render()
+})
+
+canvas.addEventListener('pointercancel', e => {
+  canvas.releasePointerCapture?.(e.pointerId)
   state.dragging = null
   state.panning = false
   mouseState.down = false
