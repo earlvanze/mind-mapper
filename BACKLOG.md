@@ -180,3 +180,9 @@ _Mind Mapp fully implemented. Project complete._ ✓
 - Kept the new resize repaint fix and added Playwright coverage for it.
 - Ran final `npm test`: 9/9 passed ✓
 
+## Ops: resolve OpenClaw split-brain host
+
+- Current tech-mvp agent is running on `Cyber` WSL2, not intended Umbrel host.
+- Gateway reports local loopback binding, so current Cloudflare/Mind Mapp process is anchored on Cyber/WSL.
+- Before making durable deployment/security changes, confirm canonical host and migrate/re-point OpenClaw/Mind Mapp serving to Umbrel.
+- Keep Ollama on Cyber CUDA, accessed only over tailnet/provider URL.
