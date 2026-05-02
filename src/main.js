@@ -87,6 +87,7 @@ function switchPage(pageId) {
   if (!page) return
   state.notebook.activePageId = page.id
   loadPageIntoState(page)
+  refreshDetailsPanel()
   resetHistoryForCurrentPage()
   save()
   renderPageTabs()
@@ -161,6 +162,7 @@ function applySnapshot(snap) {
     state.connecting = null
     state.editing = null
     save()
+    refreshDetailsPanel()
     render()
   } catch (e) { /* ignore */ }
 }
@@ -189,7 +191,25 @@ app.innerHTML = `
   <span class="toolbar-hint">Double-click canvas to add node. Double-click node to edit. Drag to move.</span>
   <div id="minimap-container"><canvas id="minimap"></canvas></div>
 </div>
-<canvas id="canvas"></canvas>
+<div class="workspace">
+  <canvas id="canvas"></canvas>
+  <aside id="details-panel" class="details-panel hidden">
+    <div class="details-header">
+      <div>
+        <strong id="details-title">Node details</strong>
+        <span id="details-subtitle">Write notes or sketch ideas</span>
+      </div>
+      <button id="btn-close-details" title="Close details">×</button>
+    </div>
+    <label class="details-label" for="details-text">Description</label>
+    <textarea id="details-text" placeholder="Add context, requirements, links, acceptance notes..."></textarea>
+    <div class="details-draw-header">
+      <span class="details-label">Drawing</span>
+      <button id="btn-clear-drawing" title="Clear drawing">Clear</button>
+    </div>
+    <canvas id="details-drawing" width="320" height="220"></canvas>
+  </aside>
+</div>
 `
 
 const canvas = document.getElementById('canvas')
@@ -204,6 +224,13 @@ const btnExport = document.getElementById('btn-export')
 const btnFit = document.getElementById('btn-fit')
 const btnUndo = document.getElementById('btn-undo')
 const btnRedo = document.getElementById('btn-redo')
+const detailsPanel = document.getElementById('details-panel')
+const detailsTitle = document.getElementById('details-title')
+const detailsText = document.getElementById('details-text')
+const detailsDrawing = document.getElementById('details-drawing')
+const detailsCtx = detailsDrawing.getContext('2d')
+const btnCloseDetails = document.getElementById('btn-close-details')
+const btnClearDrawing = document.getElementById('btn-clear-drawing')
 
 
 // ─── Sizing ───────────────────────────────────────────────────────────────────
@@ -286,7 +313,15 @@ function measureText(text, fontSize = 16) {
 function newNode(x, y, text = 'New Node') {
   const id = ++state.lastId
   const size = measureText(text)
-  return { id, x: x - size.width / 2, y: y - size.height / 2, text, width: size.width, height: size.height }
+  return {
+    id,
+    x: x - size.width / 2,
+    y: y - size.height / 2,
+    text,
+    width: size.width,
+    height: size.height,
+    details: { text: '', drawing: null },
+  }
 }
 
 function save() {
@@ -640,6 +675,116 @@ function cancelEdit() {
   render()
 }
 
+
+// ─── Node details panel ──────────────────────────────────────────────────────
+function selectedNode() {
+  if (state.selectedType !== 'node') return null
+  return state.nodes.find(node => node.id === state.selected) || null
+}
+
+function ensureNodeDetails(node) {
+  if (!node.details) node.details = { text: '', drawing: null }
+  if (typeof node.details.text !== 'string') node.details.text = ''
+  if (!('drawing' in node.details)) node.details.drawing = null
+  return node.details
+}
+
+function drawDetailsBackground() {
+  detailsCtx.fillStyle = '#fff'
+  detailsCtx.fillRect(0, 0, detailsDrawing.width, detailsDrawing.height)
+}
+
+function renderDetailsDrawing(node) {
+  drawDetailsBackground()
+  const drawing = ensureNodeDetails(node).drawing
+  if (drawing) {
+    const img = new Image()
+    img.onload = () => {
+      drawDetailsBackground()
+      detailsCtx.drawImage(img, 0, 0, detailsDrawing.width, detailsDrawing.height)
+    }
+    img.src = drawing
+  }
+}
+
+function showDetailsForNode(node) {
+  ensureNodeDetails(node)
+  detailsPanel.classList.remove('hidden')
+  detailsTitle.textContent = node.text || 'Node details'
+  detailsText.value = node.details.text
+  renderDetailsDrawing(node)
+  resize()
+}
+
+function hideDetails() {
+  detailsPanel.classList.add('hidden')
+  resize()
+}
+
+function refreshDetailsPanel() {
+  const node = selectedNode()
+  if (node) showDetailsForNode(node)
+  else hideDetails()
+}
+
+function persistDetailsText() {
+  const node = selectedNode()
+  if (!node) return
+  ensureNodeDetails(node).text = detailsText.value
+  historyCommit()
+  save()
+}
+
+function persistDetailsDrawing() {
+  const node = selectedNode()
+  if (!node) return
+  ensureNodeDetails(node).drawing = detailsDrawing.toDataURL('image/png')
+  historyCommit()
+  save()
+}
+
+let drawingDetails = false
+let lastDetailsPoint = null
+
+function detailsPoint(e) {
+  const rect = detailsDrawing.getBoundingClientRect()
+  return {
+    x: (e.clientX - rect.left) * (detailsDrawing.width / rect.width),
+    y: (e.clientY - rect.top) * (detailsDrawing.height / rect.height),
+  }
+}
+
+function beginDetailsDrawing(e) {
+  if (!selectedNode()) return
+  e.preventDefault()
+  detailsDrawing.setPointerCapture?.(e.pointerId)
+  drawingDetails = true
+  lastDetailsPoint = detailsPoint(e)
+}
+
+function moveDetailsDrawing(e) {
+  if (!drawingDetails) return
+  e.preventDefault()
+  const point = detailsPoint(e)
+  detailsCtx.strokeStyle = '#08060d'
+  detailsCtx.lineWidth = 3
+  detailsCtx.lineCap = 'round'
+  detailsCtx.lineJoin = 'round'
+  detailsCtx.beginPath()
+  detailsCtx.moveTo(lastDetailsPoint.x, lastDetailsPoint.y)
+  detailsCtx.lineTo(point.x, point.y)
+  detailsCtx.stroke()
+  lastDetailsPoint = point
+}
+
+function endDetailsDrawing(e) {
+  if (!drawingDetails) return
+  detailsDrawing.releasePointerCapture?.(e.pointerId)
+  drawingDetails = false
+  lastDetailsPoint = null
+  persistDetailsDrawing()
+}
+
 // ─── Events ───────────────────────────────────────────────────────────────────
 let lastMouse = { x: 0, y: 0 }
 let mouseState = { down: false, clickTime: 0, clickX: 0, clickY: 0 }
@@ -716,6 +861,7 @@ canvas.addEventListener('pointerdown', e => {
   if (node) {
     state.selected = node.id
     state.selectedType = 'node'
+    showDetailsForNode(node)
     if (state.connecting && state.connecting !== node.id) {
       const id = ++state.lastEdgeId
       state.edges.push({ id, from: state.connecting, to: node.id })
@@ -733,10 +879,12 @@ canvas.addEventListener('pointerdown', e => {
       state.selected = edge.id
       state.selectedType = 'edge'
       state.connecting = null
+      hideDetails()
     } else {
       state.selected = null
       state.selectedType = null
       state.connecting = null
+      hideDetails()
       btnConnect.classList.remove('active')
       state.panning = true
       state.panStart = { x: mx - state.view.x, y: my - state.view.y }
@@ -822,6 +970,7 @@ canvas.addEventListener('dblclick', e => {
     state.nodes.push(node)
     state.selected = node.id
     state.selectedType = 'node'
+    showDetailsForNode(node)
     historyCommit()
     save()
     render()
@@ -874,6 +1023,7 @@ document.addEventListener('keydown', e => {
         state.edges = state.edges.filter(e => fromId(e) !== selectedId && toId(e) !== selectedId)
       }
       state.selected = null
+      hideDetails()
       historyCommit()
       save()
       render()
@@ -883,6 +1033,7 @@ document.addEventListener('keydown', e => {
     state.selected = null
     state.selectedType = null
     state.connecting = null
+    hideDetails()
     btnConnect.classList.remove('active')
     render()
   }
@@ -917,6 +1068,15 @@ document.addEventListener('keydown', e => {
 })
 
 // Buttons
+detailsText.addEventListener('change', persistDetailsText)
+detailsText.addEventListener('blur', persistDetailsText)
+btnCloseDetails.addEventListener('click', () => { state.selected = null; state.selectedType = null; hideDetails(); render() })
+btnClearDrawing.addEventListener('click', () => { drawDetailsBackground(); persistDetailsDrawing() })
+detailsDrawing.addEventListener('pointerdown', beginDetailsDrawing)
+detailsDrawing.addEventListener('pointermove', moveDetailsDrawing)
+detailsDrawing.addEventListener('pointerup', endDetailsDrawing)
+detailsDrawing.addEventListener('pointercancel', endDetailsDrawing)
+
 pageSelect.addEventListener('change', () => switchPage(Number(pageSelect.value)))
 btnNewPage.addEventListener('click', addNotebookPage)
 
@@ -928,6 +1088,7 @@ btnAdd.addEventListener('click', () => {
   state.nodes.push(node)
   state.selected = node.id
   state.selectedType = 'node'
+  showDetailsForNode(node)
   historyCommit()
   save()
   render()
