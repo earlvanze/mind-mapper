@@ -48,3 +48,13 @@ test('repeated wheel zoom remains finite and clamped for tablet trackpads', asyn
   expect(saved.view.scale).toBeGreaterThanOrEqual(0.1)
   expect(saved.view.scale).toBeLessThanOrEqual(5)
 })
+
+
+test('mobile PWA toolbar stays compact and leaves room for the canvas', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto('/')
+  const toolbarBox = await page.locator('.toolbar').boundingBox()
+  const canvasBox = await page.locator('#canvas').boundingBox()
+  expect(toolbarBox.height).toBeLessThanOrEqual(72)
+  expect(canvasBox.height).toBeGreaterThan(700)
+})
