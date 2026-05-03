@@ -1213,10 +1213,24 @@ function edgeAt(mx, my) {
 function fromId(e) { return Array.isArray(e) ? e[0] : e.from }
 function toId(e) { return Array.isArray(e) ? e[1] : e.to }
 
+function rectangleEdgePoint(node, toward) {
+  const cx = node.x + node.width / 2
+  const cy = node.y + node.height / 2
+  const dx = toward.x - cx
+  const dy = toward.y - cy
+  if (dx === 0 && dy === 0) return { x: cx, y: cy }
+  const halfW = Math.max(1, node.width / 2)
+  const halfH = Math.max(1, node.height / 2)
+  const scale = Math.min(halfW / Math.abs(dx || Number.EPSILON), halfH / Math.abs(dy || Number.EPSILON))
+  return { x: cx + dx * scale, y: cy + dy * scale }
+}
+
 function endpoints(a, b) {
-  const ax = a.x + a.width / 2, ay = a.y + a.height / 2
-  const bx = b.x + b.width / 2, by = b.y + b.height / 2
-  return [ax, ay, bx, by]
+  const ac = { x: a.x + a.width / 2, y: a.y + a.height / 2 }
+  const bc = { x: b.x + b.width / 2, y: b.y + b.height / 2 }
+  const start = rectangleEdgePoint(a, bc)
+  const end = rectangleEdgePoint(b, ac)
+  return [start.x, start.y, end.x, end.y]
 }
 
 
@@ -1791,8 +1805,7 @@ function setSelectedNodePageLink(pageId) {
 }
 
 function targetViewForPage(page) {
-  const view = page?.view ? { ...page.view } : { x: 0, y: 0, scale: 1 }
-  return view
+  return sanitizeView(page?.view ? { ...page.view } : { x: 0, y: 0, scale: 1 })
 }
 
 function viewCenteredOnNode(node, scale = 2.4) {
@@ -1811,15 +1824,15 @@ function animateViewTo(target, duration = 420) {
     function tick(now) {
       const t = Math.min(1, (now - startTime) / duration)
       const eased = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
-      state.view = {
+      setView({
         x: start.x + (target.x - start.x) * eased,
         y: start.y + (target.y - start.y) * eased,
         scale: start.scale + (target.scale - start.scale) * eased,
-      }
+      })
       render()
       if (t < 1) requestAnimationFrame(tick)
       else {
-        state.view = { ...target }
+        setView(target)
         canvas.classList.remove('prezi-zooming')
         render()
         resolve()
@@ -1867,11 +1880,11 @@ async function zoomBackOut() {
   switchPage(returnPage.id, { skipResize: true })
   const returnNode = state.nodes.find(node => node.id === entry.nodeId)
   if (returnNode) {
-    state.view = viewCenteredOnNode(returnNode, 2.65)
+    setView(viewCenteredOnNode(returnNode, 2.65))
     state.selected = returnNode.id
     state.selectedType = 'node'
   } else {
-    state.view = { x: canvas.width / 2, y: canvas.height / 2, scale: 0.08 }
+    setView({ x: canvas.width / 2, y: canvas.height / 2, scale: MIN_VIEW_SCALE })
   }
   render()
   await animateViewTo(entry.view || targetViewForPage(returnPage), 520)
@@ -1897,7 +1910,7 @@ async function openLinkedPageFromNode(node) {
   await animateViewTo(viewCenteredOnNode(node, 2.65), 360)
   const targetView = targetViewForPage(targetPage)
   switchPage(targetPage.id, { skipResize: true })
-  state.view = { x: canvas.width / 2, y: canvas.height / 2, scale: 0.08 }
+  setView({ x: canvas.width / 2, y: canvas.height / 2, scale: MIN_VIEW_SCALE })
   render()
   await animateViewTo(targetView, 520)
   save()
