@@ -941,6 +941,7 @@ app.innerHTML = `
     <input id="obsidian-file-input" type="file" accept="text/markdown,text/plain,.md,.markdown" hidden>
     <button id="btn-templates" title="Apply, save, import, or export colorful node templates">📋 Templates</button>
     <button id="btn-colorful" title="Apply a bright color palette to this map">🌈 Colorful</button>
+    <button id="btn-ai-kanban" title="Use Sage Router when available, otherwise local intelligence, to turn this mind map into a Kanban page">🤖 AI Kanban</button>
   </span>
   <button id="btn-add" title="Add node (A)">+ Node</button>
   <button id="btn-connect" title="Connect mode (C)">⬌ Connect</button>
@@ -1028,6 +1029,7 @@ const btnImportObsidian = document.getElementById('btn-import-obsidian')
 const obsidianFileInput = document.getElementById('obsidian-file-input')
 const btnTemplates = document.getElementById('btn-templates')
 const btnColorful = document.getElementById('btn-colorful')
+const btnAiKanban = document.getElementById('btn-ai-kanban')
 const templateModal = document.getElementById('template-modal')
 const templateGrid = document.getElementById('template-grid')
 const templateStatus = document.getElementById('template-status')
@@ -2297,6 +2299,7 @@ btnImportObsidian.addEventListener('click', () => obsidianFileInput.click())
 obsidianFileInput.addEventListener('change', () => importObsidianKanbanFile(obsidianFileInput.files?.[0]))
 btnTemplates.addEventListener('click', openTemplateModal)
 btnColorful.addEventListener('click', makeMapColorful)
+btnAiKanban.addEventListener('click', organizeCurrentPageAsAiKanban)
 btnCloseTemplates.addEventListener('click', closeTemplateModal)
 templateModal.addEventListener('click', e => { if (e.target === templateModal) closeTemplateModal() })
 btnTemplateApplySelected.addEventListener('click', () => {
@@ -2526,6 +2529,136 @@ function exportCurrentPageToTrelloBoard() {
     cards,
     checklists,
     labels: [],
+  }
+}
+
+
+function nodeSummaryForAi(node) {
+  const parentLabels = state.edges.filter(edge => toId(edge) === node.id).map(edge => {
+    const parent = state.nodes.find(candidate => candidate.id === fromId(edge))
+    return parent?.text || ''
+  }).filter(Boolean)
+  const childLabels = state.edges.filter(edge => fromId(edge) === node.id).map(edge => {
+    const child = state.nodes.find(candidate => candidate.id === toId(edge))
+    return child?.text || ''
+  }).filter(Boolean)
+  return {
+    id: node.id,
+    title: compactText(node.text) || 'Untitled node',
+    details: nodeDetailsText(node),
+    parents: parentLabels,
+    children: childLabels,
+  }
+}
+
+function statusForKanbanText(text) {
+  const normalized = normalizeConceptText(text)
+  if (/\b(done|complete|completed|shipped|closed|resolved|finished)\b/.test(normalized)) return 'Done'
+  if (/\b(blocked|risk|issue|bug|broken|fail|failed|failure|stuck|waiting|depends|timeout)\b/.test(normalized)) return 'Blocked / Risk'
+  if (/\b(active|now|doing|progress|current|execution|building|implement|working)\b/.test(normalized)) return 'In Progress'
+  return 'To Do'
+}
+
+function localKanbanPlanFromCurrentPage() {
+  const root = rootNodeForExport()
+  const columns = ['To Do', 'In Progress', 'Blocked / Risk', 'Done'].map(title => ({ title, items: [] }))
+  const columnByTitle = new Map(columns.map(column => [column.title, column]))
+  const roots = new Set([root?.id].filter(Boolean))
+  for (const node of state.nodes) {
+    if (roots.has(node.id) && state.nodes.length > 1) continue
+    const details = [nodeDetailsText(node), nodeSummaryForAi(node).parents.length ? `From: ${nodeSummaryForAi(node).parents.join(' → ')}` : '']
+      .filter(Boolean)
+      .join('\n')
+    const text = `${node.text || ''} ${details}`
+    columnByTitle.get(statusForKanbanText(text)).items.push({ title: compactText(node.text) || 'Untitled card', details })
+  }
+  return {
+    title: `AI Kanban: ${root?.text || activePage()?.title || 'Mind Map'}`,
+    columns: columns.filter(column => column.items.length),
+    provider: 'local heuristic',
+  }
+}
+
+function sanitizeKanbanPlan(plan) {
+  const fallback = localKanbanPlanFromCurrentPage()
+  const columns = Array.isArray(plan?.columns) ? plan.columns : []
+  const cleanColumns = columns.map(column => ({
+    title: compactText(column?.title) || 'To Do',
+    items: (Array.isArray(column?.items) ? column.items : [])
+      .map(item => ({
+        title: compactText(item?.title || item?.name || item) || 'Untitled card',
+        details: compactText(item?.details || item?.description || item?.concept || ''),
+      }))
+      .filter(item => item.title),
+  })).filter(column => column.items.length)
+  return {
+    title: compactText(plan?.title) || fallback.title,
+    columns: cleanColumns.length ? cleanColumns : fallback.columns,
+    provider: compactText(plan?.provider) || fallback.provider,
+  }
+}
+
+function buildAiKanbanPage(page, plan) {
+  const parsed = sanitizeKanbanPlan(plan)
+  buildObsidianKanbanPage(page, parsed)
+  page.title = parsed.title
+  page.aiKanbanVersion = 1
+  page.aiKanbanProvider = parsed.provider
+  const root = page.nodes[0]
+  if (root) root.details.text = `Organized as Kanban by ${parsed.provider}.\n\nSource page: ${activePage()?.title || 'Mind Map'}`
+  colorizePage(page)
+}
+
+async function requestAiKanbanPlan() {
+  const payload = {
+    title: activePage()?.title || rootNodeForExport()?.text || 'Mind Map',
+    nodes: state.nodes.map(nodeSummaryForAi),
+    edges: state.edges.map(edge => ({ from: fromId(edge), to: toId(edge), label: state.edgeLabels?.[edge.id] || '' })),
+  }
+  try {
+    const response = await fetch('/api/organize-kanban', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+    if (!response.ok) throw new Error(`HTTP ${response.status}`)
+    return sanitizeKanbanPlan(await response.json())
+  } catch {
+    return localKanbanPlanFromCurrentPage()
+  }
+}
+
+async function organizeCurrentPageAsAiKanban() {
+  if (!state.nodes.length) {
+    window.alert('Add or import a mind map first, then AI Kanban can organize it.')
+    return false
+  }
+  persistDetailsText({ commitHistory: false })
+  if (state.editing) commitEdit()
+  if (edgeEditInput) commitEdgeLabel()
+  syncCurrentPage()
+  const originalText = btnAiKanban.textContent
+  btnAiKanban.disabled = true
+  btnAiKanban.textContent = 'Organizing…'
+  try {
+    const plan = await requestAiKanbanPlan()
+    const page = createPage(plan.title)
+    buildAiKanbanPage(page, plan)
+    state.notebook.pages.push(page)
+    state.notebook.activePageId = page.id
+    loadPageIntoState(page)
+    hideDetails()
+    resetHistoryForCurrentPage()
+    save()
+    renderPageTabs()
+    resize()
+    return true
+  } catch (error) {
+    window.alert(`Could not organize Kanban: ${error.message}`)
+    return false
+  } finally {
+    btnAiKanban.disabled = false
+    btnAiKanban.textContent = originalText
   }
 }
 

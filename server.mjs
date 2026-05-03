@@ -10,6 +10,9 @@ const distDir = path.join(__dirname, 'dist')
 const port = Number(process.env.PORT || 4173)
 const host = process.env.HOST || '127.0.0.1'
 const ollamaProvider = process.env.OLLAMA_PROVIDER || 'ollama-cyber'
+const sageRouterUrl = (process.env.SAGE_ROUTER_URL || '').replace(/\/$/, '')
+const sageRouterApiKey = process.env.SAGE_ROUTER_API_KEY || process.env.SAGE_API_KEY || ''
+const sageRouterModel = process.env.SAGE_ROUTER_MODEL || 'nvidia/llama-3.1-nemotron-70b-instruct'
 
 function ollamaProviderUrl(providerName) {
   try {
@@ -152,6 +155,83 @@ async function handleRecognition(req, res) {
   }
 }
 
+
+function safeJsonFromText(text) {
+  const raw = String(text || '').trim()
+  try { return JSON.parse(raw) } catch { /* try fenced/object extraction */ }
+  const fenced = raw.match(/```(?:json)?\s*([\s\S]*?)```/i)
+  if (fenced) {
+    try { return JSON.parse(fenced[1]) } catch { /* continue */ }
+  }
+  const start = raw.indexOf('{')
+  const end = raw.lastIndexOf('}')
+  if (start >= 0 && end > start) return JSON.parse(raw.slice(start, end + 1))
+  throw new Error('Sage Router did not return JSON')
+}
+
+function localKanbanFallback(body) {
+  const columns = ['To Do', 'In Progress', 'Blocked / Risk', 'Done'].map(title => ({ title, items: [] }))
+  const byTitle = new Map(columns.map(column => [column.title, column]))
+  const incoming = new Set((body.edges || []).map(edge => edge.to))
+  const roots = new Set((body.nodes || []).filter(node => !incoming.has(node.id)).slice(0, 1).map(node => node.id))
+  function status(text) {
+    const normalized = String(text || '').toLowerCase()
+    if (/\b(done|complete|completed|shipped|closed|resolved|finished)\b/.test(normalized)) return 'Done'
+    if (/\b(blocked|risk|issue|bug|broken|fail|failed|failure|stuck|waiting|depends|timeout)\b/.test(normalized)) return 'Blocked / Risk'
+    if (/\b(active|now|doing|progress|current|execution|building|implement|working)\b/.test(normalized)) return 'In Progress'
+    return 'To Do'
+  }
+  for (const node of body.nodes || []) {
+    if (roots.has(node.id) && (body.nodes || []).length > 1) continue
+    const details = [node.details, node.parents?.length ? `From: ${node.parents.join(' → ')}` : ''].filter(Boolean).join('\n')
+    byTitle.get(status(`${node.title} ${details}`)).items.push({ title: node.title || 'Untitled card', details })
+  }
+  return { title: `AI Kanban: ${body.title || 'Mind Map'}`, columns: columns.filter(column => column.items.length), provider: 'local heuristic' }
+}
+
+async function handleOrganizeKanban(req, res) {
+  try {
+    const body = await readRequestJson(req)
+    if (!sageRouterUrl || !sageRouterApiKey) return sendJson(res, 200, localKanbanFallback(body))
+
+    const prompt = [
+      'You organize arbitrary mind maps into useful Kanban boards.',
+      'Group cards by workflow status and concept. Prefer columns like To Do, In Progress, Blocked / Risk, Done, or clearer project-specific statuses if obvious.',
+      'Return strict JSON only with shape: {"title":"...","columns":[{"title":"...","items":[{"title":"...","details":"..."}]}],"provider":"sage-router"}.',
+      'Do not invent private facts. Preserve useful source details.',
+      `Mind map JSON:\n${JSON.stringify(body).slice(0, 20000)}`,
+    ].join('\n\n')
+
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), Number(process.env.SAGE_ROUTER_TIMEOUT_MS || 90000))
+    try {
+      const response = await fetch(`${sageRouterUrl}/chat/completions`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', authorization: `Bearer ${sageRouterApiKey}` },
+        body: JSON.stringify({
+          model: sageRouterModel,
+          messages: [{ role: 'user', content: prompt }],
+          temperature: 0.2,
+          response_format: { type: 'json_object' },
+        }),
+        signal: controller.signal,
+      })
+      const raw = await response.text()
+      if (!response.ok) throw new Error(raw || `Sage Router returned HTTP ${response.status}`)
+      const data = JSON.parse(raw)
+      const content = data.choices?.[0]?.message?.content || raw
+      const plan = safeJsonFromText(content)
+      plan.provider = plan.provider || `sage-router:${sageRouterModel}`
+      return sendJson(res, 200, plan)
+    } finally {
+      clearTimeout(timeout)
+    }
+  } catch (error) {
+    if (error.name === 'AbortError') return sendJson(res, 504, { error: 'Sage Router organization timed out' })
+    sendJson(res, error.status || 500, { error: error.message || 'Kanban organization failed' })
+  }
+}
+
 async function serveStatic(req, res) {
   const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`)
   let pathname = decodeURIComponent(url.pathname)
@@ -173,6 +253,7 @@ async function serveStatic(req, res) {
 
 const server = createServer((req, res) => {
   if (req.method === 'POST' && req.url === '/api/recognize-handwriting') return handleRecognition(req, res)
+  if (req.method === 'POST' && req.url === '/api/organize-kanban') return handleOrganizeKanban(req, res)
   if (req.method === 'GET' || req.method === 'HEAD') return serveStatic(req, res)
   res.writeHead(405)
   res.end('Method not allowed')
@@ -181,4 +262,5 @@ const server = createServer((req, res) => {
 server.listen(port, host, () => {
   console.log(`Mind Mapp server listening on http://${host}:${port}`)
   console.log(`Handwriting provider: Ollama ${ollamaModel} via ${ollamaProvider}: ${ollamaUrls.join(', ')}`)
+  console.log(`Kanban organizer: ${sageRouterUrl && sageRouterApiKey ? `Sage Router ${sageRouterModel} at ${sageRouterUrl}` : 'local heuristic fallback'}`)
 })
