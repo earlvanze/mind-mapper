@@ -642,9 +642,10 @@ function renderPageTabs() {
     pageSelect.appendChild(option)
   }
   pageSelect.value = String(state.notebook.activePageId)
+  renderDetailsPageLinkOptions()
 }
 
-function switchPage(pageId) {
+function switchPage(pageId, options = {}) {
   if (pageId === state.notebook.activePageId) return
   persistDetailsText({ commitHistory: false })
   if (state.editing) commitEdit()
@@ -658,7 +659,8 @@ function switchPage(pageId) {
   resetHistoryForCurrentPage()
   save()
   renderPageTabs()
-  resize()
+  if (options.skipResize) render()
+  else resize()
 }
 
 function addNotebookPage() {
@@ -930,6 +932,14 @@ app.innerHTML = `
     </div>
     <label class="details-label" for="details-text">Description</label>
     <textarea id="details-text" placeholder="Add context, requirements, links, acceptance notes..."></textarea>
+    <div class="details-link-row">
+      <label class="details-label" for="details-page-link">Page link</label>
+      <div class="details-link-controls">
+        <select id="details-page-link" title="Linked notebook page"></select>
+        <button id="btn-open-linked-page" title="Zoom into this node and open its linked page">Open Link</button>
+      </div>
+      <span class="details-link-help">Double-click a linked node to zoom into the linked page.</span>
+    </div>
     <div class="details-draw-header">
       <span class="details-label">Drawing</span>
       <span class="details-draw-actions">
@@ -983,6 +993,8 @@ const detailsPanel = document.getElementById('details-panel')
 const detailsTitle = document.getElementById('details-title')
 const detailsText = document.getElementById('details-text')
 const detailsDrawing = document.getElementById('details-drawing')
+const detailsPageLink = document.getElementById('details-page-link')
+const btnOpenLinkedPage = document.getElementById('btn-open-linked-page')
 const detailsCtx = detailsDrawing.getContext('2d')
 const btnCloseDetails = document.getElementById('btn-close-details')
 const btnClearDrawing = document.getElementById('btn-clear-drawing')
@@ -1315,6 +1327,20 @@ function drawNode(ctx, n) {
     for (let i = 0; i < lines.length; i++) {
       ctx.fillText(lines[i], n.x + 12, startY + i * lineHeight)
     }
+    if (linkedPageForNode(n)) {
+      const badgeText = '↗ Page'
+      const badgeFont = 11 / state.view.scale
+      ctx.font = `700 ${badgeFont}px system-ui, sans-serif`
+      const badgeW = ctx.measureText(badgeText).width + 14 / state.view.scale
+      const badgeH = 18 / state.view.scale
+      const bx = n.x + n.width - badgeW - 8 / state.view.scale
+      const by = n.y + 7 / state.view.scale
+      ctx.fillStyle = isSelected ? 'rgba(255,255,255,0.22)' : `${nodeStyle.accent}22`
+      roundRect(ctx, bx, by, badgeW, badgeH, 999 / state.view.scale)
+      ctx.fill()
+      ctx.fillStyle = isSelected ? '#fff' : nodeStyle.accent
+      ctx.fillText(badgeText, bx + 7 / state.view.scale, by + 13 / state.view.scale)
+    }
   }
 }
 
@@ -1530,12 +1556,112 @@ function renderDetailsDrawing(node) {
   }
 }
 
+
+function linkedPageForNode(node) {
+  const id = Number(node?.details?.linkedPageId)
+  return Number.isFinite(id) ? state.notebook.pages.find(page => page.id === id) : null
+}
+
+function renderDetailsPageLinkOptions() {
+  if (!detailsPageLink) return
+  const selected = selectedNode()
+  const currentPageId = state.notebook.activePageId
+  const linkedPageId = selected?.details?.linkedPageId ? String(selected.details.linkedPageId) : ''
+  detailsPageLink.innerHTML = ''
+  const empty = document.createElement('option')
+  empty.value = ''
+  empty.textContent = 'No linked page'
+  detailsPageLink.appendChild(empty)
+  for (const page of state.notebook.pages) {
+    if (page.id === currentPageId) continue
+    const option = document.createElement('option')
+    option.value = String(page.id)
+    option.textContent = page.title
+    detailsPageLink.appendChild(option)
+  }
+  detailsPageLink.value = linkedPageId
+  detailsPageLink.disabled = !selected
+  btnOpenLinkedPage.disabled = !selected || !linkedPageForNode(selected)
+}
+
+function setSelectedNodePageLink(pageId) {
+  const node = selectedNode()
+  if (!node) return
+  ensureNodeDetails(node)
+  if (pageId) node.details.linkedPageId = Number(pageId)
+  else delete node.details.linkedPageId
+  historyCommit()
+  save()
+  renderDetailsPageLinkOptions()
+  render()
+}
+
+function targetViewForPage(page) {
+  const view = page?.view ? { ...page.view } : { x: 0, y: 0, scale: 1 }
+  return view
+}
+
+function viewCenteredOnNode(node, scale = 2.4) {
+  return {
+    x: canvas.width / 2 - (node.x + node.width / 2) * scale,
+    y: canvas.height / 2 - (node.y + node.height / 2) * scale,
+    scale,
+  }
+}
+
+function animateViewTo(target, duration = 420) {
+  const start = { ...state.view }
+  const startTime = performance.now()
+  canvas.classList.add('prezi-zooming')
+  return new Promise(resolve => {
+    function tick(now) {
+      const t = Math.min(1, (now - startTime) / duration)
+      const eased = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
+      state.view = {
+        x: start.x + (target.x - start.x) * eased,
+        y: start.y + (target.y - start.y) * eased,
+        scale: start.scale + (target.scale - start.scale) * eased,
+      }
+      render()
+      if (t < 1) requestAnimationFrame(tick)
+      else {
+        state.view = { ...target }
+        canvas.classList.remove('prezi-zooming')
+        render()
+        resolve()
+      }
+    }
+    requestAnimationFrame(tick)
+  })
+}
+
+async function openLinkedPageFromNode(node) {
+  const targetPage = linkedPageForNode(node)
+  if (!targetPage || targetPage.id === state.notebook.activePageId) return false
+  persistDetailsText({ commitHistory: false })
+  if (state.editing) commitEdit()
+  if (edgeEditInput) commitEdgeLabel()
+  syncCurrentPage()
+  hideDetails()
+  state.selected = node.id
+  state.selectedType = 'node'
+  await animateViewTo(viewCenteredOnNode(node, 2.65), 360)
+  const targetView = targetViewForPage(targetPage)
+  switchPage(targetPage.id, { skipResize: true })
+  state.view = { x: canvas.width / 2, y: canvas.height / 2, scale: 0.08 }
+  render()
+  await animateViewTo(targetView, 520)
+  save()
+  return true
+}
+
 function showDetailsForNode(node) {
   ensureNodeDetails(node)
   detailsPanel.classList.remove('hidden')
   detailsTitle.textContent = node.text || 'Node details'
   detailsText.value = node.details.text
   recognitionStatus.textContent = ''
+  renderDetailsPageLinkOptions()
   renderDetailsDrawing(node)
   resize()
 }
@@ -1543,6 +1669,7 @@ function showDetailsForNode(node) {
 function hideDetails() {
   if (!detailsPanel.classList.contains('hidden')) persistDetailsText({ commitHistory: false })
   detailsPanel.classList.add('hidden')
+  renderDetailsPageLinkOptions()
   resize()
 }
 
@@ -1908,6 +2035,10 @@ canvas.addEventListener('dblclick', e => {
 
   const existing = nodeAt(mx, my)
   if (existing) {
+    if (linkedPageForNode(existing)) {
+      openLinkedPageFromNode(existing)
+      return
+    }
     startEditing(existing)
   } else {
     const edge = edgeAt(mx, my)
@@ -2011,6 +2142,8 @@ document.addEventListener('keydown', e => {
 detailsText.addEventListener('input', scheduleDetailsTextSave)
 detailsText.addEventListener('change', () => persistDetailsText({ commitHistory: false }))
 detailsText.addEventListener('blur', () => persistDetailsText({ commitHistory: false }))
+detailsPageLink.addEventListener('change', () => setSelectedNodePageLink(detailsPageLink.value))
+btnOpenLinkedPage.addEventListener('click', () => { const node = selectedNode(); if (node) openLinkedPageFromNode(node) })
 btnCloseDetails.addEventListener('click', () => { state.selected = null; state.selectedType = null; hideDetails(); render() })
 btnDrawPen.addEventListener('click', () => setDetailsDrawMode('pen'))
 btnDrawEraser.addEventListener('click', () => setDetailsDrawMode('eraser'))
