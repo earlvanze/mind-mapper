@@ -1136,10 +1136,18 @@ const recognitionStatus = document.getElementById('recognition-status')
 
 
 // ─── Sizing ───────────────────────────────────────────────────────────────────
-function resize() {
+function syncCanvasToViewport() {
   const rect = canvas.getBoundingClientRect()
-  canvas.width = Math.max(1, Math.floor(rect.width || window.innerWidth))
-  canvas.height = Math.max(1, Math.floor(rect.height || window.innerHeight))
+  const width = Math.max(1, Math.floor(rect.width || window.innerWidth))
+  const height = Math.max(1, Math.floor(rect.height || window.innerHeight))
+  const changed = canvas.width !== width || canvas.height !== height
+  canvas.width = width
+  canvas.height = height
+  return changed
+}
+
+function resize() {
+  syncCanvasToViewport()
   render()
 }
 window.addEventListener('resize', resize)
@@ -1329,7 +1337,7 @@ function load() {
 
 // ─── Drawing ─────────────────────────────────────────────────────────────────
 function renderScene(ctx) {
-  ctx.clearRect(0, 0, canvas.width, canvas.height)
+  ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
   ctx.save()
   ctx.setTransform(state.view.scale, 0, 0, state.view.scale, state.view.x, state.view.y)
 
@@ -2955,9 +2963,7 @@ function exportCurrentPageAsObsidianMarkdown() {
 }
 
 function exportPNG() {
-  const savedView = { ...state.view }
-  state.view = { x: 0, y: 0, scale: 1 }
-
+  syncCanvasToViewport()
   const tempCanvas = document.createElement('canvas')
   tempCanvas.width = canvas.width
   tempCanvas.height = canvas.height
@@ -2965,9 +2971,9 @@ function exportPNG() {
   tempCtx.fillStyle = '#fff'
   tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height)
 
+  // Export exactly what the user is looking at now, including current window size,
+  // zoom, and any viewport panning/dragging.
   renderScene(tempCtx)
-
-  state.view = savedView
 
   const link = document.createElement('a')
   link.download = 'mind-mapp.png'
