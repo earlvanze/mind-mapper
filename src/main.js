@@ -1112,8 +1112,21 @@ app.innerHTML = `
 const canvas = document.getElementById('canvas')
 const ctx = canvas.getContext('2d')
 
+function isNativeAppShell() {
+  return Boolean(window.Capacitor) || window.location.protocol === 'capacitor:'
+}
+
 if ('serviceWorker' in navigator && !navigator.webdriver) {
   window.addEventListener('load', () => {
+    if (isNativeAppShell()) {
+      navigator.serviceWorker.getRegistrations?.()
+        .then(registrations => Promise.all(registrations.map(registration => registration.unregister())))
+        .then(() => caches?.keys?.())
+        .then(keys => Promise.all((keys || []).filter(key => key.startsWith('mind-mapp-')).map(key => caches.delete(key))))
+        .catch(error => console.info('Mind Mapp native cache cleanup skipped:', error.message))
+      return
+    }
+
     const swUrl = new URL('sw.js', window.location.href)
     navigator.serviceWorker.register(swUrl).catch(error => {
       console.info('Mind Mapp service worker registration skipped:', error.message)
