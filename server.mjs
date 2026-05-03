@@ -87,6 +87,66 @@ function imageBase64FromDataUrl(image) {
   return match ? match[1] : image
 }
 
+
+function openAiChatCompletionsUrl(baseUrl) {
+  if (!baseUrl) return ''
+  if (/\/chat\/completions$/.test(baseUrl)) return baseUrl
+  if (/\/v\d+$/.test(baseUrl) || baseUrl.endsWith('/v1')) return `${baseUrl}/chat/completions`
+  return `${baseUrl}/v1/chat/completions`
+}
+
+function cleanRecognitionText(text) {
+  return String(text || '')
+    .replace(/^```(?:text)?\s*/i, '')
+    .replace(/```$/i, '')
+    .replace(/^recognized text:\s*/i, '')
+    .trim()
+}
+
+async function recognizeWithSageRouter({ image, strokes }) {
+  if (!sageRouterUrl || !sageRouterApiKey) throw Object.assign(new Error('Sage Router recognition fallback is not configured'), { status: 503 })
+  const imageUrl = typeof image === 'string' && image.startsWith('data:image/') ? image : `data:image/png;base64,${imageBase64FromDataUrl(image)}`
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), Number(process.env.SAGE_ROUTER_TIMEOUT_MS || 90000))
+  try {
+    const response = await fetch(openAiChatCompletionsUrl(sageRouterUrl), {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        authorization: `Bearer ${sageRouterApiKey}`,
+      },
+      body: JSON.stringify({
+        model: process.env.SAGE_ROUTER_VISION_MODEL || sageRouterModel,
+        temperature: 0,
+        messages: [
+          {
+            role: 'system',
+            content: 'You are an OCR engine for handwritten notes. Return only the recognized handwriting text. If no readable handwriting is present, return an empty string.',
+          },
+          {
+            role: 'user',
+            content: [
+              { type: 'text', text: `Read the handwriting in this mind-map drawing. Stroke count: ${Array.isArray(strokes) ? strokes.length : 0}. Return only text.` },
+              { type: 'image_url', image_url: { url: imageUrl } },
+            ],
+          },
+        ],
+      }),
+      signal: controller.signal,
+    })
+    const raw = await response.text()
+    let data = {}
+    try { data = JSON.parse(raw) } catch { /* keep raw */ }
+    if (!response.ok) throw Object.assign(new Error(data.error?.message || data.error || raw || `Sage Router returned HTTP ${response.status}`), { status: 502 })
+    return cleanRecognitionText(data.choices?.[0]?.message?.content || data.output_text || '')
+  } catch (error) {
+    if (error.name === 'AbortError') throw Object.assign(new Error('Sage Router recognition timed out'), { status: 504 })
+    throw error
+  } finally {
+    clearTimeout(timeout)
+  }
+}
+
 async function recognizeWithOllamaAt(recognitionOllamaUrl, { image, strokes }) {
   const base64 = imageBase64FromDataUrl(image)
   if (!base64) throw Object.assign(new Error('Missing drawing image'), { status: 400 })
@@ -135,20 +195,26 @@ async function recognizeWithOllamaAt(recognitionOllamaUrl, { image, strokes }) {
 async function handleRecognition(req, res) {
   try {
     const body = await readRequestJson(req)
-    let lastError = null
+    const errors = []
     for (const url of ollamaUrls) {
       try {
         const text = await recognizeWithOllamaAt(url, body)
         return sendJson(res, 200, { text, provider: 'ollama', model: ollamaModel, endpoint: url })
       } catch (error) {
-        lastError = error
+        errors.push(`Ollama ${url}: ${error.message}`)
       }
     }
-    throw lastError || new Error('No Ollama endpoints configured')
+    try {
+      const text = await recognizeWithSageRouter(body)
+      return sendJson(res, 200, { text, provider: 'sage-router', model: process.env.SAGE_ROUTER_VISION_MODEL || sageRouterModel })
+    } catch (error) {
+      errors.push(`Sage Router: ${error.message}`)
+      throw Object.assign(new Error(errors.join('; ')), { status: error.status || 503 })
+    }
   } catch (error) {
     sendJson(res, error.status || 500, {
       error: error.message || 'Recognition failed',
-      provider: 'ollama',
+      provider: sageRouterUrl && sageRouterApiKey ? 'ollama+sage-router' : 'ollama',
       model: ollamaModel,
       endpoints: ollamaUrls,
     })

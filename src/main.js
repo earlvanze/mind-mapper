@@ -2039,7 +2039,7 @@ async function recognizeHandwritingFromStrokes(strokes) {
   }
 
   if (!navigator.createHandwritingRecognizer) {
-    throw new Error('Handwriting recognition is not available in this browser, and the Ollama recognition service is not reachable.')
+    throw new Error('Handwriting recognition needs the Mind Mapp API. On static hosting, configure the server/Sage Router handwriting endpoint, or use a browser with built-in handwriting recognition.')
   }
 
   const recognizer = await navigator.createHandwritingRecognizer({ languages: ['en'] })
