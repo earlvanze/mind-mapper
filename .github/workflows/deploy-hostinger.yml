@@ -45,6 +45,7 @@ jobs:
           python3 <<'PY'
           import ftplib
           import os
+          import time
           from pathlib import Path
 
           host = os.environ['HOSTINGER_FTP_HOST']
@@ -87,11 +88,24 @@ jobs:
                           ftp.storbinary('STOR ' + filename, fh)
                       print(f'uploaded {remote}/{filename}')
 
-          with ftplib.FTP_TLS(host, timeout=30) as ftp:
-              ftp.login(user, pw)
-              ftp.prot_p()
-              clear_dir(ftp, dest)
-              upload_tree(ftp, src, dest)
+          last_error = None
+          for attempt in range(1, 4):
+              try:
+                  print(f'FTP deploy attempt {attempt}/3')
+                  with ftplib.FTP_TLS(host, timeout=90) as ftp:
+                      ftp.login(user, pw)
+                      ftp.prot_p()
+                      clear_dir(ftp, dest)
+                      upload_tree(ftp, src, dest)
+                  last_error = None
+                  break
+              except Exception as exc:
+                  last_error = exc
+                  print(f'FTP deploy attempt {attempt} failed: {exc}')
+                  if attempt < 3:
+                      time.sleep(10 * attempt)
+          if last_error:
+              raise last_error
           PY
 
       - name: Purge Cloudflare cache
