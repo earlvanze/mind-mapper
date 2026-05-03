@@ -216,13 +216,18 @@ async function handleOrganizeMindMap(req, res) {
     const body = await readRequestJson(req)
     if (!sageRouterUrl || !sageRouterApiKey) return sendJson(res, 200, localMindMapFallback(body))
 
-    const prompt = [
+    const isColoring = body.mode === 'color'
+    const prompt = (isColoring ? [
       'You are an intelligence layer for a visual mind-mapping app. Analyze the provided mind map and return concept/status annotations for automatic coloring.',
       'Do not rewrite the tree, do not invent nodes, and do not change parent-child structure. The client will preserve the existing layout and edges.',
-      'Return strict JSON only with shape: {"title":"Organized: ...","nodes":[{"sourceId":123,"concept":"short-concept-key","status":"optional status","order":0}],"provider":"sage-router:<model>"}.',
+      'Return strict JSON only with shape: {"title":"Colored: ...","nodes":[{"sourceId":123,"concept":"short-concept-key","status":"optional status","order":0}],"provider":"sage-router:<model>"}.',
       'Rules: sourceId must match an input node id; concept should be stable and useful for coloring branches; status is optional; do not return markdown; do not invent private facts.',
-      `Mind map JSON:\n${JSON.stringify(body).slice(0, 20000)}`,
-    ].join('\n\n')
+    ] : [
+      'You are an intelligence layer for a visual mind-mapping app. Intelligently convert Kanban-like boards into a mind map, or restructure a messy mind map into a clearer mind-map tree.',
+      'You may rewrite grouping and parent-child structure, but preserve source meaning and avoid inventing private facts.',
+      'Return strict JSON only with shape: {"title":"Organized: ...","nodes":[{"id":"stable-id","sourceId":123,"title":"...","details":"...","parentId":"stable-parent-id-or-null","concept":"short-concept-key","status":"optional status","order":0,"depth":0}],"provider":"sage-router:<model>"}.',
+      'Rules: every node id must be unique and stable; parentId must reference another returned id or null; produce a tree suitable for a radial mind map; do not return markdown.',
+    ]).concat(`Mind map JSON:\n${JSON.stringify(body).slice(0, 20000)}`).join('\n\n')
 
     const controller = new AbortController()
     const timeout = setTimeout(() => controller.abort(), Number(process.env.SAGE_ROUTER_TIMEOUT_MS || 90000))

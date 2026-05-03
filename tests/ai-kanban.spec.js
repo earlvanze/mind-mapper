@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 
-test('Organize creates a concept-colored mind map locally when API is unavailable', async ({ page }) => {
+async function seedLaunchPlan(page) {
   await page.addInitScript(() => {
     localStorage.setItem('mind-mapp-v1', JSON.stringify({
       nodes: [
@@ -15,52 +15,69 @@ test('Organize creates a concept-colored mind map locally when API is unavailabl
       edgeLabels: {},
     }))
   })
-  await page.route('**/api/organize-mind-map', route => route.fulfill({ status: 404, body: 'not found' }))
-  await page.goto('/')
-  await page.locator('#btn-ai-kanban').click()
-  await expect(page.locator('#page-select')).toContainText('Organized: Launch Plan')
-  const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('mind-mapp-v1')))
-  const organized = saved.notebook.pages.find(p => p.title === 'Organized: Launch Plan')
-  expect(organized).toBeTruthy()
-  expect(organized.organizedMindMapVersion).toBe(2)
-  expect(organized.organizedMindMapMode).toBe('preserve-layout-and-structure')
-  const nodeTexts = organized.nodes.map(n => n.text)
-  expect(nodeTexts).toEqual(['Launch Plan', 'Build onboarding flow', 'Blocked payment setup', 'Marketing copy done'])
-  expect(organized.edges.length).toBe(3)
-  const fills = new Set(organized.nodes.map(n => n.style?.fill).filter(Boolean))
-  expect(fills.size).toBeGreaterThan(1)
-})
+}
 
-test('Organize consumes deterministic OpenAI-compatible mind-map structure responses', async ({ page }) => {
-  await page.addInitScript(() => {
-    localStorage.setItem('mind-mapp-v1', JSON.stringify({
-      nodes: [{ id: 1, x: 100, y: 100, text: 'Messy Ideas', width: 150, height: 44, details: { text: '', drawing: null, strokes: [] } }],
-      edges: [],
-      lastId: 1,
-      lastEdgeId: 0,
-      edgeLabels: {},
-    }))
-  })
+test('Colorful applies intelligent concept coloring without restructuring the current map', async ({ page }) => {
+  await seedLaunchPlan(page)
   await page.route('**/api/organize-mind-map', route => route.fulfill({
     status: 200,
     contentType: 'application/json',
     body: JSON.stringify({
-      title: 'Organized: Messy Ideas',
+      title: 'Colored: Launch Plan',
       provider: 'sage-router:test',
       nodes: [
-        { sourceId: 1, concept: 'infra', status: 'active', order: 0 },
-        { sourceId: 999, concept: 'hallucinated', order: 1 },
+        { sourceId: 1, concept: 'product', order: 0 },
+        { sourceId: 2, concept: 'product', status: 'active', order: 1 },
+        { sourceId: 3, concept: 'finance', status: 'blocked', order: 2 },
+        { sourceId: 4, concept: 'product', status: 'done', order: 3 },
+      ],
+    }),
+  }))
+  await page.goto('/')
+  await page.locator('#btn-colorful').click()
+  const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('mind-mapp-v1')))
+  expect(saved.nodes.map(n => n.text)).toEqual(['Launch Plan', 'Build onboarding flow', 'Blocked payment setup', 'Marketing copy done'])
+  expect(saved.edges.length).toBe(3)
+  expect(saved.nodes.find(n => n.id === 3).organizedConcept).toBe('finance')
+})
+
+test('Organize can restructure an arbitrary map into a new radial mind-map page', async ({ page }) => {
+  await seedLaunchPlan(page)
+  await page.route('**/api/organize-mind-map', route => route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify({
+      title: 'Organized: Launch Plan',
+      provider: 'sage-router:test',
+      nodes: [
+        { id: 'root', sourceId: 1, title: 'Launch Plan', parentId: null, concept: 'product', order: 0 },
+        { id: 'product', sourceId: 2, title: 'Product Work', parentId: 'root', concept: 'product', order: 1 },
+        { id: 'finance', sourceId: 3, title: 'Finance Blockers', parentId: 'root', concept: 'finance', status: 'blocked', order: 2 },
       ],
     }),
   }))
   await page.goto('/')
   await page.locator('#btn-ai-kanban').click()
+  await expect(page.locator('#page-select')).toContainText('Organized: Launch Plan')
   const organized = await page.evaluate(() => {
     const saved = JSON.parse(localStorage.getItem('mind-mapp-v1'))
-    return saved.notebook.pages.find(p => p.title === 'Organized: Messy Ideas')
+    return saved.notebook.pages.find(p => p.title === 'Organized: Launch Plan')
   })
-  expect(organized.organizedMindMapProvider).toBe('sage-router:test')
-  expect(organized.nodes.map(n => n.text)).toEqual(['Messy Ideas'])
-  expect(organized.nodes[0].organizedConcept).toBe('infra')
-  expect(organized.edges.length).toBe(0)
+  expect(organized.organizedMindMapMode).toBe('restructure-layout-and-structure')
+  expect(organized.nodes.map(n => n.text)).toEqual(expect.arrayContaining(['Launch Plan', 'Product Work', 'Finance Blockers']))
+  expect(organized.edges.length).toBe(2)
+})
+
+test('Organize falls back locally when API is unavailable', async ({ page }) => {
+  await seedLaunchPlan(page)
+  await page.route('**/api/organize-mind-map', route => route.fulfill({ status: 404, body: 'not found' }))
+  await page.goto('/')
+  await page.locator('#btn-ai-kanban').click()
+  await expect(page.locator('#page-select')).toContainText('Organized: Launch Plan')
+  const organized = await page.evaluate(() => {
+    const saved = JSON.parse(localStorage.getItem('mind-mapp-v1'))
+    return saved.notebook.pages.find(p => p.title === 'Organized: Launch Plan')
+  })
+  expect(organized.nodes.length).toBe(4)
+  expect(organized.edges.length).toBe(3)
 })

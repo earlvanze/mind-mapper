@@ -243,11 +243,21 @@ function applyConceptColorsToNodeTree(nodes, edges) {
   })
 }
 
-function makeMapColorful() {
-  applyConceptColorsToNodeTree(state.nodes, state.edges)
-  historyCommit()
-  save()
-  render()
+async function makeMapColorful() {
+  if (!state.nodes.length) return
+  const originalText = btnColorful?.textContent
+  if (btnColorful) { btnColorful.disabled = true; btnColorful.textContent = 'Coloring…' }
+  try {
+    persistDetailsText({ commitHistory: false })
+    syncCurrentPage()
+    const plan = await requestMindMapColoring()
+    applyMindMapColoring(plan)
+    historyCommit()
+    save()
+    render()
+  } finally {
+    if (btnColorful) { btnColorful.disabled = false; btnColorful.textContent = originalText }
+  }
 }
 
 function colorizePage(page) {
@@ -2569,7 +2579,7 @@ function localMindMapOrganizationFromCurrentPage() {
     if (!node || visited.has(node.id)) return
     visited.add(node.id)
     const summary = nodeSummaryForAi(node)
-    const text = `${summary.title} ${summary.details} ${summary.parents.join(' ')} ${summary.children.join(' ')}`
+    const text = `${summary.title} ${summary.details} ${summary.parents.join(' ')}`
     const status = statusForKanbanText(text)
     const rule = CONCEPT_COLOR_RULES.find(candidate => candidate.words.some(word => normalizeConceptText(text).includes(word)))
     nodes.push({
@@ -2608,7 +2618,7 @@ function colorForConcept(concept, index = 0) {
   return colorForIndex(Math.abs(hash || index))
 }
 
-function sanitizeMindMapOrganization(plan) {
+function sanitizeMindMapColoring(plan) {
   if (plan?.annotations instanceof Map) return plan
   const fallback = localMindMapOrganizationFromCurrentPage()
   const rawNodes = Array.isArray(plan?.nodes) ? plan.nodes : []
@@ -2623,11 +2633,9 @@ function sanitizeMindMapOrganization(plan) {
       order: Number.isFinite(Number(node?.order)) ? Number(node.order) : index,
     })
   })
-
   fallback.nodes.forEach(node => {
     if (!annotations.has(node.sourceId)) annotations.set(node.sourceId, node)
   })
-
   return {
     title: compactText(plan?.title) || fallback.title,
     annotations,
@@ -2635,50 +2643,143 @@ function sanitizeMindMapOrganization(plan) {
   }
 }
 
-function buildOrganizedMindMapPage(page, plan) {
-  const parsed = sanitizeMindMapOrganization(plan)
-  const sourcePage = activePage()
-  page.nodes = state.nodes.map((node, index) => {
-    const clone = JSON.parse(JSON.stringify(node))
+function applyMindMapColoring(plan) {
+  const parsed = sanitizeMindMapColoring(plan)
+  state.nodes.forEach((node, index) => {
     const annotation = parsed.annotations.get(node.id)
     const concept = annotation?.concept || 'general'
-    styleNode(clone, colorForConcept(concept, index))
-    clone.organizedConcept = concept
-    clone.organizedStatus = annotation?.status || ''
-    return clone
+    styleNode(node, colorForConcept(concept, index))
+    node.organizedConcept = concept
+    node.organizedStatus = annotation?.status || ''
   })
-  page.edges = state.edges.map(edge => ({ ...edge }))
-  page.edgeLabels = { ...state.edgeLabels }
-  page.lastId = state.lastId
-  page.lastEdgeId = state.lastEdgeId
+  state.edges.forEach((edge, index) => {
+    const from = state.nodes.find(node => node.id === fromId(edge))
+    edge.color = from?.style?.accent || COLORFUL_PALETTE[index % COLORFUL_PALETTE.length].accent
+  })
+}
+
+function sanitizeMindMapStructure(plan) {
+  const fallback = localMindMapOrganizationFromCurrentPage()
+  const rawNodes = Array.isArray(plan?.nodes) ? plan.nodes : []
+  const ids = new Set()
+  const cleanNodes = rawNodes.map((node, index) => {
+    const id = compactText(node?.id || node?.sourceId || `node-${index + 1}`) || `node-${index + 1}`
+    const uniqueId = ids.has(id) ? `${id}-${index + 1}` : id
+    ids.add(uniqueId)
+    return {
+      id: uniqueId,
+      sourceId: node?.sourceId ?? null,
+      title: compactText(node?.title || node?.name || node?.text) || `Node ${index + 1}`,
+      details: compactText(node?.details || node?.description || node?.notes || ''),
+      parentId: node?.parentId == null ? null : compactText(node.parentId),
+      concept: compactText(node?.concept || node?.theme || node?.category || node?.status || 'general') || 'general',
+      status: compactText(node?.status || ''),
+      order: Number.isFinite(Number(node?.order)) ? Number(node.order) : index,
+      depth: Number.isFinite(Number(node?.depth)) ? Number(node.depth) : 0,
+    }
+  }).sort((a, b) => a.order - b.order)
+  const validIds = new Set(cleanNodes.map(node => node.id))
+  cleanNodes.forEach(node => { if (node.parentId && !validIds.has(node.parentId)) node.parentId = null })
+  return {
+    title: compactText(plan?.title) || fallback.title,
+    nodes: cleanNodes.length ? cleanNodes : fallback.nodes,
+    provider: compactText(plan?.provider) || fallback.provider,
+  }
+}
+
+function buildOrganizedMindMapPage(page, plan) {
+  const parsed = sanitizeMindMapStructure(plan)
+  page.nodes = []
+  page.edges = []
+  page.edgeLabels = {}
+  page.lastId = 0
+  page.lastEdgeId = 0
   page.title = parsed.title
-  page.organizedMindMapVersion = 2
+  page.organizedMindMapVersion = 3
   page.organizedMindMapProvider = parsed.provider
-  page.organizedMindMapMode = 'preserve-layout-and-structure'
-  page.sourcePageId = sourcePage?.id || null
-  page.view = { ...state.view }
+  page.organizedMindMapMode = 'restructure-layout-and-structure'
+  page.sourcePageId = activePage()?.id || null
+  page.view = { x: 330, y: 220, scale: 0.38 }
+
+  const centerX = 760
+  const centerY = 560
+  const children = new Map(parsed.nodes.map(node => [node.id, []]))
+  parsed.nodes.forEach(node => { if (node.parentId && children.has(node.parentId)) children.get(node.parentId).push(node) })
+  const roots = parsed.nodes.filter(node => !node.parentId)
+  const rootCount = Math.max(1, roots.length)
+
+  function createOrganizedNode(item, x, y, depth, siblingIndex) {
+    const details = [item.details, item.concept ? `Concept: ${item.concept}` : '', item.status ? `Status: ${item.status}` : '', `Organized by ${parsed.provider}.`]
+      .filter(Boolean)
+      .join('\n')
+    const node = makeNodeForPage(page, x, y, item.title, details)
+    node.width = Math.max(node.width, depth === 0 ? 250 : 215)
+    node.height = Math.max(node.height, depth === 0 ? 58 : 50)
+    styleNode(node, colorForConcept(item.concept, siblingIndex))
+    node.organizedConcept = item.concept
+    node.organizedStatus = item.status
+    page.nodes.push(node)
+    return node
+  }
+
+  function placeBranch(item, parentNode, angle, radius, depth, siblingIndex) {
+    const point = depth === 0 && rootCount === 1
+      ? { x: centerX, y: centerY }
+      : branchPoint(parentNode ? parentNode.x + parentNode.width / 2 : centerX, parentNode ? parentNode.y + parentNode.height / 2 : centerY, angle, radius)
+    const node = createOrganizedNode(item, point.x, point.y, depth, siblingIndex)
+    if (parentNode) addPageEdge(page, parentNode, node, item.concept || '')
+    const kids = (children.get(item.id) || []).sort((a, b) => a.order - b.order)
+    const fanStep = Math.PI / Math.max(10, kids.length + 3)
+    kids.forEach((child, index) => {
+      const offset = (index - (kids.length - 1) / 2) * fanStep
+      placeBranch(child, node, angle + offset, 260 + (index % 3) * 95, depth + 1, index)
+    })
+  }
+
+  roots.forEach((root, index) => {
+    const angle = -Math.PI / 2 + index * (Math.PI * 2 / rootCount)
+    placeBranch(root, null, angle, rootCount === 1 ? 0 : 390, 0, index)
+  })
   page.edges.forEach((edge, index) => {
     const from = page.nodes.find(node => node.id === fromId(edge))
     edge.color = from?.style?.accent || COLORFUL_PALETTE[index % COLORFUL_PALETTE.length].accent
   })
 }
 
-async function requestMindMapOrganization() {
-  const payload = {
+function mindMapPayload(mode) {
+  return {
+    mode,
     title: activePage()?.title || rootNodeForExport()?.text || 'Mind Map',
     nodes: state.nodes.map(nodeSummaryForAi),
     edges: state.edges.map(edge => ({ from: fromId(edge), to: toId(edge), label: state.edgeLabels?.[edge.id] || '' })),
   }
+}
+
+async function requestMindMapColoring() {
   try {
     const response = await fetch('/api/organize-mind-map', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(mindMapPayload('color')),
     })
     if (!response.ok) throw new Error(`HTTP ${response.status}`)
-    return sanitizeMindMapOrganization(await response.json())
+    return sanitizeMindMapColoring(await response.json())
   } catch {
-    return localMindMapOrganizationFromCurrentPage()
+    return sanitizeMindMapColoring(localMindMapOrganizationFromCurrentPage())
+  }
+}
+
+async function requestMindMapOrganization() {
+  try {
+    const response = await fetch('/api/organize-mind-map', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(mindMapPayload('organize')),
+    })
+    if (!response.ok) throw new Error(`HTTP ${response.status}`)
+    return sanitizeMindMapStructure(await response.json())
+  } catch {
+    return sanitizeMindMapStructure(localMindMapOrganizationFromCurrentPage())
   }
 }
 
