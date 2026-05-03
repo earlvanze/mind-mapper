@@ -887,6 +887,8 @@ app.innerHTML = `
   <button id="btn-delete" title="Delete selected node or edge (Delete)">🗑 Delete</button>
   <button id="btn-eraser" title="Eraser mode: click nodes or edges to delete">⌫ Eraser</button>
   <button id="btn-export" title="Export PNG (E)">📷 Export</button>
+  <button id="btn-export-trello" title="Export current page as Trello-compatible JSON">Export Trello JSON</button>
+  <button id="btn-export-obsidian" title="Export current page as Obsidian Kanban Markdown">Export Obsidian MD</button>
   <button id="btn-fit" title="Fit view (F)">⛶ Fit</button>
   <span id="undo-redo-btns">
     <button id="btn-undo" title="Undo (Ctrl+Z)">↩ Undo</button>
@@ -972,6 +974,8 @@ const btnConnect = document.getElementById('btn-connect')
 const btnDelete = document.getElementById('btn-delete')
 const btnEraser = document.getElementById('btn-eraser')
 const btnExport = document.getElementById('btn-export')
+const btnExportTrello = document.getElementById('btn-export-trello')
+const btnExportObsidian = document.getElementById('btn-export-obsidian')
 const btnFit = document.getElementById('btn-fit')
 const btnUndo = document.getElementById('btn-undo')
 const btnRedo = document.getElementById('btn-redo')
@@ -2086,6 +2090,8 @@ btnConnect.addEventListener('click', () => {
 })
 
 btnExport.addEventListener('click', exportPNG)
+btnExportTrello.addEventListener('click', exportCurrentPageAsTrelloJson)
+btnExportObsidian.addEventListener('click', exportCurrentPageAsObsidianMarkdown)
 btnFit.addEventListener('click', fitToContent)
 
 btnUndo.addEventListener('click', () => {
@@ -2122,6 +2128,212 @@ function fitToContent() {
   state.view.y = (canvas.height - worldH * scale) / 2 - bounds.minY * scale
   save()
   render()
+}
+
+
+function slugifyFileName(value, fallback = 'mind-mapp') {
+  return compactText(value || fallback).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || fallback
+}
+
+function downloadTextFile(filename, content, type) {
+  const blob = new Blob([content], { type })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = filename
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+  URL.revokeObjectURL(url)
+}
+
+function childrenByParent() {
+  const children = new Map()
+  for (const node of state.nodes) children.set(node.id, [])
+  for (const edge of state.edges) {
+    const from = fromId(edge)
+    const to = toId(edge)
+    if (children.has(from) && state.nodes.some(node => node.id === to)) children.get(from).push(to)
+  }
+  for (const ids of children.values()) {
+    ids.sort((a, b) => {
+      const na = state.nodes.find(node => node.id === a)
+      const nb = state.nodes.find(node => node.id === b)
+      return (na?.y ?? 0) - (nb?.y ?? 0) || (na?.x ?? 0) - (nb?.x ?? 0)
+    })
+  }
+  return children
+}
+
+function rootNodeForExport() {
+  if (!state.nodes.length) return null
+  const incoming = new Set(state.edges.map(edge => toId(edge)))
+  const roots = state.nodes.filter(node => !incoming.has(node.id))
+  roots.sort((a, b) => a.y - b.y || a.x - b.x)
+  return roots[0] || state.nodes[0]
+}
+
+function trelloId(prefix, number) {
+  return `${prefix}${String(number).padStart(20, '0')}`.slice(-24)
+}
+
+function nodeDetailsText(node) {
+  return node?.details?.text || ''
+}
+
+function exportCurrentPageToTrelloBoard() {
+  const root = rootNodeForExport()
+  const page = activePage()
+  const boardId = trelloId('board', page?.id || 1)
+  const boardName = root?.text || page?.title || 'Mind Mapp Export'
+  const children = childrenByParent()
+  const lists = []
+  const cards = []
+  const checklists = []
+  const rootChildren = root ? (children.get(root.id) || []) : []
+  const listNodeIds = rootChildren.length ? rootChildren : []
+
+  function addCard(node, listId, pos, parentChecklistId = null) {
+    const cardId = trelloId('card', node.id)
+    const descParts = [nodeDetailsText(node)]
+    if (parentChecklistId) descParts.push(`Source parent checklist: ${parentChecklistId}`)
+    cards.push({
+      id: cardId,
+      name: compactText(node.text) || 'Untitled Card',
+      desc: descParts.filter(Boolean).join('\n\n'),
+      idBoard: boardId,
+      idList: listId,
+      pos,
+      closed: false,
+      labels: [],
+      idLabels: [],
+      due: null,
+      url: '',
+      shortUrl: '',
+    })
+    const childIds = children.get(node.id) || []
+    if (childIds.length) {
+      const checklistId = trelloId('check', node.id)
+      checklists.push({
+        id: checklistId,
+        name: 'Subtasks',
+        idBoard: boardId,
+        idCard: cardId,
+        pos: 16384,
+        checkItems: childIds.map((childId, index) => {
+          const child = state.nodes.find(n => n.id === childId)
+          return {
+            id: trelloId('item', childId),
+            name: compactText(child?.text) || 'Untitled Item',
+            nameData: null,
+            pos: (index + 1) * 16384,
+            state: 'incomplete',
+            due: null,
+            idMember: null,
+          }
+        }),
+      })
+    }
+  }
+
+  if (!listNodeIds.length) {
+    const listId = trelloId('list', 1)
+    lists.push({ id: listId, name: 'Mind Map', closed: false, idBoard: boardId, pos: 16384 })
+    state.nodes.forEach((node, index) => addCard(node, listId, (index + 1) * 16384))
+  } else {
+    listNodeIds.forEach((listNodeId, listIndex) => {
+      const listNode = state.nodes.find(node => node.id === listNodeId)
+      if (!listNode) return
+      const listId = trelloId('list', listNode.id)
+      lists.push({ id: listId, name: compactText(listNode.text) || `List ${listIndex + 1}`, closed: false, idBoard: boardId, pos: (listIndex + 1) * 16384 })
+      const cardIds = children.get(listNode.id) || []
+      if (cardIds.length) {
+        cardIds.forEach((cardId, cardIndex) => {
+          const cardNode = state.nodes.find(node => node.id === cardId)
+          if (cardNode) addCard(cardNode, listId, (cardIndex + 1) * 16384)
+        })
+      } else {
+        addCard(listNode, listId, 16384)
+      }
+    })
+  }
+
+  return {
+    id: boardId,
+    name: boardName,
+    desc: `Exported from Mind Mapp page: ${page?.title || boardName}`,
+    closed: false,
+    url: '',
+    shortUrl: '',
+    labelNames: {},
+    lists,
+    cards,
+    checklists,
+    labels: [],
+  }
+}
+
+function exportCurrentPageAsTrelloJson() {
+  persistDetailsText({ commitHistory: false })
+  syncCurrentPage()
+  const board = exportCurrentPageToTrelloBoard()
+  downloadTextFile(`${slugifyFileName(board.name)}-trello.json`, JSON.stringify(board, null, 2), 'application/json')
+}
+
+function escapeMarkdown(text) {
+  return String(text || '').replace(/\r\n?/g, '\n').replace(/\n{3,}/g, '\n\n').trim()
+}
+
+function exportCurrentPageToObsidianMarkdown() {
+  const root = rootNodeForExport()
+  const page = activePage()
+  const children = childrenByParent()
+  const title = root?.text || page?.title || 'Mind Mapp Export'
+  const lines = [`# ${escapeMarkdown(title)}`, '', `_Exported from Mind Mapp._`, '']
+  const rootChildren = root ? (children.get(root.id) || []) : []
+  const sections = rootChildren.length ? rootChildren : []
+
+  function writeCard(node, indent = '') {
+    lines.push(`${indent}- [ ] ${escapeMarkdown(node.text) || 'Untitled Card'}`)
+    const details = escapeMarkdown(nodeDetailsText(node))
+    if (details) {
+      for (const detailLine of details.split('\n')) lines.push(`${indent}  > ${detailLine}`)
+    }
+    for (const childId of children.get(node.id) || []) {
+      const child = state.nodes.find(n => n.id === childId)
+      if (child) writeCard(child, `${indent}  `)
+    }
+  }
+
+  if (!sections.length) {
+    lines.push('## Mind Map', '')
+    state.nodes.forEach(node => writeCard(node))
+  } else {
+    for (const sectionId of sections) {
+      const section = state.nodes.find(node => node.id === sectionId)
+      if (!section) continue
+      lines.push(`## ${escapeMarkdown(section.text) || 'List'}`, '')
+      const cards = children.get(section.id) || []
+      if (cards.length) {
+        cards.forEach(cardId => {
+          const card = state.nodes.find(node => node.id === cardId)
+          if (card) writeCard(card)
+        })
+      } else {
+        writeCard(section)
+      }
+      lines.push('')
+    }
+  }
+  return lines.join('\n').replace(/\n{4,}/g, '\n\n\n')
+}
+
+function exportCurrentPageAsObsidianMarkdown() {
+  persistDetailsText({ commitHistory: false })
+  syncCurrentPage()
+  const page = activePage()
+  const title = rootNodeForExport()?.text || page?.title || 'mind-mapp'
+  downloadTextFile(`${slugifyFileName(title)}-obsidian-kanban.md`, exportCurrentPageToObsidianMarkdown(), 'text/markdown')
 }
 
 function exportPNG() {
