@@ -314,6 +314,16 @@ function makeNodeForPage(page, x, y, text, detailsText = '', options = {}) {
   return node
 }
 
+function setMinNodeSize(node, minWidth, minHeight) {
+  const centerX = node.x + node.width / 2
+  const centerY = node.y + node.height / 2
+  node.width = Math.max(node.width, minWidth)
+  node.height = Math.max(node.height, minHeight)
+  node.x = centerX - node.width / 2
+  node.y = centerY - node.height / 2
+  return node
+}
+
 function pageHasContent(page) {
   return Boolean(page?.nodes?.length || page?.edges?.length || Object.keys(page?.edgeLabels || {}).length)
 }
@@ -352,8 +362,7 @@ function buildProjectKanbanPage(page) {
     'Central project map. Branches show status, each leaf is a card.',
     { includeGitDetails: true },
   )
-  root.width = Math.max(root.width, 270)
-  root.height = Math.max(root.height, 58)
+  setMinNodeSize(root, 270, 58)
   page.nodes.push(root)
 
   const angles = [-Math.PI * 0.78, -Math.PI * 0.25, Math.PI * 0.25, Math.PI * 0.78]
@@ -366,8 +375,7 @@ function buildProjectKanbanPage(page) {
     const angle = angles[columnIndex] ?? (-Math.PI + columnIndex * (Math.PI * 2 / PROJECT_KANBAN_COLUMNS.length))
     const headerPos = branchPoint(centerX, centerY, angle, headerRadius)
     const header = makeNodeForPage(page, headerPos.x, headerPos.y, column.title, `${column.items.length} cards`, { includeGitDetails: true })
-    header.width = Math.max(header.width, 190)
-    header.height = Math.max(header.height, 52)
+    setMinNodeSize(header, 190, 52)
     page.nodes.push(header)
     addPageEdge(page, root, header, column.title)
 
@@ -376,8 +384,7 @@ function buildProjectKanbanPage(page) {
       const radius = headerRadius + cardRadiusBase + (itemIndex % 3) * cardRadiusStep
       const cardPos = branchPoint(centerX, centerY, angle + sideOffset, radius)
       const card = makeNodeForPage(page, cardPos.x, cardPos.y, item, `Kanban branch: ${column.title}`, { includeGitDetails: true })
-      card.width = Math.max(card.width, 235)
-      card.height = Math.max(card.height, 52)
+      setMinNodeSize(card, 235, 52)
       page.nodes.push(card)
       addPageEdge(page, header, card)
     })
@@ -458,8 +465,7 @@ function buildTrelloBoardPage(page, board) {
       board.desc ? `Description:\n${board.desc}` : '',
     ].filter(Boolean).join('\n\n'),
   )
-  root.width = Math.max(root.width, 260)
-  root.height = Math.max(root.height, 58)
+  setMinNodeSize(root, 260, 58)
   page.nodes.push(root)
 
   const branchCount = Math.max(1, openLists.length)
@@ -473,8 +479,7 @@ function buildTrelloBoardPage(page, board) {
     const headerPos = branchPoint(centerX, centerY, angle, headerRadius)
     const cards = cardsByList.get(list.id) || []
     const header = makeNodeForPage(page, headerPos.x, headerPos.y, list.name, `${cards.length} Trello cards`)
-    header.width = Math.max(header.width, 190)
-    header.height = Math.max(header.height, 52)
+    setMinNodeSize(header, 190, 52)
     page.nodes.push(header)
     addPageEdge(page, root, header, list.name)
 
@@ -484,8 +489,7 @@ function buildTrelloBoardPage(page, board) {
       const cardPos = branchPoint(centerX, centerY, angle + sideOffset, radius)
       const title = compactText(card.name) || 'Untitled Trello card'
       const node = makeNodeForPage(page, cardPos.x, cardPos.y, title, trelloCardDetails(card, board))
-      node.width = Math.max(node.width, 235)
-      node.height = Math.max(node.height, 52)
+      setMinNodeSize(node, 235, 52)
       node.trelloCardId = card.id || null
       page.nodes.push(node)
       addPageEdge(page, header, node)
@@ -620,8 +624,7 @@ function buildObsidianKanbanPage(page, parsed) {
   const centerX = 1100
   const centerY = 820
   const root = makeNodeForPage(page, centerX, centerY, page.title, 'Imported from Obsidian Markdown/Kanban file.')
-  root.width = Math.max(root.width, 270)
-  root.height = Math.max(root.height, 58)
+  setMinNodeSize(root, 270, 58)
   page.nodes.push(root)
 
   const branchCount = Math.max(1, parsed.columns.length)
@@ -634,8 +637,7 @@ function buildObsidianKanbanPage(page, parsed) {
     const angle = -Math.PI / 2 + columnIndex * (Math.PI * 2 / branchCount)
     const headerPos = branchPoint(centerX, centerY, angle, headerRadius)
     const header = makeNodeForPage(page, headerPos.x, headerPos.y, column.title, `${column.items.length} Obsidian items`)
-    header.width = Math.max(header.width, 205)
-    header.height = Math.max(header.height, 52)
+    setMinNodeSize(header, 205, 52)
     page.nodes.push(header)
     addPageEdge(page, root, header, column.title)
 
@@ -644,8 +646,7 @@ function buildObsidianKanbanPage(page, parsed) {
       const radius = headerRadius + cardRadiusBase + (itemIndex % 4) * cardRadiusStep
       const cardPos = branchPoint(centerX, centerY, angle + sideOffset, radius)
       const node = makeNodeForPage(page, cardPos.x, cardPos.y, item.title, item.details)
-      node.width = Math.max(node.width, 245)
-      node.height = Math.max(node.height, 52)
+      setMinNodeSize(node, 245, 52)
       page.nodes.push(node)
       addPageEdge(page, header, node)
     })
@@ -3014,8 +3015,7 @@ function buildOrganizedMindMapPage(page, plan) {
       .filter(Boolean)
       .join('\n')
     const node = makeNodeForPage(page, x, y, item.title, details)
-    node.width = Math.max(node.width, depth === 0 ? 270 : depth === 1 ? 255 : 215)
-    node.height = Math.max(node.height, depth === 0 ? 64 : depth === 1 ? 60 : 50)
+    setMinNodeSize(node, depth === 0 ? 270 : depth === 1 ? 255 : 215, depth === 0 ? 64 : depth === 1 ? 60 : 50)
     styleNode(node, colorForConcept(item.concept, siblingIndex))
     node.organizedDepth = depth
     node.organizedConcept = item.concept
