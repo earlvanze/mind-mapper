@@ -20,6 +20,7 @@ const state = {
   edgeLabels: {},
   eraserMode: false,
   notebook: { pages: [], activePageId: null, lastPageId: 0 },
+  zoomTrail: [],
 }
 
 const STORAGE_KEY = 'mind-mapp-v1'
@@ -698,6 +699,7 @@ function renderPageTabs() {
   }
   pageSelect.value = String(state.notebook.activePageId)
   renderDetailsPageLinkOptions()
+  updateZoomBackButton()
 }
 
 function switchPage(pageId, options = {}) {
@@ -931,6 +933,7 @@ app.innerHTML = `
     <select id="page-select" title="Current page"></select>
     <button id="btn-new-page" title="New notebook page">+ Page</button>
     <button id="btn-delete-page" title="Delete current notebook page">Delete Page</button>
+    <button id="btn-zoom-back" title="Zoom back out to the previous linked page" disabled>↩ Zoom Out</button>
     <button id="btn-project-kanban" title="Create a project kanban page">Kanban</button>
     <button id="btn-import-trello" title="Import a Trello board JSON export">Import Trello</button>
     <input id="trello-file-input" type="file" accept="application/json,.json" hidden>
@@ -1017,6 +1020,7 @@ const mctx = minimapCanvas.getContext('2d')
 const pageSelect = document.getElementById('page-select')
 const btnNewPage = document.getElementById('btn-new-page')
 const btnDeletePage = document.getElementById('btn-delete-page')
+const btnZoomBack = document.getElementById('btn-zoom-back')
 const btnProjectKanban = document.getElementById('btn-project-kanban')
 const btnImportTrello = document.getElementById('btn-import-trello')
 const trelloFileInput = document.getElementById('trello-file-input')
@@ -1206,6 +1210,7 @@ function save() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify({
     version: 2,
     notebook: state.notebook,
+    zoomTrail: state.zoomTrail,
     // Active-page mirror keeps older tests/tools and simple exports readable.
     nodes: state.nodes,
     edges: state.edges,
@@ -1226,6 +1231,7 @@ function load() {
         activePageId: data.notebook.activePageId || data.notebook.pages[0].id,
         lastPageId: data.notebook.lastPageId || Math.max(...data.notebook.pages.map(page => page.id)),
       }
+      state.zoomTrail = Array.isArray(data.zoomTrail) ? data.zoomTrail : []
     } else if (data) {
       const page = createPage('Page 1')
       page.nodes = data.nodes || []
@@ -1690,6 +1696,60 @@ function animateViewTo(target, duration = 420) {
   })
 }
 
+
+function updateZoomBackButton() {
+  if (!btnZoomBack) return
+  btnZoomBack.disabled = state.zoomTrail.length === 0
+  btnZoomBack.textContent = state.zoomTrail.length ? `↩ Zoom Out (${state.zoomTrail.length})` : '↩ Zoom Out'
+}
+
+function pushZoomTrailEntry(node) {
+  state.zoomTrail.push({
+    pageId: state.notebook.activePageId,
+    view: { ...state.view },
+    nodeId: node.id,
+  })
+  if (state.zoomTrail.length > 20) state.zoomTrail.shift()
+  updateZoomBackButton()
+}
+
+async function zoomBackOut() {
+  if (!state.zoomTrail.length) return false
+  persistDetailsText({ commitHistory: false })
+  if (state.editing) commitEdit()
+  if (edgeEditInput) commitEdgeLabel()
+  syncCurrentPage()
+  hideDetails()
+
+  const entry = state.zoomTrail.pop()
+  updateZoomBackButton()
+  await animateViewTo({ x: canvas.width / 2, y: canvas.height / 2, scale: 0.08 }, 360)
+
+  const returnPage = state.notebook.pages.find(page => page.id === entry.pageId)
+  if (!returnPage) {
+    save()
+    return false
+  }
+
+  switchPage(returnPage.id, { skipResize: true })
+  const returnNode = state.nodes.find(node => node.id === entry.nodeId)
+  if (returnNode) {
+    state.view = viewCenteredOnNode(returnNode, 2.65)
+    state.selected = returnNode.id
+    state.selectedType = 'node'
+  } else {
+    state.view = { x: canvas.width / 2, y: canvas.height / 2, scale: 0.08 }
+  }
+  render()
+  await animateViewTo(entry.view || targetViewForPage(returnPage), 520)
+  state.selected = null
+  state.selectedType = null
+  save()
+  renderPageTabs()
+  render()
+  return true
+}
+
 async function openLinkedPageFromNode(node) {
   const targetPage = linkedPageForNode(node)
   if (!targetPage || targetPage.id === state.notebook.activePageId) return false
@@ -1697,6 +1757,7 @@ async function openLinkedPageFromNode(node) {
   if (state.editing) commitEdit()
   if (edgeEditInput) commitEdgeLabel()
   syncCurrentPage()
+  pushZoomTrailEntry(node)
   hideDetails()
   state.selected = node.id
   state.selectedType = 'node'
@@ -2191,6 +2252,12 @@ document.addEventListener('keydown', e => {
   if (e.key === 'f' || e.key === 'F') {
     fitToContent()
   }
+  if ((e.altKey && e.key === 'ArrowLeft') || e.key === 'b' || e.key === 'B') {
+    if (state.zoomTrail.length) {
+      e.preventDefault()
+      zoomBackOut()
+    }
+  }
 })
 
 // Buttons
@@ -2222,6 +2289,7 @@ detailsDrawing.addEventListener('pointercancel', endDetailsDrawing)
 pageSelect.addEventListener('change', () => switchPage(Number(pageSelect.value)))
 btnNewPage.addEventListener('click', addNotebookPage)
 btnDeletePage.addEventListener('click', deleteCurrentPage)
+btnZoomBack.addEventListener('click', zoomBackOut)
 btnProjectKanban.addEventListener('click', applyProjectKanbanToNewPage)
 btnImportTrello.addEventListener('click', () => trelloFileInput.click())
 trelloFileInput.addEventListener('change', () => importTrelloFile(trelloFileInput.files?.[0]))
@@ -2657,6 +2725,7 @@ function render() {
 // ─── Boot ─────────────────────────────────────────────────────────────────────
 load()
 renderPageTabs()
+updateZoomBackButton()
 // Initialize history after load
 historyPush()
 

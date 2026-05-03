@@ -368,3 +368,14 @@ canvas.eraser-mode { cursor: not-allowed; }
 #canvas.prezi-zooming {
   cursor: zoom-in;
 }
+
+#btn-zoom-back:not(:disabled) {
+  border-color: #06b6d4;
+  background: linear-gradient(135deg, rgba(6,182,212,0.12), rgba(170,59,255,0.12));
+  color: #155e75;
+  font-weight: 800;
+}
+#btn-zoom-back:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}

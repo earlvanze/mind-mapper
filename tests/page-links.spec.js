@@ -64,3 +64,18 @@ test('linked nodes persist page link metadata', async ({ page }) => {
   })
   expect(hasLinkedNode).toBe(true)
 })
+
+
+test('zoom back returns to the previous linked page source', async ({ page }) => {
+  await seedLinkedNotebook(page)
+  await page.goto('/')
+  await page.locator('#canvas').click({ position: { x: 160, y: 140 } })
+  await page.locator('#details-page-link').selectOption({ label: 'Page 2' })
+  await page.locator('#btn-open-linked-page').click()
+  await expect(page.locator('#page-select')).toHaveValue('2', { timeout: 2500 })
+  await expect(page.locator('#btn-zoom-back')).toBeEnabled()
+
+  await page.locator('#btn-zoom-back').click()
+  await expect(page.locator('#page-select')).toHaveValue('1', { timeout: 2500 })
+  await expect(page.locator('#btn-zoom-back')).toBeDisabled()
+})
