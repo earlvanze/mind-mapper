@@ -43,3 +43,67 @@ test('undo/redo buttons exist and are clickable', async ({ page }) => {
   // no console errors
   expect(errors).toHaveLength(0)
 })
+
+test('undo and redo include AI colorful changes', async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem('mind-mapp-v1', JSON.stringify({
+      nodes: [
+        { id: 1, x: 100, y: 100, text: 'Product root', width: 150, height: 44, style: { fill: '#ffffff', stroke: '#111111', text: '#111111', accent: '#111111', shadow: '#111111' }, details: { text: '', drawing: null, strokes: [] } },
+        { id: 2, x: 300, y: 100, text: 'Finance task', width: 150, height: 44, style: { fill: '#ffffff', stroke: '#111111', text: '#111111', accent: '#111111', shadow: '#111111' }, details: { text: '', drawing: null, strokes: [] } },
+      ],
+      edges: [{ id: 1, from: 1, to: 2 }],
+      lastId: 2,
+      lastEdgeId: 1,
+      edgeLabels: {},
+    }))
+  })
+  await page.route('**/api/organize-mind-map', route => route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify({ nodes: [{ sourceId: 1, concept: 'product' }, { sourceId: 2, concept: 'finance' }] }),
+  }))
+  await page.goto('/')
+  await page.locator('#btn-colorful').click()
+  await expect.poll(async () => page.evaluate(() => JSON.parse(localStorage.getItem('mind-mapp-v1')).nodes[1].style.fill)).toBe('#bbf7d0')
+
+  await page.locator('#btn-undo').click()
+  await expect.poll(async () => page.evaluate(() => JSON.parse(localStorage.getItem('mind-mapp-v1')).nodes[1].style.fill)).toBe('#ffffff')
+
+  await page.locator('#btn-redo').click()
+  await expect.poll(async () => page.evaluate(() => JSON.parse(localStorage.getItem('mind-mapp-v1')).nodes[1].style.fill)).toBe('#bbf7d0')
+})
+
+test('undo and redo include organize page creation', async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem('mind-mapp-v1', JSON.stringify({
+      nodes: [{ id: 1, x: 100, y: 100, text: 'Messy root', width: 150, height: 44, details: { text: '', drawing: null, strokes: [] } }],
+      edges: [],
+      lastId: 1,
+      lastEdgeId: 0,
+      edgeLabels: {},
+    }))
+  })
+  await page.route('**/api/organize-mind-map', route => route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify({
+      title: 'Organized: Messy root',
+      provider: 'sage-router:test',
+      nodes: [
+        { id: 'root', sourceId: 1, title: 'Messy root', parentId: null, concept: 'product', order: 0 },
+        { id: 'child', title: 'Clean branch', parentId: 'root', concept: 'infra', order: 1 },
+      ],
+    }),
+  }))
+  await page.goto('/')
+  await page.locator('#btn-ai-kanban').click()
+  await expect(page.locator('#page-select')).toContainText('Organized: Messy root')
+
+  await page.locator('#btn-undo').click()
+  await expect.poll(async () => page.evaluate(() => JSON.parse(localStorage.getItem('mind-mapp-v1')).notebook.pages.length)).toBe(1)
+  await expect(page.locator('#page-select')).not.toContainText('Organized: Messy root')
+
+  await page.locator('#btn-redo').click()
+  await expect.poll(async () => page.evaluate(() => JSON.parse(localStorage.getItem('mind-mapp-v1')).notebook.pages.length)).toBe(2)
+  await expect(page.locator('#page-select')).toContainText('Organized: Messy root')
+})

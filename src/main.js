@@ -250,6 +250,7 @@ async function makeMapColorful() {
   try {
     persistDetailsText({ commitHistory: false })
     syncCurrentPage()
+    replaceCurrentHistorySnapshot()
     const plan = await requestMindMapColoring()
     applyMindMapColoring(plan)
     historyCommit()
@@ -692,7 +693,11 @@ function loadPageIntoState(page) {
   if (typeof btnConnect !== 'undefined') btnConnect.classList.remove('active')
 }
 
-function resetHistoryForCurrentPage() {
+function resetHistoryForCurrentPage(options = {}) {
+  if (options.preserveExisting) {
+    replaceCurrentHistorySnapshot()
+    return
+  }
   history.stack = []
   history.index = -1
   historyPush()
@@ -880,13 +885,11 @@ const MAX_HISTORY = 50
 const history = { stack: [], index: -1 }
 
 function historySnapshot() {
+  syncCurrentPage()
   return JSON.stringify({
-    nodes: state.nodes,
-    edges: state.edges,
-    lastId: state.lastId,
-    lastEdgeId: state.lastEdgeId,
-    edgeLabels: state.edgeLabels,
-    view: state.view,
+    notebook: state.notebook,
+    activePageId: state.notebook.activePageId,
+    zoomTrail: state.zoomTrail,
   })
 }
 
@@ -913,18 +916,28 @@ function historyRedo() {
 function applySnapshot(snap) {
   try {
     const data = JSON.parse(snap)
-    state.nodes = data.nodes
-    state.edges = data.edges
-    state.lastId = data.lastId
-    state.lastEdgeId = data.lastEdgeId
-    state.edgeLabels = data.edgeLabels || {}
-    state.view = data.view ? { ...data.view } : state.view
-    syncCurrentPage()
+    if (data.notebook?.pages?.length) {
+      state.notebook = JSON.parse(JSON.stringify(data.notebook))
+      state.zoomTrail = Array.isArray(data.zoomTrail) ? data.zoomTrail : []
+      const activeId = data.activePageId || state.notebook.activePageId || state.notebook.pages[0].id
+      const page = state.notebook.pages.find(p => p.id === activeId) || state.notebook.pages[0]
+      state.notebook.activePageId = page.id
+      loadPageIntoState(page)
+    } else {
+      state.nodes = data.nodes
+      state.edges = data.edges
+      state.lastId = data.lastId
+      state.lastEdgeId = data.lastEdgeId
+      state.edgeLabels = data.edgeLabels || {}
+      state.view = data.view ? { ...data.view } : state.view
+      syncCurrentPage()
+    }
     state.selected = null
     state.selectedType = null
     state.connecting = null
     state.editing = null
     save()
+    renderPageTabs()
     refreshDetailsPanel()
     render()
   } catch (e) { /* ignore */ }
@@ -932,6 +945,11 @@ function applySnapshot(snap) {
 
 function historyCommit() {
   historyPush()
+}
+
+function replaceCurrentHistorySnapshot() {
+  if (history.index >= 0) history.stack[history.index] = historySnapshot()
+  else historyPush()
 }
 
 // ─── DOM ─────────────────────────────────────────────────────────────────────
@@ -2792,6 +2810,7 @@ async function organizeCurrentMindMap() {
   if (state.editing) commitEdit()
   if (edgeEditInput) commitEdgeLabel()
   syncCurrentPage()
+  replaceCurrentHistorySnapshot()
   const originalText = btnAiKanban.textContent
   btnAiKanban.disabled = true
   btnAiKanban.textContent = 'Organizing…'
@@ -2803,7 +2822,7 @@ async function organizeCurrentMindMap() {
     state.notebook.activePageId = page.id
     loadPageIntoState(page)
     hideDetails()
-    resetHistoryForCurrentPage()
+    historyCommit()
     save()
     renderPageTabs()
     resize()
