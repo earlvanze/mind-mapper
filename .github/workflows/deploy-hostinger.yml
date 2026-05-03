@@ -33,9 +33,6 @@ jobs:
         run: |
           printf 'deployed_at=%s\nsha=%s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$GITHUB_SHA" > dist/.purge-cache
 
-      - name: Install deployment tools
-        run: sudo apt-get update && sudo apt-get install -y lftp curl
-
       - name: Deploy to Hostinger FTP over TLS
         env:
           HOSTINGER_FTP_HOST: ${{ secrets.HOSTINGER_FTP_HOST }}
@@ -45,16 +42,57 @@ jobs:
           : "${HOSTINGER_FTP_HOST:?HOSTINGER_FTP_HOST secret is required}"
           : "${HOSTINGER_FTP_USER:?HOSTINGER_FTP_USER secret is required}"
           : "${HOSTINGER_FTP_PW:?HOSTINGER_FTP_PW secret is required}"
-          lftp -u "$HOSTINGER_FTP_USER","$HOSTINGER_FTP_PW" "$HOSTINGER_FTP_HOST" <<'LFTP'
-          set ftp:ssl-force true
-          set ftp:ssl-protect-data true
-          set ssl:verify-certificate no
-          set net:timeout 30
-          set net:max-retries 3
-          mkdir -p /public_html/mindmapp
-          mirror --reverse --delete --verbose dist/ /public_html/mindmapp/
-          bye
-          LFTP
+          python3 <<'PY'
+          import ftplib
+          import os
+          from pathlib import Path
+
+          host = os.environ['HOSTINGER_FTP_HOST']
+          user = os.environ['HOSTINGER_FTP_USER']
+          pw = os.environ['HOSTINGER_FTP_PW']
+          src = Path('dist')
+          dest = '/public_html/mindmapp'
+
+          def ensure_dir(ftp, path):
+              ftp.cwd('/')
+              cur = ''
+              for part in path.strip('/').split('/'):
+                  cur += '/' + part
+                  try:
+                      ftp.cwd(cur)
+                  except Exception:
+                      ftp.mkd(cur)
+                      ftp.cwd(cur)
+
+          def clear_dir(ftp, path):
+              ensure_dir(ftp, path)
+              for name, facts in list(ftp.mlsd()):
+                  if name in ('.', '..'):
+                      continue
+                  item = path.rstrip('/') + '/' + name
+                  if facts.get('type') == 'dir':
+                      clear_dir(ftp, item)
+                      ftp.rmd(item)
+                  else:
+                      ftp.delete(item)
+
+          def upload_tree(ftp, local_root, remote_root):
+              for root, _, files in os.walk(local_root):
+                  rel = Path(root).relative_to(local_root)
+                  remote = remote_root if str(rel) == '.' else remote_root.rstrip('/') + '/' + rel.as_posix()
+                  ensure_dir(ftp, remote)
+                  for filename in files:
+                      local = Path(root) / filename
+                      with local.open('rb') as fh:
+                          ftp.storbinary('STOR ' + filename, fh)
+                      print(f'uploaded {remote}/{filename}')
+
+          with ftplib.FTP_TLS(host, timeout=30) as ftp:
+              ftp.login(user, pw)
+              ftp.prot_p()
+              clear_dir(ftp, dest)
+              upload_tree(ftp, src, dest)
+          PY
 
       - name: Purge Cloudflare cache
         env:
