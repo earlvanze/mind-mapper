@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#aa3bff</color>
+    <color name="colorPrimaryDark">#6f22cc</color>
+    <color name="colorAccent">#ffb800</color>
+    <color name="mind_mapp_canvas">#fbfaf8</color>
+</resources>
