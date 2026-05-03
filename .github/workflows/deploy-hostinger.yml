@@ -1,0 +1,70 @@
+name: Deploy Mind Mapp to Hostinger
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: hostinger-mindmapp
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Add Hostinger cache-control marker
+        run: |
+          printf 'deployed_at=%s\nsha=%s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$GITHUB_SHA" > dist/.purge-cache
+
+      - name: Install deployment tools
+        run: sudo apt-get update && sudo apt-get install -y lftp curl
+
+      - name: Deploy to Hostinger FTP over TLS
+        env:
+          HOSTINGER_FTP_HOST: ${{ secrets.HOSTINGER_FTP_HOST }}
+          HOSTINGER_FTP_USER: ${{ secrets.HOSTINGER_FTP_USER }}
+          HOSTINGER_FTP_PW: ${{ secrets.HOSTINGER_FTP_PW }}
+        run: |
+          : "${HOSTINGER_FTP_HOST:?HOSTINGER_FTP_HOST secret is required}"
+          : "${HOSTINGER_FTP_USER:?HOSTINGER_FTP_USER secret is required}"
+          : "${HOSTINGER_FTP_PW:?HOSTINGER_FTP_PW secret is required}"
+          lftp -u "$HOSTINGER_FTP_USER","$HOSTINGER_FTP_PW" "$HOSTINGER_FTP_HOST" <<'LFTP'
+          set ftp:ssl-force true
+          set ftp:ssl-protect-data true
+          set ssl:verify-certificate no
+          set net:timeout 30
+          set net:max-retries 3
+          mkdir -p /public_html/mindmapp
+          mirror --reverse --delete --verbose dist/ /public_html/mindmapp/
+          bye
+          LFTP
+
+      - name: Purge Cloudflare cache
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+        run: |
+          : "${CLOUDFLARE_API_TOKEN:?CLOUDFLARE_API_TOKEN secret is required}"
+          : "${CLOUDFLARE_ZONE_ID:?CLOUDFLARE_ZONE_ID secret is required}"
+          curl --fail-with-body -sS -X POST \
+            "https://api.cloudflare.com/client/v4/zones/${CLOUDFLARE_ZONE_ID}/purge_cache" \
+            -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
+            -H "Content-Type: application/json" \
+            --data '{"purge_everything":true}'
