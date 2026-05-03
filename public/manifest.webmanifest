@@ -1,0 +1,26 @@
+{
+  "name": "Mind Mapp",
+  "short_name": "Mind Mapp",
+  "description": "A touch-first notebook for mind maps, planning boards, sketches, and AI-assisted layouts.",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "browser"],
+  "orientation": "any",
+  "background_color": "#fbfaf8",
+  "theme_color": "#aa3bff",
+  "categories": ["productivity", "education", "utilities"],
+  "icons": [
+    { "src": "./pwa-icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ],
+  "shortcuts": [
+    {
+      "name": "New map",
+      "short_name": "New map",
+      "description": "Open Mind Mapp and start mapping.",
+      "url": "./?shortcut=new-map",
+      "icons": [{ "src": "./pwa-icon.svg", "sizes": "any", "type": "image/svg+xml" }]
+    }
+  ]
+}

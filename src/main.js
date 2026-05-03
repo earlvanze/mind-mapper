@@ -1,6 +1,30 @@
 import './style.css'
 
 // ─── State ───────────────────────────────────────────────────────────────────
+const MIN_VIEW_SCALE = 0.1
+const MAX_VIEW_SCALE = 5
+const MAX_VIEW_OFFSET = 1_000_000
+
+function clampNumber(value, min, max, fallback) {
+  return Number.isFinite(value) ? Math.max(min, Math.min(max, value)) : fallback
+}
+
+function clampScale(scale) {
+  return clampNumber(scale, MIN_VIEW_SCALE, MAX_VIEW_SCALE, 1)
+}
+
+function sanitizeView(view = {}) {
+  return {
+    x: clampNumber(view.x, -MAX_VIEW_OFFSET, MAX_VIEW_OFFSET, 0),
+    y: clampNumber(view.y, -MAX_VIEW_OFFSET, MAX_VIEW_OFFSET, 0),
+    scale: clampScale(view.scale),
+  }
+}
+
+function setView(nextView) {
+  state.view = sanitizeView(nextView)
+}
+
 const state = {
   nodes: [],
   edges: [],
@@ -683,7 +707,7 @@ function loadPageIntoState(page) {
   state.lastId = page.lastId || 0
   state.lastEdgeId = page.lastEdgeId || 0
   state.edgeLabels = page.edgeLabels || {}
-  state.view = page.view ? { ...page.view } : { x: 0, y: 0, scale: 1 }
+  setView(page.view ? { ...page.view } : { x: 0, y: 0, scale: 1 })
   state.selected = null
   state.selectedType = null
   state.connecting = null
@@ -965,7 +989,7 @@ function applySnapshot(snap) {
       state.lastId = data.lastId
       state.lastEdgeId = data.lastEdgeId
       state.edgeLabels = data.edgeLabels || {}
-      state.view = data.view ? { ...data.view } : state.view
+      setView(data.view ? { ...data.view } : state.view)
       syncCurrentPage()
     }
     state.selected = null
@@ -1084,6 +1108,15 @@ app.innerHTML = `
 
 const canvas = document.getElementById('canvas')
 const ctx = canvas.getContext('2d')
+
+if ('serviceWorker' in navigator && !navigator.webdriver) {
+  window.addEventListener('load', () => {
+    const swUrl = new URL('sw.js', window.location.href)
+    navigator.serviceWorker.register(swUrl).catch(error => {
+      console.info('Mind Mapp service worker registration skipped:', error.message)
+    })
+  })
+}
 const minimapCanvas = document.getElementById('minimap')
 const mctx = minimapCanvas.getContext('2d')
 const pageSelect = document.getElementById('page-select')
@@ -1319,7 +1352,7 @@ function load() {
       page.lastId = data.lastId || 0
       page.lastEdgeId = data.lastEdgeId || 0
       page.edgeLabels = data.edgeLabels || {}
-      page.view = data.view || { x: 0, y: 0, scale: 1 }
+      page.view = sanitizeView(data.view || { x: 0, y: 0, scale: 1 })
       state.notebook = { pages: [page], activePageId: page.id, lastPageId: page.id }
       migrated = true
     }
@@ -2124,10 +2157,12 @@ function applyPinchZoom() {
     x: (pinchStart.cx - pinchStart.viewX) / pinchStart.scale,
     y: (pinchStart.cy - pinchStart.viewY) / pinchStart.scale,
   }
-  const newScale = Math.max(0.1, Math.min(5, pinchStart.scale * (metrics.dist / pinchStart.dist)))
-  state.view.scale = newScale
-  state.view.x = metrics.cx - worldAtStart.x * newScale
-  state.view.y = metrics.cy - worldAtStart.y * newScale
+  const newScale = clampScale(pinchStart.scale * (metrics.dist / pinchStart.dist))
+  setView({
+    x: metrics.cx - worldAtStart.x * newScale,
+    y: metrics.cy - worldAtStart.y * newScale,
+    scale: newScale,
+  })
 }
 
 canvas.addEventListener('pointerdown', e => {
@@ -2206,8 +2241,7 @@ canvas.addEventListener('pointermove', e => {
       node.y = world.y - state.dragging.offsetY
     }
   } else if (state.panning) {
-    state.view.x = mx - state.panStart.x
-    state.view.y = my - state.panStart.y
+    setView({ ...state.view, x: mx - state.panStart.x, y: my - state.panStart.y })
   }
 
   state.hoveredNode = nodeAt(mx, my)?.id ?? null
@@ -2285,11 +2319,15 @@ canvas.addEventListener('wheel', e => {
   const rect = canvas.getBoundingClientRect()
   const mx = e.clientX - rect.left
   const my = e.clientY - rect.top
-  const delta = e.deltaY > 0 ? 0.9 : 1.1
-  const newScale = Math.max(0.1, Math.min(5, state.view.scale * delta))
-  state.view.x = mx - (mx - state.view.x) * (newScale / state.view.scale)
-  state.view.y = my - (my - state.view.y) * (newScale / state.view.scale)
-  state.view.scale = newScale
+  const normalizedDelta = e.deltaMode === WheelEvent.DOM_DELTA_LINE ? e.deltaY * 16 : e.deltaY
+  const zoomFactor = Math.exp(-normalizedDelta * 0.0015)
+  const newScale = clampScale(state.view.scale * zoomFactor)
+  const ratio = newScale / state.view.scale
+  setView({
+    x: mx - (mx - state.view.x) * ratio,
+    y: my - (my - state.view.y) * ratio,
+    scale: newScale,
+  })
   save()
   render()
 }, { passive: false })
@@ -2480,10 +2518,12 @@ function fitToContent() {
   if (!bounds) return
   const worldW = Math.max(1, bounds.maxX - bounds.minX)
   const worldH = Math.max(1, bounds.maxY - bounds.minY)
-  const scale = Math.max(0.1, Math.min(5, Math.min(canvas.width / worldW, canvas.height / worldH)))
-  state.view.scale = scale
-  state.view.x = (canvas.width - worldW * scale) / 2 - bounds.minX * scale
-  state.view.y = (canvas.height - worldH * scale) / 2 - bounds.minY * scale
+  const scale = clampScale(Math.min(canvas.width / worldW, canvas.height / worldH))
+  setView({
+    x: (canvas.width - worldW * scale) / 2 - bounds.minX * scale,
+    y: (canvas.height - worldH * scale) / 2 - bounds.minY * scale,
+    scale,
+  })
   save()
   render()
 }
@@ -3134,8 +3174,11 @@ minimapCanvas.addEventListener('click', e => {
 
   const rect = minimapCanvas.getBoundingClientRect()
   const world = minimapToWorld(e.clientX - rect.left, e.clientY - rect.top, metrics)
-  state.view.x = canvas.width / 2 - world.x * state.view.scale
-  state.view.y = canvas.height / 2 - world.y * state.view.scale
+  setView({
+    ...state.view,
+    x: canvas.width / 2 - world.x * state.view.scale,
+    y: canvas.height / 2 - world.y * state.view.scale,
+  })
   save()
   render()
 })

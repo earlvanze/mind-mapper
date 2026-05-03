@@ -131,6 +131,10 @@ test('Organize lays out dense AI trees without overlapping nodes', async ({ page
   }))
   await page.goto('/')
   await page.locator('#btn-ai-kanban').click()
+  await expect.poll(async () => page.evaluate(() => {
+    const saved = JSON.parse(localStorage.getItem('mind-mapp-v1'))
+    return Boolean(saved.notebook.pages.find(p => p.title === 'Organized: Dense Plan')?.nodes?.length)
+  })).toBeTruthy()
   const nodes = await page.evaluate(() => {
     const saved = JSON.parse(localStorage.getItem('mind-mapp-v1'))
     return saved.notebook.pages.find(p => p.title === 'Organized: Dense Plan').nodes
@@ -163,6 +167,10 @@ test('Organize makes first-level category labels readable', async ({ page }) => 
   }))
   await page.goto('/')
   await page.locator('#btn-ai-kanban').click()
+  await expect.poll(async () => page.evaluate(() => {
+    const saved = JSON.parse(localStorage.getItem('mind-mapp-v1'))
+    return Boolean(saved.notebook.pages.find(p => p.title === 'Organized: Categories')?.nodes?.length)
+  })).toBeTruthy()
   const organized = await page.evaluate(() => {
     const saved = JSON.parse(localStorage.getItem('mind-mapp-v1'))
     return saved.notebook.pages.find(p => p.title === 'Organized: Categories')

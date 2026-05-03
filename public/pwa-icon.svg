@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Mind Mapp">
+  <rect width="512" height="512" rx="112" fill="#fbfaf8"/>
+  <circle cx="256" cy="256" r="178" fill="#efe6ff"/>
+  <path d="M256 135v242M256 256 130 188M256 256l126-68M256 256 128 328M256 256l128 72" fill="none" stroke="#aa3bff" stroke-width="26" stroke-linecap="round"/>
+  <g fill="#fff" stroke="#08060d" stroke-width="14">
+    <rect x="179" y="104" width="154" height="72" rx="28"/>
+    <rect x="54" y="153" width="146" height="70" rx="28"/>
+    <rect x="312" y="153" width="146" height="70" rx="28"/>
+    <rect x="50" y="292" width="154" height="76" rx="30"/>
+    <rect x="308" y="292" width="154" height="76" rx="30"/>
+  </g>
+  <circle cx="256" cy="256" r="54" fill="#aa3bff"/>
+  <path d="M236 258h40M256 238v40" stroke="#fff" stroke-width="16" stroke-linecap="round"/>
+</svg>
