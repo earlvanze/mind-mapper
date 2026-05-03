@@ -22,9 +22,11 @@ test('Organize creates a concept-colored mind map locally when API is unavailabl
   const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('mind-mapp-v1')))
   const organized = saved.notebook.pages.find(p => p.title === 'Organized: Launch Plan')
   expect(organized).toBeTruthy()
-  expect(organized.organizedMindMapVersion).toBe(1)
+  expect(organized.organizedMindMapVersion).toBe(2)
+  expect(organized.organizedMindMapMode).toBe('preserve-layout-and-structure')
   const nodeTexts = organized.nodes.map(n => n.text)
-  expect(nodeTexts).toEqual(expect.arrayContaining(['Launch Plan', 'Build onboarding flow', 'Blocked payment setup', 'Marketing copy done']))
+  expect(nodeTexts).toEqual(['Launch Plan', 'Build onboarding flow', 'Blocked payment setup', 'Marketing copy done'])
+  expect(organized.edges.length).toBe(3)
   const fills = new Set(organized.nodes.map(n => n.style?.fill).filter(Boolean))
   expect(fills.size).toBeGreaterThan(1)
 })
@@ -46,8 +48,8 @@ test('Organize consumes deterministic OpenAI-compatible mind-map structure respo
       title: 'Organized: Messy Ideas',
       provider: 'sage-router:test',
       nodes: [
-        { id: 'root', title: 'Messy Ideas', parentId: null, concept: 'product', order: 0 },
-        { id: 'infra', title: 'Infrastructure Track', parentId: 'root', concept: 'infra', order: 1 },
+        { sourceId: 1, concept: 'infra', status: 'active', order: 0 },
+        { sourceId: 999, concept: 'hallucinated', order: 1 },
       ],
     }),
   }))
@@ -58,6 +60,7 @@ test('Organize consumes deterministic OpenAI-compatible mind-map structure respo
     return saved.notebook.pages.find(p => p.title === 'Organized: Messy Ideas')
   })
   expect(organized.organizedMindMapProvider).toBe('sage-router:test')
-  expect(organized.nodes.map(n => n.text)).toContain('Infrastructure Track')
-  expect(organized.edges.length).toBe(1)
+  expect(organized.nodes.map(n => n.text)).toEqual(['Messy Ideas'])
+  expect(organized.nodes[0].organizedConcept).toBe('infra')
+  expect(organized.edges.length).toBe(0)
 })

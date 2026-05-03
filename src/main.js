@@ -2609,90 +2609,57 @@ function colorForConcept(concept, index = 0) {
 }
 
 function sanitizeMindMapOrganization(plan) {
+  if (plan?.annotations instanceof Map) return plan
   const fallback = localMindMapOrganizationFromCurrentPage()
   const rawNodes = Array.isArray(plan?.nodes) ? plan.nodes : []
-  const ids = new Set()
-  const cleanNodes = rawNodes.map((node, index) => {
-    const id = compactText(node?.id || node?.sourceId || `node-${index + 1}`) || `node-${index + 1}`
-    const uniqueId = ids.has(id) ? `${id}-${index + 1}` : id
-    ids.add(uniqueId)
-    return {
-      id: uniqueId,
-      sourceId: node?.sourceId ?? null,
-      title: compactText(node?.title || node?.name || node?.text) || `Node ${index + 1}`,
-      details: compactText(node?.details || node?.description || node?.notes || ''),
-      parentId: node?.parentId == null ? null : compactText(node.parentId),
+  const annotations = new Map()
+  rawNodes.forEach((node, index) => {
+    const sourceId = Number(node?.sourceId ?? node?.id)
+    if (!Number.isFinite(sourceId) || !state.nodes.some(source => source.id === sourceId)) return
+    annotations.set(sourceId, {
+      sourceId,
       concept: compactText(node?.concept || node?.theme || node?.category || node?.status || 'general') || 'general',
       status: compactText(node?.status || ''),
       order: Number.isFinite(Number(node?.order)) ? Number(node.order) : index,
-      depth: Number.isFinite(Number(node?.depth)) ? Number(node.depth) : 0,
-    }
-  }).sort((a, b) => a.order - b.order)
+    })
+  })
 
-  const validIds = new Set(cleanNodes.map(node => node.id))
-  cleanNodes.forEach(node => { if (node.parentId && !validIds.has(node.parentId)) node.parentId = null })
+  fallback.nodes.forEach(node => {
+    if (!annotations.has(node.sourceId)) annotations.set(node.sourceId, node)
+  })
 
   return {
     title: compactText(plan?.title) || fallback.title,
-    nodes: cleanNodes.length ? cleanNodes : fallback.nodes,
+    annotations,
     provider: compactText(plan?.provider) || fallback.provider,
   }
 }
 
 function buildOrganizedMindMapPage(page, plan) {
   const parsed = sanitizeMindMapOrganization(plan)
-  page.nodes = []
-  page.edges = []
-  page.edgeLabels = {}
-  page.lastId = 0
-  page.lastEdgeId = 0
-  page.title = parsed.title
-  page.organizedMindMapVersion = 1
-  page.organizedMindMapProvider = parsed.provider
-  page.view = { x: 330, y: 220, scale: 0.38 }
-
-  const centerX = 760
-  const centerY = 560
-  const byId = new Map()
-  const children = new Map(parsed.nodes.map(node => [node.id, []]))
-  parsed.nodes.forEach(node => { if (node.parentId && children.has(node.parentId)) children.get(node.parentId).push(node) })
-  const roots = parsed.nodes.filter(node => !node.parentId)
-  const rootCount = Math.max(1, roots.length)
-
-  function createOrganizedNode(item, x, y, depth, siblingIndex) {
-    const details = [item.details, item.concept ? `Concept: ${item.concept}` : '', item.status ? `Status: ${item.status}` : '', `Organized by ${parsed.provider}.`]
-      .filter(Boolean)
-      .join('\n')
-    const node = makeNodeForPage(page, x, y, item.title, details)
-    node.width = Math.max(node.width, depth === 0 ? 250 : 215)
-    node.height = Math.max(node.height, depth === 0 ? 58 : 50)
-    styleNode(node, colorForConcept(item.concept, siblingIndex))
-    page.nodes.push(node)
-    byId.set(item.id, node)
-    return node
-  }
-
-  function placeBranch(item, parentNode, angle, radius, depth, siblingIndex) {
-    const point = depth === 0 && rootCount === 1
-      ? { x: centerX, y: centerY }
-      : branchPoint(parentNode ? parentNode.x + parentNode.width / 2 : centerX, parentNode ? parentNode.y + parentNode.height / 2 : centerY, angle, radius)
-    const node = createOrganizedNode(item, point.x, point.y, depth, siblingIndex)
-    if (parentNode) addPageEdge(page, parentNode, node, item.concept || '')
-    const kids = (children.get(item.id) || []).sort((a, b) => a.order - b.order)
-    const fanStep = Math.PI / Math.max(10, kids.length + 3)
-    kids.forEach((child, index) => {
-      const offset = (index - (kids.length - 1) / 2) * fanStep
-      placeBranch(child, node, angle + offset, 260 + (index % 3) * 95, depth + 1, index)
-    })
-  }
-
-  roots.forEach((root, index) => {
-    const angle = -Math.PI / 2 + index * (Math.PI * 2 / rootCount)
-    placeBranch(root, null, angle, rootCount === 1 ? 0 : 390, 0, index)
+  const sourcePage = activePage()
+  page.nodes = state.nodes.map((node, index) => {
+    const clone = JSON.parse(JSON.stringify(node))
+    const annotation = parsed.annotations.get(node.id)
+    const concept = annotation?.concept || 'general'
+    styleNode(clone, colorForConcept(concept, index))
+    clone.organizedConcept = concept
+    clone.organizedStatus = annotation?.status || ''
+    return clone
   })
-  page.edges.forEach(edge => {
+  page.edges = state.edges.map(edge => ({ ...edge }))
+  page.edgeLabels = { ...state.edgeLabels }
+  page.lastId = state.lastId
+  page.lastEdgeId = state.lastEdgeId
+  page.title = parsed.title
+  page.organizedMindMapVersion = 2
+  page.organizedMindMapProvider = parsed.provider
+  page.organizedMindMapMode = 'preserve-layout-and-structure'
+  page.sourcePageId = sourcePage?.id || null
+  page.view = { ...state.view }
+  page.edges.forEach((edge, index) => {
     const from = page.nodes.find(node => node.id === fromId(edge))
-    edge.color = from?.style?.accent || edge.color
+    edge.color = from?.style?.accent || COLORFUL_PALETTE[index % COLORFUL_PALETTE.length].accent
   })
 }
 
