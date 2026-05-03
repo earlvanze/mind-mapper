@@ -4,7 +4,7 @@ import {
   type KanbanCard,
   type KanbanTransformTemplate,
   transformKanbanToMindMap,
-} from './kanbanTransforms';
+} from './kanbanTransforms.js';
 
 interface TrelloList {
   id: string;
