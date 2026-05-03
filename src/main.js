@@ -1395,11 +1395,12 @@ function drawEdge(ctx, e) {
   if (!from || !to) return
   const [ax, ay, bx, by] = endpoints(from, to)
   const isHovered = state.hoveredEdge === e.id
-  const label = state.edgeLabels[e.id] || null
-  drawEdgeLine(ctx, ax, ay, bx, by, isHovered ? '#aa3bff' : (e.color || from.style?.accent || '#6b6375'), false, isHovered, label)
+  const isFirstOrganizedBranch = Boolean(activePage()?.organizedMindMapVersion && from.organizedDepth === 0 && to.organizedDepth === 1)
+  const label = state.edgeLabels[e.id] || (isFirstOrganizedBranch ? to.text : null)
+  drawEdgeLine(ctx, ax, ay, bx, by, isHovered ? '#aa3bff' : (e.color || from.style?.accent || '#6b6375'), false, isHovered, label, { emphasizeLabel: isFirstOrganizedBranch })
 }
 
-function drawEdgeLine(ctx, ax, ay, bx, by, color, dashed, highlighted = false, label = null) {
+function drawEdgeLine(ctx, ax, ay, bx, by, color, dashed, highlighted = false, label = null, options = {}) {
   ctx.strokeStyle = color
   ctx.lineWidth = (highlighted ? 3 : 2) / state.view.scale
   ctx.setLineDash(dashed ? [6 / state.view.scale, 4 / state.view.scale] : [])
@@ -1420,16 +1421,35 @@ function drawEdgeLine(ctx, ax, ay, bx, by, color, dashed, highlighted = false, l
   ctx.fill()
 
   if (label) {
-    const mx = (ax + bx) / 2
-    const my = (ay + by) / 2
-    const fontSize = 12 / state.view.scale
-    ctx.font = `${fontSize}px system-ui, sans-serif`
-    ctx.fillStyle = '#fff'
+    const emphasized = Boolean(options.emphasizeLabel)
+    const t = compactText(label).slice(0, emphasized ? 42 : 32)
+    const ratio = emphasized ? 0.64 : 0.5
+    const mx = ax + (bx - ax) * ratio
+    const my = ay + (by - ay) * ratio
+    const fontSize = (emphasized ? 15 : 12) / state.view.scale
+    ctx.font = `${emphasized ? '800 ' : ''}${fontSize}px system-ui, sans-serif`
+    const metrics = ctx.measureText(t)
+    const padX = (emphasized ? 12 : 7) / state.view.scale
+    const padY = (emphasized ? 7 : 4) / state.view.scale
+    const boxW = metrics.width + padX * 2
+    const boxH = fontSize + padY * 2
+    const boxX = mx - boxW / 2
+    const boxY = my - boxH / 2
+    ctx.save()
+    ctx.shadowColor = emphasized ? 'rgba(8,6,13,0.18)' : 'transparent'
+    ctx.shadowBlur = emphasized ? 10 / state.view.scale : 0
+    ctx.shadowOffsetY = emphasized ? 3 / state.view.scale : 0
+    ctx.fillStyle = emphasized ? 'rgba(255,255,255,0.96)' : 'rgba(255,255,255,0.82)'
+    roundRect(ctx, boxX, boxY, boxW, boxH, 999 / state.view.scale)
+    ctx.fill()
+    ctx.shadowColor = 'transparent'
     ctx.strokeStyle = color
-    ctx.lineWidth = 3 / state.view.scale
-    const metrics = ctx.measureText(label)
-    ctx.strokeText(label, mx - metrics.width / 2, my + fontSize / 3)
-    ctx.fillText(label, mx - metrics.width / 2, my + fontSize / 3)
+    ctx.lineWidth = (emphasized ? 2 : 1) / state.view.scale
+    roundRect(ctx, boxX, boxY, boxW, boxH, 999 / state.view.scale)
+    ctx.stroke()
+    ctx.fillStyle = emphasized ? '#21162c' : color
+    ctx.fillText(t, boxX + padX, boxY + padY + fontSize * 0.78)
+    ctx.restore()
   }
 }
 
@@ -2854,9 +2874,10 @@ function buildOrganizedMindMapPage(page, plan) {
       .filter(Boolean)
       .join('\n')
     const node = makeNodeForPage(page, x, y, item.title, details)
-    node.width = Math.max(node.width, depth === 0 ? 250 : 215)
-    node.height = Math.max(node.height, depth === 0 ? 58 : 50)
+    node.width = Math.max(node.width, depth === 0 ? 270 : depth === 1 ? 255 : 215)
+    node.height = Math.max(node.height, depth === 0 ? 64 : depth === 1 ? 60 : 50)
     styleNode(node, colorForConcept(item.concept, siblingIndex))
+    node.organizedDepth = depth
     node.organizedConcept = item.concept
     node.organizedStatus = item.status
     page.nodes.push(node)
@@ -2868,7 +2889,7 @@ function buildOrganizedMindMapPage(page, plan) {
       ? { x: centerX, y: centerY }
       : branchPoint(parentNode ? parentNode.x + parentNode.width / 2 : centerX, parentNode ? parentNode.y + parentNode.height / 2 : centerY, angle, radius)
     const node = createOrganizedNode(item, point.x, point.y, depth, siblingIndex)
-    if (parentNode) addPageEdge(page, parentNode, node, item.concept || '')
+    if (parentNode) addPageEdge(page, parentNode, node, depth === 1 ? item.title : (item.concept || ''))
     const kids = (children.get(item.id) || []).sort((a, b) => a.order - b.order)
     const fanStep = Math.PI / Math.max(7, kids.length + 2)
     const baseRadius = 380 + depth * 90

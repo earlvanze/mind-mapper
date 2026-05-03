@@ -145,3 +145,29 @@ test('Organize lays out dense AI trees without overlapping nodes', async ({ page
     }
   }
 })
+
+test('Organize makes first-level category labels readable', async ({ page }) => {
+  await seedLaunchPlan(page)
+  await page.route('**/api/organize-mind-map', route => route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify({
+      title: 'Organized: Categories',
+      provider: 'sage-router:test',
+      nodes: [
+        { id: 'root', title: 'Categories', parentId: null, concept: 'project', order: 0 },
+        { id: 'strategy', title: 'Strategy Workstream', parentId: 'root', concept: 'strategy', order: 1 },
+        { id: 'delivery', title: 'Delivery Workstream', parentId: 'root', concept: 'delivery', order: 2 },
+      ],
+    }),
+  }))
+  await page.goto('/')
+  await page.locator('#btn-ai-kanban').click()
+  const organized = await page.evaluate(() => {
+    const saved = JSON.parse(localStorage.getItem('mind-mapp-v1'))
+    return saved.notebook.pages.find(p => p.title === 'Organized: Categories')
+  })
+  const firstLevel = organized.nodes.filter(node => node.organizedDepth === 1)
+  expect(firstLevel.every(node => node.width >= 255 && node.height >= 60)).toBe(true)
+  expect(Object.values(organized.edgeLabels)).toEqual(expect.arrayContaining(['Strategy Workstream', 'Delivery Workstream']))
+})
