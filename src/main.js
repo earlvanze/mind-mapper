@@ -1419,10 +1419,6 @@ function renderScene(ctx) {
     drawNode(ctx, n)
   }
 
-  for (const e of state.edges) {
-    drawEdgeArrow(ctx, e)
-  }
-
   ctx.restore()
 }
 
@@ -1457,50 +1453,11 @@ function drawEdge(ctx, e) {
   if (!from || !to) return
   const [ax, ay, bx, by] = endpoints(from, to)
   const isHovered = state.hoveredEdge === e.id
-  const isFirstOrganizedBranch = Boolean(activePage()?.organizedMindMapVersion && from.organizedDepth === 0 && to.organizedDepth === 1)
-  const label = state.edgeLabels[e.id] || (isFirstOrganizedBranch ? to.text : null)
-  drawEdgeLine(ctx, ax, ay, bx, by, isHovered ? '#aa3bff' : (e.color || from.style?.accent || '#6b6375'), false, isHovered, label, { emphasizeLabel: isFirstOrganizedBranch, drawArrow: false })
+  const label = state.edgeLabels[e.id] || null
+  drawEdgeLine(ctx, ax, ay, bx, by, isHovered ? '#aa3bff' : (e.color || from.style?.accent || '#6b6375'), false, isHovered, label)
 }
 
-function nodeBoundaryToward(node, towardX, towardY) {
-  const cx = node.x + node.width / 2
-  const cy = node.y + node.height / 2
-  const dx = towardX - cx
-  const dy = towardY - cy
-  if (!Number.isFinite(dx) || !Number.isFinite(dy) || (dx === 0 && dy === 0)) return { x: cx, y: cy }
-  const halfW = Math.max(1, node.width / 2)
-  const halfH = Math.max(1, node.height / 2)
-  const tx = dx === 0 ? Infinity : halfW / Math.abs(dx)
-  const ty = dy === 0 ? Infinity : halfH / Math.abs(dy)
-  const t = Math.min(tx, ty)
-  return { x: cx + dx * t, y: cy + dy * t }
-}
-
-function drawEdgeArrow(ctx, e) {
-  const from = state.nodes.find(n => n.id === fromId(e))
-  const to = state.nodes.find(n => n.id === toId(e))
-  if (!from || !to) return
-  const [ax, ay, bx, by] = endpoints(from, to)
-  const tip = nodeBoundaryToward(to, ax, ay)
-  const isHovered = state.hoveredEdge === e.id
-  const color = isHovered ? '#aa3bff' : (e.color || from.style?.accent || '#6b6375')
-  drawArrowHead(ctx, ax, ay, tip.x, tip.y, color)
-}
-
-function drawArrowHead(ctx, ax, ay, bx, by, color) {
-  const angle = Math.atan2(by - ay, bx - ax)
-  if (!Number.isFinite(angle)) return
-  const headLen = 10 / state.view.scale
-  ctx.fillStyle = color
-  ctx.beginPath()
-  ctx.moveTo(bx, by)
-  ctx.lineTo(bx - headLen * Math.cos(angle - Math.PI / 6), by - headLen * Math.sin(angle - Math.PI / 6))
-  ctx.lineTo(bx - headLen * Math.cos(angle + Math.PI / 6), by - headLen * Math.sin(angle + Math.PI / 6))
-  ctx.closePath()
-  ctx.fill()
-}
-
-function drawEdgeLine(ctx, ax, ay, bx, by, color, dashed, highlighted = false, label = null, options = {}) {
+function drawEdgeLine(ctx, ax, ay, bx, by, color, dashed, highlighted = false, label = null) {
   ctx.strokeStyle = color
   ctx.lineWidth = (highlighted ? 3 : 2) / state.view.scale
   ctx.setLineDash(dashed ? [6 / state.view.scale, 4 / state.view.scale] : [])
@@ -1510,38 +1467,27 @@ function drawEdgeLine(ctx, ax, ay, bx, by, color, dashed, highlighted = false, l
   ctx.stroke()
   ctx.setLineDash([])
 
-  if (options.drawArrow !== false) drawArrowHead(ctx, ax, ay, bx, by, color)
+  const angle = Math.atan2(by - ay, bx - ax)
+  const headLen = 10 / state.view.scale
+  ctx.fillStyle = color
+  ctx.beginPath()
+  ctx.moveTo(bx, by)
+  ctx.lineTo(bx - headLen * Math.cos(angle - Math.PI / 6), by - headLen * Math.sin(angle - Math.PI / 6))
+  ctx.lineTo(bx - headLen * Math.cos(angle + Math.PI / 6), by - headLen * Math.sin(angle + Math.PI / 6))
+  ctx.closePath()
+  ctx.fill()
 
   if (label) {
-    const emphasized = Boolean(options.emphasizeLabel)
-    const t = compactText(label).slice(0, emphasized ? 42 : 32)
-    const ratio = emphasized ? 0.64 : 0.5
-    const mx = ax + (bx - ax) * ratio
-    const my = ay + (by - ay) * ratio
-    const fontSize = (emphasized ? 15 : 12) / state.view.scale
-    ctx.font = `${emphasized ? '800 ' : ''}${fontSize}px system-ui, sans-serif`
-    const metrics = ctx.measureText(t)
-    const padX = (emphasized ? 12 : 7) / state.view.scale
-    const padY = (emphasized ? 7 : 4) / state.view.scale
-    const boxW = metrics.width + padX * 2
-    const boxH = fontSize + padY * 2
-    const boxX = mx - boxW / 2
-    const boxY = my - boxH / 2
-    ctx.save()
-    ctx.shadowColor = emphasized ? 'rgba(8,6,13,0.18)' : 'transparent'
-    ctx.shadowBlur = emphasized ? 10 / state.view.scale : 0
-    ctx.shadowOffsetY = emphasized ? 3 / state.view.scale : 0
-    ctx.fillStyle = emphasized ? 'rgba(255,255,255,0.96)' : 'rgba(255,255,255,0.82)'
-    roundRect(ctx, boxX, boxY, boxW, boxH, 999 / state.view.scale)
-    ctx.fill()
-    ctx.shadowColor = 'transparent'
+    const mx = (ax + bx) / 2
+    const my = (ay + by) / 2
+    const fontSize = 12 / state.view.scale
+    ctx.font = `${fontSize}px system-ui, sans-serif`
+    ctx.fillStyle = '#fff'
     ctx.strokeStyle = color
-    ctx.lineWidth = (emphasized ? 2 : 1) / state.view.scale
-    roundRect(ctx, boxX, boxY, boxW, boxH, 999 / state.view.scale)
-    ctx.stroke()
-    ctx.fillStyle = emphasized ? '#21162c' : color
-    ctx.fillText(t, boxX + padX, boxY + padY + fontSize * 0.78)
-    ctx.restore()
+    ctx.lineWidth = 3 / state.view.scale
+    const metrics = ctx.measureText(label)
+    ctx.strokeText(label, mx - metrics.width / 2, my + fontSize / 3)
+    ctx.fillText(label, mx - metrics.width / 2, my + fontSize / 3)
   }
 }
 
@@ -3022,9 +2968,9 @@ function buildOrganizedMindMapPage(page, plan) {
       .filter(Boolean)
       .join('\n')
     const node = makeNodeForPage(page, x, y, item.title, details)
-    setMinNodeSize(node, depth === 0 ? 270 : depth === 1 ? 255 : 215, depth === 0 ? 64 : depth === 1 ? 60 : 50)
+    node.width = Math.max(node.width, depth === 0 ? 250 : 215)
+    node.height = Math.max(node.height, depth === 0 ? 58 : 50)
     styleNode(node, colorForConcept(item.concept, siblingIndex))
-    node.organizedDepth = depth
     node.organizedConcept = item.concept
     node.organizedStatus = item.status
     page.nodes.push(node)
@@ -3036,16 +2982,8 @@ function buildOrganizedMindMapPage(page, plan) {
       ? { x: centerX, y: centerY }
       : branchPoint(parentNode ? parentNode.x + parentNode.width / 2 : centerX, parentNode ? parentNode.y + parentNode.height / 2 : centerY, angle, radius)
     const node = createOrganizedNode(item, point.x, point.y, depth, siblingIndex)
-    if (parentNode) addPageEdge(page, parentNode, node, depth === 1 ? item.title : (item.concept || ''))
+    if (parentNode) addPageEdge(page, parentNode, node, item.concept || '')
     const kids = (children.get(item.id) || []).sort((a, b) => a.order - b.order)
-    if (depth === 0 && kids.length > 1) {
-      const childRadius = Math.max(520, 360 + kids.length * 22)
-      kids.forEach((child, index) => {
-        const childAngle = -Math.PI / 2 + index * (Math.PI * 2 / kids.length)
-        placeBranch(child, node, childAngle, childRadius, depth + 1, index)
-      })
-      return
-    }
     const fanStep = Math.PI / Math.max(7, kids.length + 2)
     const baseRadius = 380 + depth * 90
     const radiusStep = 135
@@ -3060,9 +2998,7 @@ function buildOrganizedMindMapPage(page, plan) {
     placeBranch(root, null, angle, rootCount === 1 ? 0 : 560, 0, index)
   })
   const rootNodes = page.nodes.filter(node => roots.some(root => root.title === node.text))
-  const firstLevelNodes = page.nodes.filter(node => node.organizedDepth === 1)
-  const anchoredNodes = firstLevelNodes.length > 1 && firstLevelNodes.length <= 12 ? [...rootNodes, ...firstLevelNodes] : rootNodes
-  pushNodesApart(page.nodes, { pad: 72, maxPasses: 220, anchoredIds: anchoredNodes.map(node => node.id) })
+  pushNodesApart(page.nodes, { pad: 56, anchoredIds: rootNodes.map(node => node.id) })
   centerPageViewOnContent(page)
   page.edges.forEach((edge, index) => {
     const from = page.nodes.find(node => node.id === fromId(edge))
