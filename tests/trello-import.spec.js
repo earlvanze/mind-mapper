@@ -31,28 +31,27 @@ test('imports a Trello board JSON export as a new mind-map page', async ({ page 
   const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('mind-mapp-v1')))
   const imported = saved.notebook.pages.find(p => p.title === 'Launch Plan')
   expect(imported).toBeTruthy()
-  expect(imported.trelloImportVersion).toBe(1)
+  expect(imported.trelloImportVersion).toBe(2)
   expect(imported.nodes.map(node => node.text)).toEqual(expect.arrayContaining([
     'Launch Plan',
-    'To Do',
-    'Doing',
     'Write launch copy',
     'Finalize import flow',
   ]))
+  expect(imported.nodes.map(node => node.text)).not.toContain('To Do')
+  expect(imported.nodes.map(node => node.text)).not.toContain('Doing')
   expect(imported.nodes.map(node => node.text)).not.toContain('Closed card')
   expect(imported.nodes.map(node => node.text)).not.toContain('Archived')
   expect(imported.edges.length).toBe(imported.nodes.length - 1)
 
   const root = imported.nodes.find(node => node.text === 'Launch Plan')
-  const todo = imported.nodes.find(node => node.text === 'To Do')
-  const doing = imported.nodes.find(node => node.text === 'Doing')
-  expect(root.x + root.width / 2).toBeCloseTo(760, 4)
-  expect(root.y + root.height / 2).toBeCloseTo(560, 4)
-  expect(todo.x + todo.width / 2).toBeCloseTo(565, 4)
-  expect(todo.y + todo.height / 2).toBeCloseTo(820, 4)
-  expect(doing.x + doing.width / 2).toBeCloseTo(955, 4)
-  expect(doing.y + doing.height / 2).toBeCloseTo(820, 4)
+  const projectCenters = imported.nodes.filter(node => node.organizedDepth === 1).map(node => ({
+    x: node.x + node.width / 2,
+    y: node.y + node.height / 2,
+  }))
+  expect(projectCenters.some(center => center.y < root.y)).toBe(true)
+  expect(projectCenters.some(center => center.y > root.y + root.height)).toBe(true)
   const card = imported.nodes.find(node => node.text === 'Write launch copy')
+  expect(card.details.text).toContain('Kanban list: To Do')
   expect(card.details.text).toContain('Trello URL: https://trello.com/c/c1')
   expect(card.details.text).toContain('Labels: Marketing')
   expect(card.details.text).toContain('☑ Draft')

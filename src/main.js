@@ -442,67 +442,56 @@ function buildTrelloBoardPage(page, board) {
     throw new Error('Expected a Trello board JSON export with lists and cards.')
   }
 
-  page.nodes = []
-  page.edges = []
-  page.edgeLabels = {}
-  page.lastId = 0
-  page.lastEdgeId = 0
-  page.title = compactText(board.name) || 'Trello Board'
-  page.trelloImportVersion = 1
-  page.trelloBoardId = board.id || null
-  page.view = { x: 330, y: 220, scale: 0.42 }
-
+  const title = compactText(board.name) || 'Trello Board'
   const openLists = board.lists.filter(list => !list.closed)
-  const cardsByList = new Map()
-  for (const card of board.cards.filter(card => !card.closed)) {
-    if (!cardsByList.has(card.idList)) cardsByList.set(card.idList, [])
-    cardsByList.get(card.idList).push(card)
-  }
-  for (const cards of cardsByList.values()) cards.sort((a, b) => (a.pos || 0) - (b.pos || 0))
+  const listById = new Map(openLists.map(list => [list.id, list]))
+  const cards = board.cards
+    .filter(card => !card.closed && listById.has(card.idList))
+    .sort((a, b) => (listById.get(a.idList)?.pos || 0) - (listById.get(b.idList)?.pos || 0) || (a.pos || 0) - (b.pos || 0))
 
-  const centerX = 760
-  const centerY = 560
-  const root = makeNodeForPage(
-    page,
-    centerX,
-    centerY,
-    page.title,
-    [
-      'Imported from Trello board JSON.',
-      board.url ? `Trello URL: ${board.url}` : '',
-      board.desc ? `Description:\n${board.desc}` : '',
-    ].filter(Boolean).join('\n\n'),
-  )
-  setMinNodeSize(root, 260, 58)
-  page.nodes.push(root)
+  const nodes = [
+    {
+      id: 'root',
+      title,
+      parentId: null,
+      concept: 'project board',
+      status: '',
+      order: 0,
+      details: [
+        'Imported from Trello board JSON and converted from Kanban columns into a radial project mind map.',
+        board.url ? `Trello URL: ${board.url}` : '',
+        board.desc ? `Description:\n${board.desc}` : '',
+      ].filter(Boolean).join('\n\n'),
+    },
+  ]
 
-  const branchCount = Math.max(1, openLists.length)
-  const columnSpacing = 390
-  const headerY = centerY + 260
-  const cardStartY = headerY + 150
-  const cardSpacing = 125
-
-  const headers = []
-  openLists.forEach((list, listIndex) => {
-    const columnX = centerX + (listIndex - (branchCount - 1) / 2) * columnSpacing
-    const cards = cardsByList.get(list.id) || []
-    const header = makeNodeForPage(page, columnX, headerY, list.name, `${cards.length} Trello cards`)
-    setMinNodeSize(header, 190, 52)
-    page.nodes.push(header)
-    headers.push(header)
-    addPageEdge(page, root, header, list.name)
-
-    cards.forEach((card, cardIndex) => {
-      const title = compactText(card.name) || 'Untitled Trello card'
-      const node = makeNodeForPage(page, columnX, cardStartY + cardIndex * cardSpacing, title, trelloCardDetails(card, board))
-      setMinNodeSize(node, 235, 52)
-      node.trelloCardId = card.id || null
-      page.nodes.push(node)
-      addPageEdge(page, header, node)
+  cards.forEach((card, index) => {
+    const list = listById.get(card.idList)
+    const status = compactText(list?.name) || statusForKanbanText(card.name)
+    nodes.push({
+      id: `card-${card.id || index + 1}`,
+      sourceId: card.id || null,
+      title: compactText(card.name) || 'Untitled Trello card',
+      parentId: 'root',
+      concept: status,
+      status,
+      order: index + 1,
+      details: [`Kanban list: ${status}`, trelloCardDetails(card, board)].filter(Boolean).join('\n\n'),
     })
   })
-  colorizePage(page)
-  stabilizeGeneratedPageLayout(page, [root, ...headers])
+
+  buildOrganizedMindMapPage(page, {
+    title,
+    provider: 'trello import',
+    nodes,
+  })
+  page.trelloImportVersion = 2
+  page.trelloBoardId = board.id || null
+  page.organizedMindMapImportSource = 'trello'
+  page.nodes.forEach(node => {
+    const planNode = nodes.find(candidate => candidate.title === node.text)
+    if (planNode?.sourceId) node.trelloCardId = planNode.sourceId
+  })
 }
 
 function importTrelloBoard(board) {
@@ -619,45 +608,41 @@ function parseObsidianKanbanMarkdown(markdown, fileName = 'Obsidian Kanban.md') 
 function buildObsidianKanbanPage(page, parsed) {
   if (!parsed?.columns?.length) throw new Error('No markdown tables or task bullets found.')
 
-  page.nodes = []
-  page.edges = []
-  page.edgeLabels = {}
-  page.lastId = 0
-  page.lastEdgeId = 0
-  page.title = parsed.title || 'Obsidian Kanban'
-  page.obsidianKanbanImportVersion = 1
-  page.view = { x: 330, y: 220, scale: 0.38 }
+  const title = parsed.title || 'Obsidian Kanban'
+  const nodes = [
+    {
+      id: 'root',
+      title,
+      parentId: null,
+      concept: 'project board',
+      status: '',
+      order: 0,
+      details: 'Imported from Obsidian Markdown/Kanban and converted from Kanban sections into a radial project mind map.',
+    },
+  ]
 
-  const centerX = 1100
-  const centerY = 820
-  const root = makeNodeForPage(page, centerX, centerY, page.title, 'Imported from Obsidian Markdown/Kanban file.')
-  setMinNodeSize(root, 270, 58)
-  page.nodes.push(root)
-
-  const branchCount = Math.max(1, parsed.columns.length)
-  const columnSpacing = 410
-  const headerY = centerY + 280
-  const cardStartY = headerY + 155
-  const cardSpacing = 130
-
-  const headers = []
   parsed.columns.forEach((column, columnIndex) => {
-    const columnX = centerX + (columnIndex - (branchCount - 1) / 2) * columnSpacing
-    const header = makeNodeForPage(page, columnX, headerY, column.title, `${column.items.length} Obsidian items`)
-    setMinNodeSize(header, 205, 52)
-    page.nodes.push(header)
-    headers.push(header)
-    addPageEdge(page, root, header, column.title)
-
     column.items.forEach((item, itemIndex) => {
-      const node = makeNodeForPage(page, columnX, cardStartY + itemIndex * cardSpacing, item.title, item.details)
-      setMinNodeSize(node, 245, 52)
-      page.nodes.push(node)
-      addPageEdge(page, header, node)
+      const section = compactText(column.title) || 'Cards'
+      nodes.push({
+        id: `item-${columnIndex + 1}-${itemIndex + 1}`,
+        title: item.title,
+        parentId: 'root',
+        concept: section,
+        status: statusForKanbanText(`${section} ${item.details}`),
+        order: nodes.length,
+        details: [`Kanban section: ${section}`, item.details].filter(Boolean).join('\n\n'),
+      })
     })
   })
-  colorizePage(page)
-  stabilizeGeneratedPageLayout(page, [root, ...headers])
+
+  buildOrganizedMindMapPage(page, {
+    title,
+    provider: 'obsidian import',
+    nodes,
+  })
+  page.obsidianKanbanImportVersion = 2
+  page.organizedMindMapImportSource = 'obsidian'
 }
 
 function importObsidianKanbanMarkdown(markdown, fileName) {

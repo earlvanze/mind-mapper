@@ -26,24 +26,26 @@ test('imports an Obsidian Kanban markdown file as a new mind-map page', async ({
   const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('mind-mapp-v1')))
   const imported = saved.notebook.pages.find(p => p.title === 'Operations Kanban')
   expect(imported).toBeTruthy()
-  expect(imported.obsidianKanbanImportVersion).toBe(1)
+  expect(imported.obsidianKanbanImportVersion).toBe(2)
   expect(imported.nodes.map(node => node.text)).toEqual(expect.arrayContaining([
     'Operations Kanban',
-    'Now / Active Execution',
-    'Parking Lot / Discovery Needed',
     'Mind Mapp',
     'EARLCoin',
     'Periodically mine sessions for newly-created project names.',
   ]))
+  expect(imported.nodes.map(node => node.text)).not.toContain('Now / Active Execution')
+  expect(imported.nodes.map(node => node.text)).not.toContain('Parking Lot / Discovery Needed')
   expect(imported.edges.length).toBe(imported.nodes.length - 1)
   const root = imported.nodes.find(node => node.text === 'Operations Kanban')
-  const active = imported.nodes.find(node => node.text === 'Now / Active Execution')
-  const parking = imported.nodes.find(node => node.text === 'Parking Lot / Discovery Needed')
-  expect(root.x + root.width / 2).toBeCloseTo(1100, 4)
-  expect(active.y + active.height / 2).toBeCloseTo(1100, 4)
-  expect(parking.y + parking.height / 2).toBeCloseTo(1100, 4)
-  expect(active.x + active.width / 2).toBeLessThan(parking.x + parking.width / 2)
+  const projectCenters = imported.nodes.filter(node => node.organizedDepth === 1).map(node => ({
+    x: node.x + node.width / 2,
+    y: node.y + node.height / 2,
+  }))
+  expect(projectCenters.some(center => center.y < root.y)).toBe(true)
+  expect(projectCenters.some(center => center.x < root.x)).toBe(true)
+  expect(projectCenters.some(center => center.x > root.x + root.width)).toBe(true)
   const mindMapp = imported.nodes.find(node => node.text === 'Mind Mapp')
+  expect(mindMapp.details.text).toContain('Kanban section: Now / Active Execution')
   expect(mindMapp.details.text).toContain('Status: Active')
   expect(mindMapp.details.text).toContain('Owner agent(s): tech-mvp')
   expect(mindMapp.details.text).toContain('Dropbox/Projects/mind-mapp')
