@@ -31,17 +31,20 @@ test('imports a Trello board JSON export as a new mind-map page', async ({ page 
   const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('mind-mapp-v1')))
   const imported = saved.notebook.pages.find(p => p.title === 'Launch Plan')
   expect(imported).toBeTruthy()
-  expect(imported.trelloImportVersion).toBe(2)
+  expect(imported.trelloImportVersion).toBe(3)
   expect(imported.nodes.map(node => node.text)).toEqual(expect.arrayContaining([
     'Launch Plan',
     'Write launch copy',
     'Finalize import flow',
+    '☑ Draft',
+    '☐ Review',
   ]))
   expect(imported.nodes.map(node => node.text)).not.toContain('To Do')
   expect(imported.nodes.map(node => node.text)).not.toContain('Doing')
   expect(imported.nodes.map(node => node.text)).not.toContain('Closed card')
   expect(imported.nodes.map(node => node.text)).not.toContain('Archived')
   expect(imported.edges.length).toBe(imported.nodes.length - 1)
+  expect(Object.keys(imported.edgeLabels || {})).toHaveLength(0)
 
   const root = imported.nodes.find(node => node.text === 'Launch Plan')
   const projectCenters = imported.nodes.filter(node => node.organizedDepth === 1).map(node => ({
@@ -54,8 +57,15 @@ test('imports a Trello board JSON export as a new mind-map page', async ({ page 
   expect(card.details.text).toContain('Kanban list: To Do')
   expect(card.details.text).toContain('Trello URL: https://trello.com/c/c1')
   expect(card.details.text).toContain('Labels: Marketing')
-  expect(card.details.text).toContain('☑ Draft')
-  expect(card.details.text).toContain('☐ Review')
+  expect(card.organizedDepth).toBe(1)
+  const draft = imported.nodes.find(node => node.text === '☑ Draft')
+  const review = imported.nodes.find(node => node.text === '☐ Review')
+  expect(draft.organizedDepth).toBe(2)
+  expect(review.organizedDepth).toBe(2)
+  expect(imported.edges).toEqual(expect.arrayContaining([
+    expect.objectContaining({ from: card.id, to: draft.id }),
+    expect.objectContaining({ from: card.id, to: review.id }),
+  ]))
   expect(card.details.text).not.toContain('Git commit:')
   expect(card.details.text).not.toContain('Commit URL:')
   expect(saved.notebook.activePageId).toBe(imported.id)

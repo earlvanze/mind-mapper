@@ -423,17 +423,22 @@ function compactText(value) {
   return String(value || '').replace(/\s+/g, ' ').trim()
 }
 
-function trelloCardDetails(card, board) {
-  const labels = (card.labels || []).map(label => label.name || label.color).filter(Boolean)
-  const checkItems = (board.checklists || [])
+function trelloChecklistTasks(card, board) {
+  return (board.checklists || [])
     .filter(checklist => checklist.idCard === card.id)
-    .flatMap(checklist => (checklist.checkItems || []).map(item => `${item.state === 'complete' ? '☑' : '☐'} ${item.name}`))
+    .flatMap(checklist => (checklist.checkItems || []).map((item, index) => ({
+      title: `${item.state === 'complete' ? '☑' : '☐'} ${compactText(item.name) || `Checklist item ${index + 1}`}`,
+      status: item.state === 'complete' ? 'Done' : 'To Do',
+    })))
+}
+
+function trelloCardDetails(card) {
+  const labels = (card.labels || []).map(label => label.name || label.color).filter(Boolean)
   return [
     card.desc ? `Description:\n${card.desc}` : '',
     card.url || card.shortUrl ? `Trello URL: ${card.url || card.shortUrl}` : '',
     labels.length ? `Labels: ${labels.join(', ')}` : '',
     card.due ? `Due: ${card.due}` : '',
-    checkItems.length ? `Checklist:\n${checkItems.join('\n')}` : '',
   ].filter(Boolean).join('\n\n')
 }
 
@@ -458,7 +463,7 @@ function buildTrelloBoardPage(page, board) {
       status: '',
       order: 0,
       details: [
-        'Imported from Trello board JSON and converted from Kanban columns into a radial project mind map.',
+        'Imported from Trello board JSON and converted into a radial project/task mind map.',
         board.url ? `Trello URL: ${board.url}` : '',
         board.desc ? `Description:\n${board.desc}` : '',
       ].filter(Boolean).join('\n\n'),
@@ -468,15 +473,29 @@ function buildTrelloBoardPage(page, board) {
   cards.forEach((card, index) => {
     const list = listById.get(card.idList)
     const status = compactText(list?.name) || statusForKanbanText(card.name)
+    const projectId = `card-${card.id || index + 1}`
     nodes.push({
-      id: `card-${card.id || index + 1}`,
+      id: projectId,
       sourceId: card.id || null,
       title: compactText(card.name) || 'Untitled Trello card',
       parentId: 'root',
       concept: status,
       status,
-      order: index + 1,
-      details: [`Kanban list: ${status}`, trelloCardDetails(card, board)].filter(Boolean).join('\n\n'),
+      order: nodes.length,
+      edgeLabel: '',
+      details: [`Kanban list: ${status}`, trelloCardDetails(card)].filter(Boolean).join('\n\n'),
+    })
+    trelloChecklistTasks(card, board).forEach((task, taskIndex) => {
+      nodes.push({
+        id: `${projectId}-task-${taskIndex + 1}`,
+        title: task.title,
+        parentId: projectId,
+        concept: task.status,
+        status: task.status,
+        order: nodes.length,
+        edgeLabel: '',
+        details: `Task from Trello checklist on ${compactText(card.name) || 'card'}.`,
+      })
     })
   })
 
@@ -485,9 +504,10 @@ function buildTrelloBoardPage(page, board) {
     provider: 'trello import',
     nodes,
   })
-  page.trelloImportVersion = 2
+  page.trelloImportVersion = 3
   page.trelloBoardId = board.id || null
   page.organizedMindMapImportSource = 'trello'
+  page.edgeLabels = {}
   page.nodes.forEach(node => {
     const planNode = nodes.find(candidate => candidate.title === node.text)
     if (planNode?.sourceId) node.trelloCardId = planNode.sourceId
@@ -563,10 +583,10 @@ function parseObsidianKanbanMarkdown(markdown, fileName = 'Obsidian Kanban.md') 
     return columnByTitle.get(title)
   }
 
-  function addItem(section, title, details = '') {
+  function addItem(section, title, details = '', fields = {}) {
     const cleanTitle = cleanMarkdownInline(title)
     if (!cleanTitle) return
-    getColumn(section).items.push({ title: cleanTitle, details })
+    getColumn(section).items.push({ title: cleanTitle, details, fields })
   }
 
   for (let i = 0; i < lines.length; i += 1) {
@@ -589,7 +609,7 @@ function parseObsidianKanbanMarkdown(markdown, fileName = 'Obsidian Kanban.md') 
           .filter(header => header && header !== titleKey && row[header])
           .map(header => `${header}: ${row[header]}`)
           .join('\n')
-        addItem(currentSection, itemTitle, details)
+        addItem(currentSection, itemTitle, details, row)
         i += 1
       }
       i -= 1
@@ -605,6 +625,13 @@ function parseObsidianKanbanMarkdown(markdown, fileName = 'Obsidian Kanban.md') 
   return { title, columns: columns.filter(column => column.items.length) }
 }
 
+function obsidianTaskTexts(item) {
+  const fields = item.fields || {}
+  return Object.entries(fields)
+    .filter(([key, value]) => value && /note|next|task|todo|control|action|deliverable|milestone/i.test(key))
+    .flatMap(([, value]) => String(value).split(/;|\n/).map(cleanMarkdownInline).filter(Boolean))
+}
+
 function buildObsidianKanbanPage(page, parsed) {
   if (!parsed?.columns?.length) throw new Error('No markdown tables or task bullets found.')
 
@@ -617,21 +644,48 @@ function buildObsidianKanbanPage(page, parsed) {
       concept: 'project board',
       status: '',
       order: 0,
-      details: 'Imported from Obsidian Markdown/Kanban and converted from Kanban sections into a radial project mind map.',
+      details: 'Imported from Obsidian Markdown/Kanban and converted into a radial project/task mind map.',
     },
   ]
+  const projects = new Map()
 
-  parsed.columns.forEach((column, columnIndex) => {
-    column.items.forEach((item, itemIndex) => {
-      const section = compactText(column.title) || 'Cards'
-      nodes.push({
-        id: `item-${columnIndex + 1}-${itemIndex + 1}`,
+  function projectFor(item, section) {
+    const key = normalizeConceptText(item.title) || `project-${projects.size + 1}`
+    if (!projects.has(key)) {
+      const project = {
+        id: `project-${projects.size + 1}`,
         title: item.title,
         parentId: 'root',
         concept: section,
         status: statusForKanbanText(`${section} ${item.details}`),
         order: nodes.length,
+        edgeLabel: '',
         details: [`Kanban section: ${section}`, item.details].filter(Boolean).join('\n\n'),
+      }
+      projects.set(key, project)
+      nodes.push(project)
+    } else if (item.details) {
+      const project = projects.get(key)
+      project.details = Array.from(new Set([project.details, `Kanban section: ${section}\n${item.details}`].filter(Boolean))).join('\n\n')
+    }
+    return projects.get(key)
+  }
+
+  parsed.columns.forEach(column => {
+    const section = compactText(column.title) || 'Cards'
+    column.items.forEach(item => {
+      const project = projectFor(item, section)
+      obsidianTaskTexts(item).forEach((taskTitle, taskIndex) => {
+        nodes.push({
+          id: `${project.id}-task-${nodes.length}-${taskIndex + 1}`,
+          title: taskTitle,
+          parentId: project.id,
+          concept: project.concept,
+          status: statusForKanbanText(`${section} ${taskTitle}`),
+          order: nodes.length,
+          edgeLabel: '',
+          details: `Task from ${section}.`,
+        })
       })
     })
   })
@@ -641,8 +695,9 @@ function buildObsidianKanbanPage(page, parsed) {
     provider: 'obsidian import',
     nodes,
   })
-  page.obsidianKanbanImportVersion = 2
+  page.obsidianKanbanImportVersion = 3
   page.organizedMindMapImportSource = 'obsidian'
+  page.edgeLabels = {}
 }
 
 function importObsidianKanbanMarkdown(markdown, fileName) {
@@ -2968,7 +3023,7 @@ function buildOrganizedMindMapPage(page, plan) {
       ? { x: centerX, y: centerY }
       : branchPoint(parentNode ? parentNode.x + parentNode.width / 2 : centerX, parentNode ? parentNode.y + parentNode.height / 2 : centerY, angle, radius)
     const node = createOrganizedNode(item, point.x, point.y, depth, siblingIndex)
-    if (parentNode) addPageEdge(page, parentNode, node, item.concept || '')
+    if (parentNode) addPageEdge(page, parentNode, node, item.edgeLabel ?? item.concept ?? '')
     const kids = (children.get(item.id) || []).sort((a, b) => a.order - b.order)
     if (depth === 0 && rootCount === 1 && kids.length > 1) {
       if (kids.length <= 16) {
