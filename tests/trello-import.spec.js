@@ -93,7 +93,7 @@ test('imports dense Trello boards as readable multi-ring radial mind maps', asyn
     .map(node => Math.round(Math.hypot(node.x + node.width / 2 - rootCenter.x, node.y + node.height / 2 - rootCenter.y) / 100) * 100)
   expect(new Set(projectRadii).size).toBeGreaterThan(1)
 
-  const pad = 8
+  const pad = 56
   for (let i = 0; i < imported.nodes.length; i += 1) {
     for (let j = i + 1; j < imported.nodes.length; j += 1) {
       const a = imported.nodes[i]

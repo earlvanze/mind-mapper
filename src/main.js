@@ -2982,8 +2982,8 @@ function buildOrganizedMindMapPage(page, plan) {
         let ring = 0
         while (placed < kids.length) {
           const remaining = kids.length - placed
-          const capacity = Math.min(remaining, 10 + ring * 8)
-          const childRadius = 560 + ring * 360
+          const capacity = Math.min(remaining, 6 + ring * 6)
+          const childRadius = 680 + ring * 520
           for (let i = 0; i < capacity; i += 1) {
             const child = kids[placed + i]
             const childAngle = -Math.PI / 2 + (i + (ring % 2 ? 0.5 : 0)) * (Math.PI * 2 / capacity)
