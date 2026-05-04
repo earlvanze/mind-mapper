@@ -65,6 +65,14 @@ test('Organize uses deterministic local structure by default', async ({ page }) 
     'Marketing copy done',
   ]))
   expect(organized.edges.length).toBe(3)
+  const root = organized.nodes.find(n => n.text === 'Launch Plan')
+  const childCenters = organized.nodes.filter(n => n.organizedDepth === 1).map(n => ({
+    x: n.x + n.width / 2,
+    y: n.y + n.height / 2,
+  }))
+  expect(childCenters.some(center => center.y < root.y)).toBe(true)
+  expect(childCenters.some(center => center.y > root.y + root.height)).toBe(true)
+  expect(childCenters.some(center => center.x < root.x)).toBe(true)
 })
 
 test('Organize stays local when API is unavailable', async ({ page }) => {
