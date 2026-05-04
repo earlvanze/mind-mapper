@@ -11,7 +11,9 @@
     "serve": "node server.mjs",
     "cap:sync": "npm run build && cap sync android",
     "android:debug": "npm run cap:sync && cd android && ./gradlew assembleDebug",
-    "android:open": "cap open android"
+    "android:open": "cap open android",
+    "android:install:fold": "scripts/install-fold.sh",
+    "android:install:fold:no-build": "SKIP_BUILD=1 scripts/install-fold.sh"
   },
   "devDependencies": {
     "@capacitor/cli": "^8.3.1",
