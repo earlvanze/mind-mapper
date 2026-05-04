@@ -36,6 +36,13 @@ test('imports an Obsidian Kanban markdown file as a new mind-map page', async ({
     'Periodically mine sessions for newly-created project names.',
   ]))
   expect(imported.edges.length).toBe(imported.nodes.length - 1)
+  const root = imported.nodes.find(node => node.text === 'Operations Kanban')
+  const active = imported.nodes.find(node => node.text === 'Now / Active Execution')
+  const parking = imported.nodes.find(node => node.text === 'Parking Lot / Discovery Needed')
+  expect(root.x + root.width / 2).toBeCloseTo(1100, 4)
+  expect(active.y + active.height / 2).toBeCloseTo(1100, 4)
+  expect(parking.y + parking.height / 2).toBeCloseTo(1100, 4)
+  expect(active.x + active.width / 2).toBeLessThan(parking.x + parking.width / 2)
   const mindMapp = imported.nodes.find(node => node.text === 'Mind Mapp')
   expect(mindMapp.details.text).toContain('Status: Active')
   expect(mindMapp.details.text).toContain('Owner agent(s): tech-mvp')

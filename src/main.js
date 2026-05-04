@@ -477,28 +477,24 @@ function buildTrelloBoardPage(page, board) {
   page.nodes.push(root)
 
   const branchCount = Math.max(1, openLists.length)
-  const headerRadius = 430
-  const cardRadiusBase = 285
-  const cardRadiusStep = 120
-  const fanStep = Math.PI / Math.max(18, branchCount * 5)
+  const columnSpacing = 390
+  const headerY = centerY + 260
+  const cardStartY = headerY + 150
+  const cardSpacing = 125
 
   const headers = []
   openLists.forEach((list, listIndex) => {
-    const angle = -Math.PI / 2 + listIndex * (Math.PI * 2 / branchCount)
-    const headerPos = branchPoint(centerX, centerY, angle, headerRadius)
+    const columnX = centerX + (listIndex - (branchCount - 1) / 2) * columnSpacing
     const cards = cardsByList.get(list.id) || []
-    const header = makeNodeForPage(page, headerPos.x, headerPos.y, list.name, `${cards.length} Trello cards`)
+    const header = makeNodeForPage(page, columnX, headerY, list.name, `${cards.length} Trello cards`)
     setMinNodeSize(header, 190, 52)
     page.nodes.push(header)
     headers.push(header)
     addPageEdge(page, root, header, list.name)
 
     cards.forEach((card, cardIndex) => {
-      const sideOffset = (cardIndex - (cards.length - 1) / 2) * fanStep
-      const radius = headerRadius + cardRadiusBase + (cardIndex % 4) * cardRadiusStep
-      const cardPos = branchPoint(centerX, centerY, angle + sideOffset, radius)
       const title = compactText(card.name) || 'Untitled Trello card'
-      const node = makeNodeForPage(page, cardPos.x, cardPos.y, title, trelloCardDetails(card, board))
+      const node = makeNodeForPage(page, columnX, cardStartY + cardIndex * cardSpacing, title, trelloCardDetails(card, board))
       setMinNodeSize(node, 235, 52)
       node.trelloCardId = card.id || null
       page.nodes.push(node)
@@ -639,26 +635,22 @@ function buildObsidianKanbanPage(page, parsed) {
   page.nodes.push(root)
 
   const branchCount = Math.max(1, parsed.columns.length)
-  const headerRadius = 455
-  const cardRadiusBase = 300
-  const cardRadiusStep = 125
-  const fanStep = Math.PI / Math.max(20, branchCount * 5)
+  const columnSpacing = 410
+  const headerY = centerY + 280
+  const cardStartY = headerY + 155
+  const cardSpacing = 130
 
   const headers = []
   parsed.columns.forEach((column, columnIndex) => {
-    const angle = -Math.PI / 2 + columnIndex * (Math.PI * 2 / branchCount)
-    const headerPos = branchPoint(centerX, centerY, angle, headerRadius)
-    const header = makeNodeForPage(page, headerPos.x, headerPos.y, column.title, `${column.items.length} Obsidian items`)
+    const columnX = centerX + (columnIndex - (branchCount - 1) / 2) * columnSpacing
+    const header = makeNodeForPage(page, columnX, headerY, column.title, `${column.items.length} Obsidian items`)
     setMinNodeSize(header, 205, 52)
     page.nodes.push(header)
     headers.push(header)
     addPageEdge(page, root, header, column.title)
 
     column.items.forEach((item, itemIndex) => {
-      const sideOffset = (itemIndex - (column.items.length - 1) / 2) * fanStep
-      const radius = headerRadius + cardRadiusBase + (itemIndex % 4) * cardRadiusStep
-      const cardPos = branchPoint(centerX, centerY, angle + sideOffset, radius)
-      const node = makeNodeForPage(page, cardPos.x, cardPos.y, item.title, item.details)
+      const node = makeNodeForPage(page, columnX, cardStartY + itemIndex * cardSpacing, item.title, item.details)
       setMinNodeSize(node, 245, 52)
       page.nodes.push(node)
       addPageEdge(page, header, node)
