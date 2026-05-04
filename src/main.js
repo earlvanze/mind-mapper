@@ -3038,6 +3038,14 @@ function buildOrganizedMindMapPage(page, plan) {
     const node = createOrganizedNode(item, point.x, point.y, depth, siblingIndex)
     if (parentNode) addPageEdge(page, parentNode, node, depth === 1 ? item.title : (item.concept || ''))
     const kids = (children.get(item.id) || []).sort((a, b) => a.order - b.order)
+    if (depth === 0 && kids.length > 1) {
+      const childRadius = Math.max(520, 360 + kids.length * 22)
+      kids.forEach((child, index) => {
+        const childAngle = -Math.PI / 2 + index * (Math.PI * 2 / kids.length)
+        placeBranch(child, node, childAngle, childRadius, depth + 1, index)
+      })
+      return
+    }
     const fanStep = Math.PI / Math.max(7, kids.length + 2)
     const baseRadius = 380 + depth * 90
     const radiusStep = 135
@@ -3052,7 +3060,9 @@ function buildOrganizedMindMapPage(page, plan) {
     placeBranch(root, null, angle, rootCount === 1 ? 0 : 560, 0, index)
   })
   const rootNodes = page.nodes.filter(node => roots.some(root => root.title === node.text))
-  pushNodesApart(page.nodes, { pad: 56, anchoredIds: rootNodes.map(node => node.id) })
+  const firstLevelNodes = page.nodes.filter(node => node.organizedDepth === 1)
+  const anchoredNodes = firstLevelNodes.length > 1 && firstLevelNodes.length <= 12 ? [...rootNodes, ...firstLevelNodes] : rootNodes
+  pushNodesApart(page.nodes, { pad: 72, maxPasses: 220, anchoredIds: anchoredNodes.map(node => node.id) })
   centerPageViewOnContent(page)
   page.edges.forEach((edge, index) => {
     const from = page.nodes.find(node => node.id === fromId(edge))

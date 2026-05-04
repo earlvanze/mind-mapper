@@ -66,6 +66,11 @@ test('Organize can restructure an arbitrary map into a new radial mind-map page'
   expect(organized.organizedMindMapMode).toBe('restructure-layout-and-structure')
   expect(organized.nodes.map(n => n.text)).toEqual(expect.arrayContaining(['Launch Plan', 'Product Work', 'Finance Blockers']))
   expect(organized.edges.length).toBe(2)
+  const root = organized.nodes.find(n => n.text === 'Launch Plan')
+  const product = organized.nodes.find(n => n.text === 'Product Work')
+  const finance = organized.nodes.find(n => n.text === 'Finance Blockers')
+  expect(product.y + product.height / 2).toBeLessThan(root.y + root.height / 2)
+  expect(finance.y + finance.height / 2).toBeGreaterThan(root.y + root.height / 2)
 })
 
 test('Organize falls back locally when API is unavailable', async ({ page }) => {
@@ -139,6 +144,15 @@ test('Organize lays out dense AI trees without overlapping nodes', async ({ page
     const saved = JSON.parse(localStorage.getItem('mind-mapp-v1'))
     return saved.notebook.pages.find(p => p.title === 'Organized: Dense Plan').nodes
   })
+  const root = nodes.find(node => node.text === 'Dense Plan')
+  const childCenters = nodes.filter(node => node.organizedDepth === 1).map(node => ({
+    x: node.x + node.width / 2,
+    y: node.y + node.height / 2,
+  }))
+  expect(childCenters.some(center => center.y < root.y)).toBe(true)
+  expect(childCenters.some(center => center.y > root.y + root.height)).toBe(true)
+  expect(childCenters.some(center => center.x < root.x)).toBe(true)
+  expect(childCenters.some(center => center.x > root.x + root.width)).toBe(true)
   const pad = 12
   for (let i = 0; i < nodes.length; i += 1) {
     for (let j = i + 1; j < nodes.length; j += 1) {
