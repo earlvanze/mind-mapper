@@ -1291,10 +1291,64 @@ window.addEventListener('resize', resize)
 resize()
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
+function childIdsByNode() {
+  const children = new Map(state.nodes.map(node => [node.id, []]))
+  state.edges.forEach(edge => {
+    if (children.has(fromId(edge))) children.get(fromId(edge)).push(toId(edge))
+  })
+  return children
+}
+
+function descendantIds(nodeId, children = childIdsByNode()) {
+  const ids = new Set()
+  const stack = [...(children.get(nodeId) || [])]
+  while (stack.length) {
+    const id = stack.pop()
+    if (ids.has(id)) continue
+    ids.add(id)
+    ;(children.get(id) || []).forEach(childId => stack.push(childId))
+  }
+  return ids
+}
+
+function hiddenNodeIdsFromCollapsed() {
+  const children = childIdsByNode()
+  const hidden = new Set()
+  state.nodes.filter(node => node.collapsed).forEach(node => {
+    descendantIds(node.id, children).forEach(id => hidden.add(id))
+  })
+  return hidden
+}
+
+function visibleNodeSet() {
+  const hidden = hiddenNodeIdsFromCollapsed()
+  return new Set(state.nodes.filter(node => !hidden.has(node.id)).map(node => node.id))
+}
+
+function visibleNodes() {
+  const visible = visibleNodeSet()
+  return state.nodes.filter(node => visible.has(node.id))
+}
+
+function visibleEdges() {
+  const visible = visibleNodeSet()
+  return state.edges.filter(edge => visible.has(fromId(edge)) && visible.has(toId(edge)))
+}
+
+function nodeHasChildren(node) {
+  return state.edges.some(edge => fromId(edge) === node.id)
+}
+
+function collapsedDescendantCount(node) {
+  return descendantIds(node.id).size
+}
+
 function nodeAt(mx, my) {
   const world = screenToWorld(mx, my)
+  const visible = visibleNodeSet()
   for (let i = state.nodes.length - 1; i >= 0; i--) {
     const n = state.nodes[i]
+    if (!visible.has(n.id)) continue
     if (world.x >= n.x && world.x <= n.x + n.width &&
         world.y >= n.y && world.y <= n.y + n.height) return n
   }
@@ -1303,7 +1357,7 @@ function nodeAt(mx, my) {
 
 function edgeAt(mx, my) {
   const world = screenToWorld(mx, my)
-  for (const e of state.edges) {
+  for (const e of visibleEdges()) {
     const from = state.nodes.find(n => n.id === fromId(e))
     const to = state.nodes.find(n => n.id === toId(e))
     if (!from || !to) continue
@@ -1372,7 +1426,10 @@ function routedPolylinePoints(fromNode, toNode, side = 'east') {
   const sy = start.y + dir.y * Math.min(stub, Math.max(36, Math.abs(end.y - start.y) / 3))
   const ex = end.x - dir.x * Math.min(stub, Math.max(36, Math.abs(end.x - start.x) / 3))
   const ey = end.y - dir.y * Math.min(stub, Math.max(36, Math.abs(end.y - start.y) / 3))
-  return [start, { x: sx, y: sy }, { x: ex, y: sy }, { x: ex, y: ey }, end]
+  if (side === 'northeast' || side === 'southwest') {
+    return [start, { x: sx, y: start.y }, { x: sx, y: ey }, { x: end.x, y: ey }, end]
+  }
+  return [start, { x: start.x, y: sy }, { x: ex, y: sy }, { x: ex, y: end.y }, end]
 }
 
 function refreshRoutedEdgePoints(edge, fromNode, toNode) {
@@ -1544,7 +1601,7 @@ function renderScene(ctx) {
 
   drawGrid(ctx)
 
-  for (const e of state.edges) {
+  for (const e of visibleEdges()) {
     drawEdge(ctx, e)
   }
 
@@ -1558,7 +1615,7 @@ function renderScene(ctx) {
     }
   }
 
-  for (const n of state.nodes) {
+  for (const n of visibleNodes()) {
     drawNode(ctx, n)
   }
 
@@ -1742,6 +1799,21 @@ function drawNode(ctx, n) {
       ctx.fill()
       ctx.fillStyle = isSelected ? '#fff' : nodeStyle.accent
       ctx.fillText(badgeText, bx + 7 / state.view.scale, by + 13 / state.view.scale)
+    }
+    if (n.collapsed && nodeHasChildren(n)) {
+      const count = collapsedDescendantCount(n)
+      const badgeText = `＋ ${count}`
+      const badgeFont = 12 / state.view.scale
+      ctx.font = `700 ${badgeFont}px system-ui, sans-serif`
+      const badgeW = ctx.measureText(badgeText).width + 14 / state.view.scale
+      const badgeH = 20 / state.view.scale
+      const bx = n.x + n.width - badgeW - 8 / state.view.scale
+      const by = n.y + n.height - badgeH - 7 / state.view.scale
+      ctx.fillStyle = isSelected ? 'rgba(255,255,255,0.28)' : `${nodeStyle.accent}2f`
+      roundRect(ctx, bx, by, badgeW, badgeH, 999 / state.view.scale)
+      ctx.fill()
+      ctx.fillStyle = isSelected ? '#fff' : nodeStyle.accent
+      ctx.fillText(badgeText, bx + 7 / state.view.scale, by + 14 / state.view.scale)
     }
   }
 }
@@ -2529,6 +2601,46 @@ canvas.addEventListener('pointercancel', e => {
   render()
 })
 
+function focusNodesInView(nodes, pad = 140) {
+  if (!nodes.length) return
+  const bounds = nodes.reduce((acc, node) => ({
+    minX: Math.min(acc.minX, node.x),
+    minY: Math.min(acc.minY, node.y),
+    maxX: Math.max(acc.maxX, node.x + node.width),
+    maxY: Math.max(acc.maxY, node.y + node.height),
+  }), { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity })
+  bounds.minX -= pad
+  bounds.minY -= pad
+  bounds.maxX += pad
+  bounds.maxY += pad
+  const worldW = Math.max(1, bounds.maxX - bounds.minX)
+  const worldH = Math.max(1, bounds.maxY - bounds.minY)
+  const scale = clampScale(Math.min(canvas.width / worldW, canvas.height / worldH, 1.35))
+  setView({
+    x: (canvas.width - worldW * scale) / 2 - bounds.minX * scale,
+    y: (canvas.height - worldH * scale) / 2 - bounds.minY * scale,
+    scale,
+  })
+}
+
+function toggleNodeCollapse(node) {
+  if (!nodeHasChildren(node)) return false
+  node.collapsed = !node.collapsed
+  state.selected = node.id
+  state.selectedType = 'node'
+  if (node.collapsed) {
+    focusNodesInView([node], 180)
+  } else {
+    const ids = descendantIds(node.id)
+    const subtree = state.nodes.filter(candidate => candidate.id === node.id || ids.has(candidate.id))
+    focusNodesInView(subtree, 160)
+  }
+  historyCommit()
+  save()
+  render()
+  return true
+}
+
 canvas.addEventListener('dblclick', e => {
   if (state.editing || edgeEditInput) return
   const rect = canvas.getBoundingClientRect()
@@ -2539,6 +2651,7 @@ canvas.addEventListener('dblclick', e => {
   const existing = nodeAt(mx, my)
   if (existing) {
     if (state.selected !== existing.id || state.selectedType !== 'node') persistDetailsText({ commitHistory: false })
+    if (toggleNodeCollapse(existing)) return
     state.selected = existing.id
     state.selectedType = 'node'
     showDetailsForNode(existing)
@@ -2758,9 +2871,10 @@ btnRedo.addEventListener('click', () => {
 
 
 function contentBounds(pad = 80) {
-  if (state.nodes.length === 0) return null
+  const nodes = visibleNodes()
+  if (nodes.length === 0) return null
   let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity
-  for (const n of state.nodes) {
+  for (const n of nodes) {
     minX = Math.min(minX, n.x)
     minY = Math.min(minY, n.y)
     maxX = Math.max(maxX, n.x + n.width)
@@ -3366,8 +3480,7 @@ function buildOrganizedMindMapPage(page, plan) {
           const edge = addPageEdge(page, rootNode, result.node, result.node.organizedConcept || '')
           edge.route = 'polyline'
           edge.side = side
-          edge.directRoute = true
-          edge.points = [edgePortForSide(rootNode, side, true), edgePortForSide(result.node, side, false)]
+          edge.points = orthogonalRoute(rootNode, result.node, side)
         }
       })
     }
@@ -3654,10 +3767,11 @@ function minimapResize() {
 minimapResize()
 
 function minimapMetrics() {
-  if (state.nodes.length === 0) return null
+  const nodes = visibleNodes()
+  if (nodes.length === 0) return null
 
   let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity
-  for (const n of state.nodes) {
+  for (const n of nodes) {
     minX = Math.min(minX, n.x)
     minY = Math.min(minY, n.y)
     maxX = Math.max(maxX, n.x + n.width)
@@ -3716,7 +3830,7 @@ function drawMinimap() {
 
   mctx.strokeStyle = '#c4bfcc'
   mctx.lineWidth = 1
-  for (const e of state.edges) {
+  for (const e of visibleEdges()) {
     const from = state.nodes.find(n => n.id === fromId(e))
     const to = state.nodes.find(n => n.id === toId(e))
     if (!from || !to) continue

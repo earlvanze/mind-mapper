@@ -191,6 +191,13 @@ test('imports the real Trello mindmap JSON as consolidated project groups', asyn
     const touchesTo = Math.abs(last.x - to.x) < 0.01 || Math.abs(last.x - (to.x + to.width)) < 0.01 || Math.abs(last.y - to.y) < 0.01 || Math.abs(last.y - (to.y + to.height)) < 0.01
     expect(touchesFrom, `edge from ${from.text} starts on node boundary`).toBe(true)
     expect(touchesTo, `edge to ${to.text} ends on node boundary`).toBe(true)
+
+    for (let i = 1; i < edge.points.length; i += 1) {
+      const previous = edge.points[i - 1]
+      const current = edge.points[i]
+      const axisAligned = Math.abs(previous.x - current.x) < 0.01 || Math.abs(previous.y - current.y) < 0.01
+      expect(axisAligned, `edge from ${from.text} to ${to.text} has orthogonal segment`).toBe(true)
+    }
   }
 
   const nodeById = new Map(imported.nodes.map(node => [node.id, node]))
