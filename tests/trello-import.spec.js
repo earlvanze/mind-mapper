@@ -161,6 +161,8 @@ test('imports the real Trello mindmap JSON as consolidated project groups', asyn
   }), { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity })
   const width = bounds.maxX - bounds.minX
   const height = bounds.maxY - bounds.minY
+  expect(width).toBeLessThan(10000)
+  expect(height).toBeLessThan(14500)
   expect(Math.max(width, height) / Math.min(width, height)).toBeLessThan(2.25)
   const root = imported.nodes.find(node => node.organizedDepth === 0)
   expect(imported.nodes.some(node => node.x + node.width / 2 < root.x)).toBe(true)

@@ -3195,7 +3195,7 @@ function buildOrganizedMindMapPage(page, plan) {
     const rootY = centerY
     const nodeByPlanId = new Map()
     const positionByPlanId = new Map()
-    const depthRadius = [0, 2500, 7000, 11200, 15400]
+    const depthRadius = [0, 1500, 3900, 6300, 8600]
     const rootItem = roots.slice().sort((a, b) => a.order - b.order)[0]
     const topLevel = rootItem ? (children.get(rootItem.id) || []).sort((a, b) => a.order - b.order) : roots.slice().sort((a, b) => a.order - b.order)
 
@@ -3224,7 +3224,7 @@ function buildOrganizedMindMapPage(page, plan) {
       const start = nodeCenter(parentNode)
       const end = nodeCenter(childNode)
       if (parentPos.depth === 0) return [start, end]
-      return [start, polarPoint(parentPos.radius + 620, childPos.angle), end]
+      return [start, polarPoint(parentPos.radius + 360, childPos.angle), end]
     }
 
     function layoutSubtree(item, depth, sectorStart, sectorEnd, siblingIndex) {
@@ -3268,7 +3268,7 @@ function buildOrganizedMindMapPage(page, plan) {
       })
     }
 
-    pushNodesApart(page.nodes, { pad: 96, maxPasses: 280, anchoredIds: page.nodes.filter(node => node.organizedDepth <= 1).map(node => node.id) })
+    pushNodesApart(page.nodes, { pad: 56, maxPasses: 220, anchoredIds: page.nodes.filter(node => node.organizedDepth <= 1).map(node => node.id) })
     page.nodes.forEach(node => {
       const center = nodeCenter(node)
       node.radialAngle = Math.atan2(center.y - rootY, center.x - rootX)
