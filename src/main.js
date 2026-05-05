@@ -1349,25 +1349,41 @@ function edgePortForSide(node, side, isSource) {
 function routedPolylinePoints(fromNode, toNode, side = 'east') {
   const start = edgePortForSide(fromNode, side, true)
   const end = edgePortForSide(toNode, side, false)
+  const dir = {
+    east: { x: 1, y: 0 },
+    southeast: { x: 1, y: 1 },
+    south: { x: 0, y: 1 },
+    southwest: { x: -1, y: 1 },
+    west: { x: -1, y: 0 },
+    northwest: { x: -1, y: -1 },
+    north: { x: 0, y: -1 },
+    northeast: { x: 1, y: -1 },
+  }[side] || { x: 1, y: 0 }
+  const stub = 86
   if (side === 'east' || side === 'west') {
-    const mx = (start.x + end.x) / 2
-    return [start, { x: mx, y: start.y }, { x: mx, y: end.y }, end]
+    const x = start.x + dir.x * Math.min(stub, Math.max(36, Math.abs(end.x - start.x) / 3))
+    return [start, { x, y: start.y }, { x, y: end.y }, end]
   }
   if (side === 'north' || side === 'south') {
-    const my = (start.y + end.y) / 2
-    return [start, { x: start.x, y: my }, { x: end.x, y: my }, end]
+    const y = start.y + dir.y * Math.min(stub, Math.max(36, Math.abs(end.y - start.y) / 3))
+    return [start, { x: start.x, y }, { x: end.x, y }, end]
   }
-  if (side === 'northeast' || side === 'southwest') {
-    return [start, { x: end.x, y: start.y }, end]
-  }
-  return [start, { x: start.x, y: end.y }, end]
+  const sx = start.x + dir.x * Math.min(stub, Math.max(36, Math.abs(end.x - start.x) / 3))
+  const sy = start.y + dir.y * Math.min(stub, Math.max(36, Math.abs(end.y - start.y) / 3))
+  const ex = end.x - dir.x * Math.min(stub, Math.max(36, Math.abs(end.x - start.x) / 3))
+  const ey = end.y - dir.y * Math.min(stub, Math.max(36, Math.abs(end.y - start.y) / 3))
+  return [start, { x: sx, y: sy }, { x: ex, y: sy }, { x: ex, y: ey }, end]
 }
 
 function refreshRoutedEdgePoints(edge, fromNode, toNode) {
   if (edge?.route !== 'polyline') return edge?.points || null
   const side = edge.side || toNode?.treeSide || fromNode?.treeSide || 'east'
   edge.side = side
-  edge.points = routedPolylinePoints(fromNode, toNode, side)
+  if (edge.directRoute) {
+    edge.points = [edgePortForSide(fromNode, side, true), edgePortForSide(toNode, side, false)]
+  } else {
+    edge.points = routedPolylinePoints(fromNode, toNode, side)
+  }
   return edge.points
 }
 
@@ -3258,7 +3274,7 @@ function buildOrganizedMindMapPage(page, plan) {
     }
     const firstGap = 720
     const depthGap = 540
-    const laneGap = 190
+    const laneGap = 150
     const groupGap = 220
     const rootItem = roots.slice().sort((a, b) => a.order - b.order)[0]
     const topLevel = rootItem && roots.length === 1
@@ -3324,7 +3340,20 @@ function buildOrganizedMindMapPage(page, plan) {
       ? createTreeNode(rootItem, 'east', 0, 0, 0)
       : null
     const sides = new Map(sideOrder.map(side => [side, []]))
-    topLevel.forEach((item, index) => sides.get(sideOrder[index % sideOrder.length]).push(item))
+    const sideLoad = new Map(sideOrder.map(side => [side, 0]))
+    const compactPriority = ['north', 'south', 'northeast', 'southeast', 'northwest', 'southwest', 'east', 'west']
+    const weightedTopLevel = topLevel.slice().sort((a, b) => subtreeLeafCount(b) - subtreeLeafCount(a) || a.order - b.order)
+    weightedTopLevel.forEach((item, index) => {
+      const leaves = subtreeLeafCount(item)
+      const side = index < compactPriority.length
+        ? compactPriority[index]
+        : sideOrder.slice().sort((a, b) => sideLoad.get(a) - sideLoad.get(b))[0]
+      sides.get(side).push(item)
+      const cfg = sideConfig[side]
+      const verticalWeight = Math.abs(cfg.py) || 0.2
+      sideLoad.set(side, sideLoad.get(side) + leaves * verticalWeight)
+    })
+    sideOrder.forEach(side => sides.get(side).sort((a, b) => a.order - b.order))
 
     for (const side of sideOrder) {
       const items = sides.get(side)
@@ -3337,12 +3366,76 @@ function buildOrganizedMindMapPage(page, plan) {
           const edge = addPageEdge(page, rootNode, result.node, result.node.organizedConcept || '')
           edge.route = 'polyline'
           edge.side = side
-          edge.points = orthogonalRoute(rootNode, result.node, side)
+          edge.directRoute = true
+          edge.points = [edgePortForSide(rootNode, side, true), edgePortForSide(result.node, side, false)]
         }
       })
     }
 
-    pushNodesApart(page.nodes, { pad: 58, maxPasses: 320, anchoredIds: page.nodes.filter(node => node.organizedDepth === 0).map(node => node.id) })
+    const childIdsByParent = new Map(page.nodes.map(node => [node.id, []]))
+    page.edges.forEach(edge => childIdsByParent.get(fromId(edge))?.push(toId(edge)))
+    function collectSubtreeNodes(rootNode) {
+      const collected = []
+      const stack = [rootNode.id]
+      while (stack.length) {
+        const id = stack.pop()
+        const node = page.nodes.find(candidate => candidate.id === id)
+        if (!node) continue
+        collected.push(node)
+        ;(childIdsByParent.get(id) || []).forEach(childId => stack.push(childId))
+      }
+      return collected
+    }
+    function boundsFor(nodes) {
+      return nodes.reduce((acc, node) => ({
+        minX: Math.min(acc.minX, node.x),
+        minY: Math.min(acc.minY, node.y),
+        maxX: Math.max(acc.maxX, node.x + node.width),
+        maxY: Math.max(acc.maxY, node.y + node.height),
+      }), { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity })
+    }
+    function shiftNodes(nodes, dx, dy) {
+      nodes.forEach(node => {
+        node.x += dx
+        node.y += dy
+      })
+    }
+    const projectGroups = page.nodes
+      .filter(node => node.organizedDepth === 1)
+      .map(root => ({ root, nodes: collectSubtreeNodes(root) }))
+    projectGroups.forEach(group => pushNodesApart(group.nodes, { pad: 28, maxPasses: 90, anchoredIds: [group.root.id] }))
+    for (let pass = 0; pass < 80; pass += 1) {
+      let moved = false
+      for (let i = 0; i < projectGroups.length; i += 1) {
+        for (let j = i + 1; j < projectGroups.length; j += 1) {
+          const a = projectGroups[i]
+          const b = projectGroups[j]
+          const ab = boundsFor(a.nodes)
+          const bb = boundsFor(b.nodes)
+          const pad = 50
+          const overlapX = Math.min(ab.maxX + pad, bb.maxX + pad) - Math.max(ab.minX - pad, bb.minX - pad)
+          const overlapY = Math.min(ab.maxY + pad, bb.maxY + pad) - Math.max(ab.minY - pad, bb.minY - pad)
+          if (overlapX <= 0 || overlapY <= 0) continue
+          const ax = a.root.x + a.root.width / 2
+          const ay = a.root.y + a.root.height / 2
+          const bx = b.root.x + b.root.width / 2
+          const by = b.root.y + b.root.height / 2
+          if (overlapX < overlapY) {
+            const dir = ax <= bx ? -1 : 1
+            const delta = overlapX / 2 + 6
+            shiftNodes(a.nodes, dir * delta, 0)
+            shiftNodes(b.nodes, -dir * delta, 0)
+          } else {
+            const dir = ay <= by ? -1 : 1
+            const delta = overlapY / 2 + 6
+            shiftNodes(a.nodes, 0, dir * delta)
+            shiftNodes(b.nodes, 0, -dir * delta)
+          }
+          moved = true
+        }
+      }
+      if (!moved) break
+    }
     page.edges.forEach(edge => {
       const from = page.nodes.find(node => node.id === fromId(edge))
       const to = page.nodes.find(node => node.id === toId(edge))

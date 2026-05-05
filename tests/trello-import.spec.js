@@ -192,5 +192,45 @@ test('imports the real Trello mindmap JSON as consolidated project groups', asyn
     expect(touchesFrom, `edge from ${from.text} starts on node boundary`).toBe(true)
     expect(touchesTo, `edge to ${to.text} ends on node boundary`).toBe(true)
   }
+
+  const nodeById = new Map(imported.nodes.map(node => [node.id, node]))
+  const parentById = new Map(imported.edges.map(edge => [edge.to, edge.from]))
+  function projectRootId(nodeId) {
+    let current = nodeId
+    let previous = nodeId
+    while (parentById.has(current)) {
+      previous = current
+      current = parentById.get(current)
+      if (nodeById.get(current)?.organizedDepth === 0) return previous
+    }
+    return previous
+  }
+  const projectByNodeId = new Map(imported.nodes.map(node => [node.id, node.organizedDepth === 1 ? node.id : projectRootId(node.id)]))
+  function segmentHitsNode(x1, y1, x2, y2, node, clear = 10) {
+    const left = node.x - clear
+    const right = node.x + node.width + clear
+    const top = node.y - clear
+    const bottom = node.y + node.height + clear
+    const steps = Math.max(8, Math.ceil(Math.hypot(x2 - x1, y2 - y1) / 24))
+    for (let step = 1; step < steps; step += 1) {
+      const ratio = step / steps
+      const x = x1 + (x2 - x1) * ratio
+      const y = y1 + (y2 - y1) * ratio
+      if (x >= left && x <= right && y >= top && y <= bottom) return true
+    }
+    return false
+  }
+  for (const edge of imported.edges) {
+    const from = nodeById.get(edge.from)
+    if (from?.organizedDepth === 0) continue
+    const edgeProjectId = projectByNodeId.get(edge.to)
+    const segments = edge.points.slice(1).map((point, index) => [edge.points[index], point])
+    for (const node of imported.nodes) {
+      if (node.id === edge.from || node.id === edge.to || projectByNodeId.get(node.id) === edgeProjectId) continue
+      const crossesSeparateProject = segments.some(([a, b]) => segmentHitsNode(a.x, a.y, b.x, b.y, node))
+      expect(crossesSeparateProject, `${from.text} -> ${nodeById.get(edge.to).text} crosses ${node.text}`).toBe(false)
+    }
+  }
+
   expect(imported.view.scale).toBeGreaterThanOrEqual(0.3)
 })
