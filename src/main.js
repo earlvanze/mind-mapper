@@ -453,6 +453,9 @@ function buildTrelloBoardPage(page, board) {
   const cards = board.cards
     .filter(card => !card.closed && listById.has(card.idList))
     .sort((a, b) => (listById.get(a.idList)?.pos || 0) - (listById.get(b.idList)?.pos || 0) || (a.pos || 0) - (b.pos || 0))
+  const cardsByListId = new Map(openLists.map(list => [list.id, cards.filter(card => card.idList === list.id)]))
+  const populatedLists = openLists.filter(list => (cardsByListId.get(list.id) || []).length)
+  const useListGroups = populatedLists.length > 6 || cards.length > 40
 
   const nodes = [
     {
@@ -463,22 +466,22 @@ function buildTrelloBoardPage(page, board) {
       status: '',
       order: 0,
       details: [
-        'Imported from Trello board JSON and converted into a radial project/task mind map.',
+        useListGroups
+          ? 'Imported from Trello board JSON and consolidated into project groups with cards/tasks branching outward.'
+          : 'Imported from Trello board JSON and converted into a radial project/task mind map.',
         board.url ? `Trello URL: ${board.url}` : '',
         board.desc ? `Description:\n${board.desc}` : '',
       ].filter(Boolean).join('\n\n'),
     },
   ]
 
-  cards.forEach((card, index) => {
-    const list = listById.get(card.idList)
-    const status = compactText(list?.name) || statusForKanbanText(card.name)
+  function addCardNode(card, parentId, status, index) {
     const projectId = `card-${card.id || index + 1}`
     nodes.push({
       id: projectId,
       sourceId: card.id || null,
       title: compactText(card.name) || 'Untitled Trello card',
-      parentId: 'root',
+      parentId,
       concept: status,
       status,
       order: nodes.length,
@@ -497,19 +500,42 @@ function buildTrelloBoardPage(page, board) {
         details: `Task from Trello checklist on ${compactText(card.name) || 'card'}.`,
       })
     })
-  })
+  }
+
+  if (useListGroups) {
+    populatedLists.forEach((list, listIndex) => {
+      const groupId = `list-${list.id || listIndex + 1}`
+      const listCards = cardsByListId.get(list.id) || []
+      nodes.push({
+        id: groupId,
+        title: compactText(list.name) || `Project group ${listIndex + 1}`,
+        parentId: 'root',
+        concept: 'project group',
+        status: '',
+        order: nodes.length,
+        edgeLabel: '',
+        details: `${listCards.length} Trello cards imported under this project group.`,
+      })
+      listCards.forEach((card, cardIndex) => addCardNode(card, groupId, compactText(list.name) || statusForKanbanText(card.name), cardIndex))
+    })
+  } else {
+    cards.forEach((card, index) => {
+      const list = listById.get(card.idList)
+      addCardNode(card, 'root', compactText(list?.name) || statusForKanbanText(card.name), index)
+    })
+  }
 
   buildOrganizedMindMapPage(page, {
     title,
     provider: 'trello import',
     nodes,
   })
-  page.trelloImportVersion = 3
+  page.trelloImportVersion = 4
   page.trelloBoardId = board.id || null
   page.organizedMindMapImportSource = 'trello'
   page.edgeLabels = {}
   page.nodes.forEach(node => {
-    const planNode = nodes.find(candidate => candidate.title === node.text)
+    const planNode = nodes.find(candidate => candidate.title === node.text || wrapMindMapTitle(candidate.title, node.organizedDepth === 1 ? 30 : 34) === node.text)
     if (planNode?.sourceId) node.trelloCardId = planNode.sourceId
   })
 }

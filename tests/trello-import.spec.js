@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { readFileSync } from 'node:fs'
 
 const trelloBoard = {
   id: 'board1',
@@ -31,7 +32,7 @@ test('imports a Trello board JSON export as a new mind-map page', async ({ page 
   const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('mind-mapp-v1')))
   const imported = saved.notebook.pages.find(p => p.title === 'Launch Plan')
   expect(imported).toBeTruthy()
-  expect(imported.trelloImportVersion).toBe(3)
+  expect(imported.trelloImportVersion).toBe(4)
   expect(imported.nodes.map(node => node.text)).toEqual(expect.arrayContaining([
     'Launch Plan',
     'Write launch copy',
@@ -112,4 +113,39 @@ test('imports dense Trello boards as readable multi-ring radial mind maps', asyn
       expect(overlap, a.text + ' overlaps ' + b.text).toBe(false)
     }
   }
+})
+
+
+test('imports the real Trello mindmap JSON as consolidated project groups', async ({ page }) => {
+  const trello = readFileSync('/home/umbrel/Dropbox/Obsidian/Operations/earls-life-mindmap-with-operations-kanban.trello.json', 'utf8')
+  await page.goto('/')
+  await page.locator('#trello-file-input').setInputFiles({
+    name: 'earls-life-mindmap-with-operations-kanban.trello.json',
+    mimeType: 'application/json',
+    buffer: Buffer.from(trello),
+  })
+
+  const imported = await page.evaluate(() => {
+    const saved = JSON.parse(localStorage.getItem('mind-mapp-v1'))
+    return saved.notebook.pages.find(p => p.title === "Earl's Life Mindmap")
+  })
+  expect(imported).toBeTruthy()
+  expect(imported.trelloImportVersion).toBe(4)
+  const texts = imported.nodes.map(node => node.text.replace(/\n/g, ' '))
+  expect(texts).toEqual(expect.arrayContaining([
+    "Earl's Life Mindmap",
+    'Ideas Backlog',
+    'Ops: Now / Active Execution',
+    'Mind Mapp',
+    'OpenClaw infrastructure',
+  ]))
+  expect(Object.keys(imported.edgeLabels || {})).toHaveLength(0)
+  expect(imported.nodes.filter(node => node.organizedDepth === 1).length).toBeGreaterThan(15)
+  expect(imported.nodes.filter(node => node.organizedDepth === 2).length).toBeGreaterThan(80)
+  const opsGroup = imported.nodes.find(node => node.text === 'Ops: Now / Active Execution')
+  const mindMapp = imported.nodes.find(node => node.text === 'Mind Mapp')
+  expect(opsGroup.organizedDepth).toBe(1)
+  expect(mindMapp.organizedDepth).toBe(2)
+  expect(imported.edges).toEqual(expect.arrayContaining([expect.objectContaining({ from: opsGroup.id, to: mindMapp.id })]))
+  expect(imported.view.scale).toBeGreaterThanOrEqual(0.3)
 })
