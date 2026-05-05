@@ -3236,17 +3236,25 @@ function buildOrganizedMindMapPage(page, plan) {
       return node
     }
 
+    function edgePort(node, side, isSource) {
+      const cx = node.x + node.width / 2
+      const cy = node.y + node.height / 2
+      if (side === 'east') return isSource ? { x: node.x + node.width, y: cy } : { x: node.x, y: cy }
+      if (side === 'west') return isSource ? { x: node.x, y: cy } : { x: node.x + node.width, y: cy }
+      if (side === 'south') return isSource ? { x: cx, y: node.y + node.height } : { x: cx, y: node.y }
+      if (side === 'north') return isSource ? { x: cx, y: node.y } : { x: cx, y: node.y + node.height }
+      return { x: cx, y: cy }
+    }
+
     function orthogonalRoute(fromNode, toNode, side) {
-      const ax = fromNode.x + fromNode.width / 2
-      const ay = fromNode.y + fromNode.height / 2
-      const bx = toNode.x + toNode.width / 2
-      const by = toNode.y + toNode.height / 2
+      const start = edgePort(fromNode, side, true)
+      const end = edgePort(toNode, side, false)
       if (side === 'east' || side === 'west') {
-        const mx = (ax + bx) / 2
-        return [{ x: ax, y: ay }, { x: mx, y: ay }, { x: mx, y: by }, { x: bx, y: by }]
+        const mx = (start.x + end.x) / 2
+        return [start, { x: mx, y: start.y }, { x: mx, y: end.y }, end]
       }
-      const my = (ay + by) / 2
-      return [{ x: ax, y: ay }, { x: ax, y: my }, { x: bx, y: my }, { x: bx, y: by }]
+      const my = (start.y + end.y) / 2
+      return [start, { x: start.x, y: my }, { x: end.x, y: my }, end]
     }
 
     function assignSubtree(item, side, depth, nextLane, siblingIndex) {

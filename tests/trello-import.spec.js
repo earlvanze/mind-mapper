@@ -182,5 +182,15 @@ test('imports the real Trello mindmap JSON as consolidated project groups', asyn
   }
 
   expect(imported.edges.every(edge => Array.isArray(edge.points) && edge.points.length >= 2)).toBe(true)
+  for (const edge of imported.edges) {
+    const from = imported.nodes.find(node => node.id === edge.from)
+    const to = imported.nodes.find(node => node.id === edge.to)
+    const first = edge.points[0]
+    const last = edge.points[edge.points.length - 1]
+    const touchesFrom = Math.abs(first.x - from.x) < 0.01 || Math.abs(first.x - (from.x + from.width)) < 0.01 || Math.abs(first.y - from.y) < 0.01 || Math.abs(first.y - (from.y + from.height)) < 0.01
+    const touchesTo = Math.abs(last.x - to.x) < 0.01 || Math.abs(last.x - (to.x + to.width)) < 0.01 || Math.abs(last.y - to.y) < 0.01 || Math.abs(last.y - (to.y + to.height)) < 0.01
+    expect(touchesFrom, `edge from ${from.text} starts on node boundary`).toBe(true)
+    expect(touchesTo, `edge to ${to.text} ends on node boundary`).toBe(true)
+  }
   expect(imported.view.scale).toBeGreaterThanOrEqual(0.3)
 })
